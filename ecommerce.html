@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artículos E-Commerce - knifeblackstore</title>
+    <link rel="stylesheet" href="/main.css?v=2">
+    <style>
+        .product-item {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .product-item img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .price {
+            font-size: 1.2rem;
+            color: #2ecc71;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .add-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .add-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
+            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
+            knifeblackstore
+        </a>
+        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Iniciar Sesión</a>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="links menu">
+            <div class="dropdown">
+                <a href="index.html#servicios">Servicios ▾</a>
+                <div class="dropdown-content">
+                    <a href="web.html">Web</a>
+                    <a href="plataformas.html">Plataformas Streaming</a>
+                    <a href="diseno.html">Diseño</a>
+                </div>
+            </div>
+            <a href="index.html#contacto">Contacto</a>
+        </div>
+    </nav>
+
+    <header class="hero" style="padding: 40px 5%;">
+        <h1>Artículos Disponibles</h1>
+        <p>Explora nuestros productos y añádelos a tu carrito de compras.</p>
+        <div class="btns">
+            <a href="web.html" class="b1">Volver a Web</a>
+        </div>
+    </header>
+
+    <section class="grid">
+        <div class="product-item">
+            <div class="editable-content" id="prod1-icon" style="font-size: 4rem; margin-bottom: 10px;">📱</div>
+            <h3 class="editable-content" id="prod1-title">Smartphone Pro</h3>
+            <p class="price editable-content" id="prod1-price">$599.99</p>
+            <p class="editable-content" id="prod1-desc" style="color:#666; font-size:0.9rem; margin-bottom: 15px;">Teléfono de última generación con cámara avanzada.</p>
+            <button class="add-btn" onclick="addToCart(this)">Añadir al Carrito</button>
+        </div>
+        <div class="product-item">
+            <div class="editable-content" id="prod2-icon" style="font-size: 4rem; margin-bottom: 10px;">💻</div>
+            <h3 class="editable-content" id="prod2-title">Laptop Gamer</h3>
+            <p class="price editable-content" id="prod2-price">$1299.99</p>
+            <p class="editable-content" id="prod2-desc" style="color:#666; font-size:0.9rem; margin-bottom: 15px;">Rendimiento extremo para tus juegos y trabajo.</p>
+            <button class="add-btn" onclick="addToCart(this)">Añadir al Carrito</button>
+        </div>
+        <div class="product-item">
+            <div class="editable-content" id="prod3-icon" style="font-size: 4rem; margin-bottom: 10px;">🎧</div>
+            <h3 class="editable-content" id="prod3-title">Auriculares Inalámbricos</h3>
+            <p class="price editable-content" id="prod3-price">$89.99</p>
+            <p class="editable-content" id="prod3-desc" style="color:#666; font-size:0.9rem; margin-bottom: 15px;">Cancelación de ruido y batería de larga duración.</p>
+            <button class="add-btn" onclick="addToCart(this)">Añadir al Carrito</button>
+        </div>
+        <div class="product-item">
+            <div class="editable-content" id="prod4-icon" style="font-size: 4rem; margin-bottom: 10px;">⌚</div>
+            <h3 class="editable-content" id="prod4-title">Smartwatch</h3>
+            <p class="price editable-content" id="prod4-price">$149.99</p>
+            <p class="editable-content" id="prod4-desc" style="color:#666; font-size:0.9rem; margin-bottom: 15px;">Monitorea tu salud y recibe notificaciones.</p>
+            <button class="add-btn" onclick="addToCart(this)">Añadir al Carrito</button>
+        </div>
+    </section>
+
+    <!-- Carrito Flotante -->
+    <div id="cart-widget" style="position:fixed; bottom:20px; right:20px; background:#2c3e50; color:white; padding:15px 20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); display:none; z-index:1000; min-width: 250px;">
+        <h3 style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">🛒 Carrito</h3>
+        <ul id="cart-items" style="list-style:none; padding:0; margin:0 0 10px 0; font-size: 0.9rem; max-height: 150px; overflow-y: auto;">
+        </ul>
+        <div style="font-weight: bold; text-align: right; margin-top: 10px; border-top: 1px solid #444; padding-top: 5px;">
+            Total: <span id="cart-total">$0.00</span>
+        </div>
+        <button onclick="clearCart()" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:3px; margin-top:10px; width:100%; cursor:pointer;">Vaciar Carrito</button>
+    </div>
+
+    <footer>
+        <p style="text-align:center; padding:20px; font-size:14px; color:#666;">
+            &copy; 2026 Mauricio Valencia - SENA
+        </p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

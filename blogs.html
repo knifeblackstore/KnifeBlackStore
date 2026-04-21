@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios de Blogs - knifeblackstore</title>
+    <link rel="stylesheet" href="/main.css?v=2">
+    <style>
+        .blog-item {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: left;
+            transition: 0.3s;
+            border-left: 5px solid #e67e22;
+        }
+        .blog-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .blog-item h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .blog-date {
+            font-size: 0.85rem;
+            color: #95a5a6;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .blog-desc {
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        .read-btn {
+            background: transparent;
+            color: #e67e22;
+            border: 1px solid #e67e22;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: auto;
+            display: inline-block;
+        }
+        .read-btn:hover {
+            background: #e67e22;
+            color: white;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
+            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
+            knifeblackstore
+        </a>
+        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Iniciar Sesión</a>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="links menu">
+            <div class="dropdown">
+                <a href="index.html#servicios">Servicios ▾</a>
+                <div class="dropdown-content">
+                    <a href="web.html">Web</a>
+                    <a href="plataformas.html">Plataformas Streaming</a>
+                    <a href="diseno.html">Diseño</a>
+                </div>
+            </div>
+            <a href="index.html#contacto">Contacto</a>
+        </div>
+    </nav>
+
+    <header class="hero" style="padding: 40px 5%;">
+        <h1>Nuestro Blog</h1>
+        <p>Encuentra los últimos artículos, noticias y novedades del sector.</p>
+        <div class="btns">
+            <a href="web.html" class="b1">Volver a Web</a>
+        </div>
+    </header>
+
+    <section class="grid">
+        <div class="blog-item">
+            <h3 class="editable-content" id="blog1-title">10 Tendencias de Diseño Web</h3>
+            <span class="blog-date editable-content" id="blog1-date">Publicado el 15 de Abril, 2026</span>
+            <p class="blog-desc editable-content" id="blog1-desc">Descubre cuáles serán los estilos visuales y funcionalidades que dominarán la web este año. Desde el modo oscuro hasta las micro-interacciones.</p>
+            <div class="more-content editable-content" id="blog1-more" style="display: none; margin-bottom: 20px; color: #555; font-size: 0.95rem; line-height: 1.5;">
+                <p><br>El modo oscuro se ha convertido en un estándar, no solo por estética, sino porque reduce el consumo de batería y la fatiga visual. Veremos fondos profundos con acentos de neón vibrantes.</p>
+                <p><br>Además, el diseño asimétrico y las tipografías gigantes serán la norma para captar la atención inmediatamente en los primeros segundos de navegación.</p>
+            </div>
+            <button class="read-btn" onclick="toggleReadMore(this)">Leer más</button>
+        </div>
+        <div class="blog-item">
+            <h3 class="editable-content" id="blog2-title">Importancia del SEO en 2026</h3>
+            <span class="blog-date editable-content" id="blog2-date">Publicado el 10 de Abril, 2026</span>
+            <p class="blog-desc editable-content" id="blog2-desc">El posicionamiento en buscadores sigue evolucionando. Aprende las técnicas más recientes para asegurar que tu sitio sea encontrado por tus clientes.</p>
+            <div class="more-content editable-content" id="blog2-more" style="display: none; margin-bottom: 20px; color: #555; font-size: 0.95rem; line-height: 1.5;">
+                <p><br>El SEO por voz y las búsquedas semánticas son ahora más cruciales que nunca. Los usuarios formulan preguntas complejas, y tu contenido debe responderlas de forma directa.</p>
+                <p><br>La velocidad de carga y la experiencia de usuario (Core Web Vitals) siguen siendo los factores técnicos más importantes para clasificar en la primera página de resultados.</p>
+            </div>
+            <button class="read-btn" onclick="toggleReadMore(this)">Leer más</button>
+        </div>
+        <div class="blog-item">
+            <h3 class="editable-content" id="blog3-title">¿Qué es una PWA y por qué necesitas una?</h3>
+            <span class="blog-date editable-content" id="blog3-date">Publicado el 5 de Abril, 2026</span>
+            <p class="blog-desc editable-content" id="blog3-desc">Las Aplicaciones Web Progresivas combinan lo mejor de la web y de las aplicaciones móviles. Te contamos todos sus beneficios.</p>
+            <div class="more-content editable-content" id="blog3-more" style="display: none; margin-bottom: 20px; color: #555; font-size: 0.95rem; line-height: 1.5;">
+                <p><br>Una PWA permite que tu sitio web sea "instalable" en el teléfono móvil del usuario sin pasar por la App Store o Google Play. Ofrecen notificaciones push y acceso offline.</p>
+                <p><br>Esto resulta en tiempos de carga casi instantáneos y un aumento masivo en la retención de usuarios. Es la inversión perfecta para modernizar tu negocio online.</p>
+            </div>
+            <button class="read-btn" onclick="toggleReadMore(this)">Leer más</button>
+        </div>
+        <div class="blog-item">
+            <h3 class="editable-content" id="blog4-title">Cómo aumentar tus ventas online</h3>
+            <span class="blog-date editable-content" id="blog4-date">Publicado el 1 de Abril, 2026</span>
+            <p class="blog-desc editable-content" id="blog4-desc">Estrategias probadas para mejorar el rendimiento de tu e-commerce y convertir más visitantes en compradores fieles.</p>
+            <div class="more-content editable-content" id="blog4-more" style="display: none; margin-bottom: 20px; color: #555; font-size: 0.95rem; line-height: 1.5;">
+                <p><br>Optimizar el proceso de pago ("checkout") reduciendo los pasos necesarios y ofreciendo opciones de pago rápido (como Apple Pay o Google Pay) puede aumentar las conversiones un 30%.</p>
+                <p><br>Otra clave es utilizar pruebas sociales, como reseñas en video de clientes reales y contadores de escasez (ej. "¡Solo quedan 2 unidades!").</p>
+            </div>
+            <button class="read-btn" onclick="toggleReadMore(this)">Leer más</button>
+        </div>
+    </section>
+
+    <!-- Carrito Flotante -->
+    <div id="cart-widget" style="position:fixed; bottom:20px; right:20px; background:#2c3e50; color:white; padding:15px 20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); display:none; z-index:1000; min-width: 250px;">
+        <h3 style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">🛒 Carrito</h3>
+        <ul id="cart-items" style="list-style:none; padding:0; margin:0 0 10px 0; font-size: 0.9rem; max-height: 150px; overflow-y: auto;">
+        </ul>
+        <div style="font-weight: bold; text-align: right; margin-top: 10px; border-top: 1px solid #444; padding-top: 5px;">
+            Total: <span id="cart-total">$0.00</span>
+        </div>
+        <button onclick="clearCart()" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:3px; margin-top:10px; width:100%; cursor:pointer;">Vaciar Carrito</button>
+    </div>
+
+    <footer>
+        <p style="text-align:center; padding:20px; font-size:14px; color:#666;">
+            &copy; 2026 Mauricio Valencia - SENA
+        </p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

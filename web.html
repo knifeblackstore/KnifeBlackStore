@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios Web - knifeblackstore</title>
+    <link rel="stylesheet" href="/main.css?v=2">
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
+            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
+            knifeblackstore
+        </a>
+        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Iniciar Sesión</a>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="links menu">
+            <div class="dropdown">
+                <a href="index.html#servicios">Servicios ▾</a>
+                <div class="dropdown-content">
+                    <a href="web.html">Web</a>
+                    <a href="plataformas.html">Plataformas Streaming</a>
+                    <a href="diseno.html">Diseño</a>
+                </div>
+            </div>
+            <a href="contacto.html">Contacto</a>
+        </div>
+    </nav>
+
+    <header class="hero" style="padding: 40px 5%;">
+        <h1>Servicios Web</h1>
+        <p>Explora nuestras opciones de desarrollo web a medida.</p>
+        <div class="btns">
+            <a href="index.html" class="b1">Volver al Inicio</a>
+        </div>
+    </header>
+
+    <section class="grid">
+        <div class="item">
+            <a href="ecommerce.html" style="text-decoration:none; color:inherit; display:block;">
+                <span class="editable-content" id="web-ecommerce-icon">🛒</span>
+                <h3 class="editable-content" id="web-ecommerce-title">Compras</h3>
+                <p class="editable-content" id="web-ecommerce-desc" style="margin-top:10px; color:#666;">Tiendas online escalables y seguras para vender tus productos.</p>
+            </a>
+        </div>
+        <div class="item">
+            <a href="corporativo.html" style="text-decoration:none; color:inherit; display:block;">
+                <span class="editable-content" id="web-corp-icon">🏢</span>
+                <h3 class="editable-content" id="web-corp-title">Corporativo</h3>
+                <p class="editable-content" id="web-corp-desc" style="margin-top:10px; color:#666;">Páginas web institucionales para empresas y negocios.</p>
+            </a>
+        </div>
+        <div class="item">
+            <a href="blogs.html" style="text-decoration:none; color:inherit; display:block;">
+                <span class="editable-content" id="web-blogs-icon">📝</span>
+                <h3 class="editable-content" id="web-blogs-title">Blogs</h3>
+                <p class="editable-content" id="web-blogs-desc" style="margin-top:10px; color:#666;">Portales de contenido, noticias y artículos.</p>
+            </a>
+        </div>
+        <div class="item">
+            <a href="landing.html" style="text-decoration:none; color:inherit; display:block;">
+                <span class="editable-content" id="web-landing-icon">🚀</span>
+                <h3 class="editable-content" id="web-landing-title">Landing Pages</h3>
+                <p class="editable-content" id="web-landing-desc" style="margin-top:10px; color:#666;">Páginas de aterrizaje diseñadas para alta conversión.</p>
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <p style="text-align:center; padding:20px; font-size:14px; color:#666;">
+            &copy; 2026 Mauricio Valencia - SENA
+        </p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

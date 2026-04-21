@@ -1,0 +1,20 @@
+# Firebase
+.firebase/
+fireba-debug.log
+firebase-debug.log
+firestore-debug.log
+pubsub-debug.log
+
+# Node
+node_modules/
+npm-debug.log
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup y basura
+*.pyc
+__pycache__/
+update_firebase.py

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desarrollo de Apps - knifeblackstore</title>
+    <link rel="stylesheet" href="/main.css?v=2">
+    <style>
+        .price {
+            font-size: 1.5rem;
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .action-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        .action-btn:hover {
+            background: #c0392b;
+        }
+        .read-btn {
+            background: transparent;
+            color: #3498db;
+            border: 1px solid #3498db;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+        .read-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+        .more-content {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            text-align: left;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
+            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
+            knifeblackstore
+        </a>
+        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Iniciar Sesión</a>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="links menu">
+            <div class="dropdown">
+                <a href="index.html#servicios">Servicios ▾</a>
+                <div class="dropdown-content">
+                    <a href="web.html">Web</a>
+                    <a href="plataformas.html">Plataformas Streaming</a>
+                    <a href="diseno.html">Diseño</a>
+                </div>
+            </div>
+            <a href="index.html#contacto">Contacto</a>
+        </div>
+    </nav>
+
+    <header class="hero" style="padding: 40px 5%;">
+        <h1>Desarrollo de Apps</h1>
+        <p>Lleva tu negocio al bolsillo de tus clientes con aplicaciones móviles.</p>
+        <div class="btns">
+            <a href="index.html" class="b1">Volver al Inicio</a>
+        </div>
+    </header>
+
+    <section class="grid">
+        <div class="item">
+            <span class="editable-content" id="apps-ios-icon">🍎</span>
+            <h3 class="editable-content" id="apps-ios-title">Apps iOS</h3>
+            <p class="editable-content" id="apps-ios-desc" style="margin-top:10px; color:#666;">Desarrollo nativo para iPhone y iPad con Swift.</p>
+            <p class="price editable-content" id="apps-ios-price">$899</p>
+            <div class="more-content editable-content" id="apps-ios-more" style="display: none;">
+                Optimización total para el hardware de Apple, soporte para FaceID, Apple Pay e integración con iCloud.
+            </div>
+            <button class="read-btn" onclick="toggleReadMore(this)">Leer más</button>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#34495e;" onclick="abrirModal('Apps iOS')">Ejemplo</button>
+                <button class="action-btn" onclick="addToCart(this)">Al Carrito</button>
+            </div>
+        </div>
+        <div class="item">
+            <span class="editable-content" id="apps-android-icon">🤖</span>
+            <h3 class="editable-content" id="apps-android-title">Apps Android</h3>
+            <p class="editable-content" id="apps-android-desc" style="margin-top:10px; color:#666;">Aplicaciones nativas optimizadas para el ecosistema Google.</p>
+            <p class="price editable-content" id="apps-android-price">$799</p>
+            <div class="more-content editable-content" id="apps-android-more" style="display: none;">
+                Compatibilidad con una amplia gama de dispositivos, integración con Google Play Services y Material Design.
+            </div>
+            <button class="read-btn" onclick="toggleReadMore(this)">Leer más</button>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#34495e;" onclick="abrirModal('Apps Android')">Ejemplo</button>
+                <button class="action-btn" onclick="addToCart(this)">Al Carrito</button>
+            </div>
+        </div>
+        <div class="item">
+            <span class="editable-content" id="apps-multi-icon">⚡</span>
+            <h3 class="editable-content" id="apps-multi-title">Multiplataforma</h3>
+            <p class="editable-content" id="apps-multi-desc" style="margin-top:10px; color:#666;">Desarrollo rápido con React Native o Flutter.</p>
+            <p class="price editable-content" id="apps-multi-price">$1200</p>
+            <div class="more-content editable-content" id="apps-multi-more" style="display: none;">
+                Un solo código para ambas plataformas (iOS y Android), reduciendo costos y tiempo de mantenimiento.
+            </div>
+            <button class="read-btn" onclick="toggleReadMore(this)">Leer más</button>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#34495e;" onclick="abrirModal('Multiplataforma')">Ejemplo</button>
+                <button class="action-btn" onclick="addToCart(this)">Al Carrito</button>
+            </div>
+        </div>
+        <div class="item">
+            <span class="editable-content" id="apps-pwa-icon">🌐</span>
+            <h3 class="editable-content" id="apps-pwa-title">PWA</h3>
+            <p class="editable-content" id="apps-pwa-desc" style="margin-top:10px; color:#666;">Aplicaciones Web Progresivas que no requieren instalación.</p>
+            <p class="price editable-content" id="apps-pwa-price">$450</p>
+            <div class="more-content editable-content" id="apps-pwa-more" style="display: none;">
+                Acceso desde el navegador con experiencia de app, notificaciones push y funcionamiento offline parcial.
+            </div>
+            <button class="read-btn" onclick="toggleReadMore(this)">Leer más</button>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#34495e;" onclick="abrirModal('PWA')">Ejemplo</button>
+                <button class="action-btn" onclick="addToCart(this)">Al Carrito</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Carrito Flotante -->
+    <div id="cart-widget" style="position:fixed; bottom:20px; right:20px; background:#2c3e50; color:white; padding:15px 20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); display:none; z-index:1000; min-width: 250px;">
+        <h3 style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">🛒 Carrito</h3>
+        <ul id="cart-items" style="list-style:none; padding:0; margin:0 0 10px 0; font-size: 0.9rem; max-height: 150px; overflow-y: auto;">
+        </ul>
+        <div style="font-weight: bold; text-align: right; margin-top: 10px; border-top: 1px solid #444; padding-top: 5px;">
+            Total: <span id="cart-total">$0.00</span>
+        </div>
+        <button onclick="clearCart()" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:3px; margin-top:10px; width:100%; cursor:pointer;">Vaciar Carrito</button>
+    </div>
+
+    <footer>
+        <p style="text-align:center; padding:20px; font-size:14px; color:#666;">
+            &copy; 2026 Mauricio Valencia - SENA
+        </p>
+    </footer>
+
+    <!-- Modal flotante para ejemplos -->
+    <div id="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+        <div style="background-color:#fff; padding:30px; border-radius:10px; width:90%; max-width:600px; position:relative; text-align:center;">
+            <span style="position:absolute; right:20px; top:15px; font-size:28px; font-weight:bold; color:#aaa; cursor:pointer;" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+            <h2 id="modal-title" style="margin-bottom:20px; color:#e74c3c;">Ejemplo</h2>
+            <div id="modal-body" style="padding:20px; border-radius:8px; border:2px dashed #ccc; min-height:200px; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function abrirModal(tipo) {
+            document.getElementById('modal-title').textContent = 'Ejemplo: ' + tipo;
+            let contenido = '';
+            if(tipo === 'Apps iOS') {
+                contenido = '<div style="background:#000; color:white; padding:20px; border-radius:20px; width:200px; height:400px; border:5px solid #333; display:flex; flex-direction:column; align-items:center; justify-content:center;">' +
+                            '<div style="width:40px; height:5px; background:#333; border-radius:10px; margin-bottom:20px;"></div>' +
+                            '<p style="font-size:0.8rem;">iOS Interface</p>' +
+                            '<div style="width:100%; height:250px; background:#222; margin:10px 0;"></div>' +
+                            '<div style="width:30px; height:30px; border-radius:50%; border:2px solid #333; margin-top:10px;"></div>' +
+                            '</div>';
+            } else if(tipo === 'Apps Android') {
+                contenido = '<div style="background:#f0f0f0; color:#333; padding:20px; border-radius:10px; width:200px; height:400px; border:3px solid #ccc; display:flex; flex-direction:column; align-items:center; justify-content:center;">' +
+                            '<p style="font-size:0.8rem; font-weight:bold;">Android Material Design</p>' +
+                            '<div style="width:100%; height:280px; background:#fff; border:1px solid #ddd; margin:10px 0;"></div>' +
+                            '</div>';
+            } else if(tipo === 'Multiplataforma') {
+                contenido = '<div style="display:flex; gap:10px;">' +
+                            '<div style="width:100px; height:200px; background:#333; border-radius:10px; color:white; font-size:0.5rem; display:flex; align-items:center; justify-content:center;">iOS</div>' +
+                            '<div style="width:100px; height:200px; background:#ccc; border-radius:10px; color:#333; font-size:0.5rem; display:flex; align-items:center; justify-content:center;">Android</div>' +
+                            '</div><p style="margin-top:10px;">¡Un solo código!</p>';
+            } else {
+                contenido = '<div style="background:#fff; border:1px solid #ddd; padding:20px; border-radius:8px;">' +
+                            '<h3>Web App Instalable</h3>' +
+                            '<button style="background:#2ecc71; color:white; border:none; padding:10px; margin-top:10px;">Instalar</button>' +
+                            '</div>';
+            }
+            document.getElementById('modal-body').innerHTML = contenido;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        window.onclick = function(event) {
+            let modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataformas Streaming - knifeblackstore</title>
+    <link rel="stylesheet" href="/main.css?v=2">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --netflix: #e50914;
+            --prime: #00a8e1;
+            --disney: #0063e5;
+            --hbo: #9933ff;
+            --crunchy: #ff6600;
+            --bg-dark: #0a0a0b;
+            --card-bg: rgba(255, 255, 255, 0.03);
+        }
+
+        body.platforms-page {
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .platforms-hero {
+            position: relative;
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(231, 76, 60, 0.15) 0%, transparent 70%);
+            padding: 0 20px;
+        }
+
+        .platforms-hero h1 {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 900;
+            margin: 0;
+            background: linear-gradient(to right, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        .platforms-hero p {
+            font-size: 1.2rem;
+            color: #888;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        /* Grid Layout */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 40px 5% 100px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Platform Card */
+        .platform-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .platform-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(255,255,255,0.05), transparent);
+            opacity: 0;
+            transition: 0.5s;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        }
+
+        .platform-card:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .platform-icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+            transition: 0.5s;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .platform-card:nth-child(2) .platform-icon { animation-delay: 1s; }
+        .platform-card:nth-child(3) .platform-icon { animation-delay: 2s; }
+        .platform-card:nth-child(4) .platform-icon { animation-delay: 1.5s; }
+        .platform-card:nth-child(5) .platform-icon { animation-delay: 0.5s; }
+
+        .platform-card:hover .platform-icon {
+            animation-play-state: paused;
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .platform-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .platform-desc {
+            font-size: 0.95rem;
+            color: #aaa;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .platform-price {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 20px 0;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            color: #e74c3c;
+        }
+
+        .platform-price span {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #555;
+            text-transform: uppercase;
+        }
+
+        .add-screen-btn {
+            background: linear-gradient(135deg, #fff 0%, #eee 100%);
+            color: #000;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 100px;
+            font-weight: 700;
+            text-decoration: none;
+            width: 100%;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: auto;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .add-screen-btn:hover {
+            background: #e74c3c;
+            color: #fff;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Custom Accents */
+        .card-netflix:hover { box-shadow: 0 0 40px rgba(229, 9, 20, 0.1); }
+        .card-disney:hover { box-shadow: 0 0 40px rgba(0, 99, 229, 0.1); }
+        .card-hbo:hover { box-shadow: 0 0 40px rgba(153, 51, 255, 0.1); }
+        .card-prime:hover { box-shadow: 0 0 40px rgba(0, 168, 225, 0.1); }
+        .card-crunchy:hover { box-shadow: 0 0 40px rgba(255, 102, 0, 0.1); }
+
+        .tag-popular {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Dark Nav Fix */
+        .platforms-page .nav {
+            background: rgba(10, 10, 11, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .platforms-page .nav a { color: #fff !important; }
+        .platforms-page .menu-toggle span { background: #fff !important; }
+        .platforms-page .dropdown-content { background: #151516; border: 1px solid #222; }
+        .platforms-page .dropdown-content a:hover { background: #1a1a1b; }
+
+        @media (max-width: 768px) {
+            .platforms-hero { height: 50vh; }
+            .platform-grid { grid-template-columns: 1fr; padding: 20px; }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+</head>
+<body class="platforms-page">
+    <nav class="nav">
+        <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
+            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
+            knifeblackstore
+        </a>
+        <div class="links menu">
+            <a href="index.html">Inicio</a>
+            <div class="dropdown">
+                <a href="index.html#servicios">Servicios ▾</a>
+                <div class="dropdown-content">
+                    <a href="productos.html">Productos y Accesorios</a>
+                    <a href="plataformas.html">Plataformas Streaming</a>
+                    <a href="nosotros.html">¿Quién es Knifeblackstore?</a>
+                </div>
+            </div>
+            <a href="contacto.html">Contacto</a>
+        </div>
+    </nav>
+
+    <header class="platforms-hero">
+        <h1>Plataformas Streaming</h1>
+        <p>Las mejores plataformas del mercado, ahora a tu alcance. Compra por pantallas y ahorra más.</p>
+        <div class="btns" style="margin-top: 30px;">
+            <a href="index.html" class="b1">Volver al Inicio</a>
+        </div>
+    </header>
+
+    <main class="platform-grid">
+        <!-- Netflix -->
+        <article class="platform-card card-netflix">
+            <div class="tag-popular">Más Vendida</div>
+            <div class="platform-icon">🎬</div>
+            <h2 class="platform-name">Netflix</h2>
+            <p class="platform-desc">Calidad 4K Ultra HD + HDR. Acceso inmediato a todo el catálogo.</p>
+            <div class="platform-price">$12.000 <span>/ Mes</span></div>
+            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+        </article>
+
+        <!-- Disney Plus -->
+        <article class="platform-card card-disney">
+            <div class="platform-icon">🏰</div>
+            <h2 class="platform-name">Disney+</h2>
+            <p class="platform-desc">Todo Marvel, Star Wars y los clásicos de Disney en un solo lugar.</p>
+            <div class="platform-price">$10.000 <span>/ Mes</span></div>
+            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+        </article>
+
+        <!-- HBO Max -->
+        <article class="platform-card card-hbo">
+            <div class="platform-icon">🎭</div>
+            <h2 class="platform-name">HBO Max</h2>
+            <p class="platform-desc">Las mejores series originales y estrenos de Warner Bros.</p>
+            <div class="platform-price">$9.000 <span>/ Mes</span></div>
+            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+        </article>
+
+        <!-- Amazon Prime -->
+        <article class="platform-card card-prime">
+            <div class="platform-icon">📦</div>
+            <h2 class="platform-name">Prime Video</h2>
+            <p class="platform-desc">Series originales, películas y envíos gratis en tus compras.</p>
+            <div class="platform-price">$8.000 <span>/ Mes</span></div>
+            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+        </article>
+
+        <!-- Crunchyroll -->
+        <article class="platform-card card-crunchy">
+            <div class="platform-icon">🍣</div>
+            <h2 class="platform-name">Crunchyroll</h2>
+            <p class="platform-desc">La mayor biblioteca de anime del mundo, sin anuncios.</p>
+            <div class="platform-price">$7.000 <span>/ Mes</span></div>
+            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+        </article>
+    </main>
+
+    <footer style="background: #000; padding: 60px 20px; border-top: 1px solid #111;">
+        <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+            <p style="color: #444; font-size: 0.9rem;">&copy; 2026 Mauricio Valencia - SENA | knifeblackstore</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

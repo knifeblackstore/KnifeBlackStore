@@ -1,0 +1,13 @@
+{
+  "name": "knifeblackstore",
+  "version": "1.0.0",
+  "description": "Tienda Gamer de Streaming y Accesorios",
+  "main": "index.html",
+  "scripts": {
+    "deploy": "firebase deploy"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}

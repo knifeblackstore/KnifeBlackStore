@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios de Landing Pages - knifeblackstore</title>
+    <link rel="stylesheet" href="/main.css?v=2">
+    <style>
+        .landing-item {
+            background: white;
+            padding: 35px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: 0.3s;
+            border-top: 5px solid #e74c3c;
+        }
+        .landing-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .landing-item h3 {
+            margin: 15px 0 10px;
+            color: #2c3e50;
+        }
+        .landing-desc {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+        .action-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .action-btn:hover {
+            background: #c0392b;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
+            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
+            knifeblackstore
+        </a>
+        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Iniciar Sesión</a>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="links menu">
+            <div class="dropdown">
+                <a href="index.html#servicios">Servicios ▾</a>
+                <div class="dropdown-content">
+                    <a href="web.html">Web</a>
+                    <a href="plataformas.html">Plataformas Streaming</a>
+                    <a href="diseno.html">Diseño</a>
+                </div>
+            </div>
+            <a href="index.html#contacto">Contacto</a>
+        </div>
+    </nav>
+
+    <header class="hero" style="padding: 40px 5%;">
+        <h1>Landing Pages de Alta Conversión</h1>
+        <p>Convierte a tus visitantes en clientes potenciales con páginas optimizadas para captación.</p>
+        <div class="btns">
+            <a href="web.html" class="b1">Volver a Web</a>
+        </div>
+    </header>
+
+    <section class="grid">
+        <div class="landing-item">
+            <div class="editable-content" id="land1-icon" style="font-size: 3rem;">📧</div>
+            <h3 class="editable-content" id="land1-title">Captación de Leads</h3>
+            <p class="landing-desc editable-content" id="land1-desc">Diseñadas específicamente para recolectar correos y datos de posibles clientes mediante formularios optimizados.</p>
+            <p class="price editable-content" id="land1-price" style="font-size: 1.5rem; color: #e74c3c; font-weight: bold; margin: 10px 0;">$149</p>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#34495e; flex:1; padding: 12px 10px;" onclick="abrirModal('Captación de Leads')">Ejemplo</button>
+                <button class="action-btn" style="flex:1; padding: 12px 10px;" onclick="addToCart(this)">Al Carrito</button>
+            </div>
+        </div>
+        <div class="landing-item">
+            <div class="editable-content" id="land2-icon" style="font-size: 3rem;">📢</div>
+            <h3 class="editable-content" id="land2-title">Lanzamiento de Producto</h3>
+            <p class="landing-desc editable-content" id="land2-desc">Presenta un nuevo producto al mercado resaltando sus beneficios y creando expectativa antes de la venta.</p>
+            <p class="price editable-content" id="land2-price" style="font-size: 1.5rem; color: #e74c3c; font-weight: bold; margin: 10px 0;">$199</p>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#34495e; flex:1; padding: 12px 10px;" onclick="abrirModal('Lanzamiento de Producto')">Ejemplo</button>
+                <button class="action-btn" style="flex:1; padding: 12px 10px;" onclick="addToCart(this)">Al Carrito</button>
+            </div>
+        </div>
+        <div class="landing-item">
+            <div class="editable-content" id="land3-icon" style="font-size: 3rem;">📅</div>
+            <h3 class="editable-content" id="land3-title">Promoción de Eventos</h3>
+            <p class="landing-desc editable-content" id="land3-desc">Ideal para webinars, cursos o eventos en vivo. Incrementa el registro de asistentes de manera efectiva.</p>
+            <p class="price editable-content" id="land3-price" style="font-size: 1.5rem; color: #e74c3c; font-weight: bold; margin: 10px 0;">$129</p>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#34495e; flex:1; padding: 12px 10px;" onclick="abrirModal('Promoción de Eventos')">Ejemplo</button>
+                <button class="action-btn" style="flex:1; padding: 12px 10px;" onclick="addToCart(this)">Al Carrito</button>
+            </div>
+        </div>
+        <div class="landing-item">
+            <div class="editable-content" id="land4-icon" style="font-size: 3rem;">📞</div>
+            <h3 class="editable-content" id="land4-title">Click-Through</h3>
+            <p class="landing-desc editable-content" id="land4-desc">Calienta a la audiencia informando sobre una oferta antes de enviarlos directamente al carrito de compras.</p>
+            <p class="price editable-content" id="land4-price" style="font-size: 1.5rem; color: #e74c3c; font-weight: bold; margin: 10px 0;">$179</p>
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" style="background:#34495e; flex:1; padding: 12px 10px;" onclick="abrirModal('Click-Through')">Ejemplo</button>
+                <button class="action-btn" style="flex:1; padding: 12px 10px;" onclick="addToCart(this)">Al Carrito</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Carrito Flotante -->
+    <div id="cart-widget" style="position:fixed; bottom:20px; right:20px; background:#2c3e50; color:white; padding:15px 20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); display:none; z-index:1000; min-width: 250px;">
+        <h3 style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">🛒 Carrito</h3>
+        <ul id="cart-items" style="list-style:none; padding:0; margin:0 0 10px 0; font-size: 0.9rem; max-height: 150px; overflow-y: auto;">
+        </ul>
+        <div style="font-weight: bold; text-align: right; margin-top: 10px; border-top: 1px solid #444; padding-top: 5px;">
+            Total: <span id="cart-total">$0.00</span>
+        </div>
+        <button onclick="clearCart()" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:3px; margin-top:10px; width:100%; cursor:pointer;">Vaciar Carrito</button>
+    </div>
+
+    <footer>
+        <p style="text-align:center; padding:20px; font-size:14px; color:#666;">
+            &copy; 2026 Mauricio Valencia - SENA
+        </p>
+    </footer>
+
+    <!-- Modal flotante para ejemplos -->
+    <div id="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+        <div style="background-color:#fff; padding:30px; border-radius:10px; width:90%; max-width:600px; position:relative; text-align:center;">
+            <span style="position:absolute; right:20px; top:15px; font-size:28px; font-weight:bold; color:#aaa; cursor:pointer;" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+            <h2 id="modal-title" style="margin-bottom:20px; color:#e74c3c;">Ejemplo</h2>
+            <div id="modal-body" style="padding:20px; border-radius:8px; border:2px dashed #ccc; min-height:200px; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function abrirModal(tipo) {
+            document.getElementById('modal-title').textContent = 'Ejemplo: ' + tipo;
+            let contenido = '';
+            if(tipo === 'Captación de Leads') {
+                contenido = '<div style="background:#3498db; color:white; padding:40px; border-radius:8px; width:100%;"><h2>¡Descarga nuestro E-book Gratis!</h2><p style="margin:10px 0;">Déjanos tu correo y te lo enviamos al instante.</p><input type="email" placeholder="Tu correo electrónico" style="padding:10px; width:80%; border-radius:5px; border:none;"><br><button style="margin-top:15px; padding:10px 20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Descargar Ahora</button></div>';
+            } else if(tipo === 'Lanzamiento de Producto') {
+                contenido = '<div style="background:#2c3e50; color:white; padding:40px; border-radius:8px; width:100%;"><h2>El Nuevo Smartphone X</h2><p style="margin:10px 0;">Preventa exclusiva con 20% de descuento.</p><button style="margin-top:15px; padding:10px 20px; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Comprar en Preventa</button></div>';
+            } else if(tipo === 'Promoción de Eventos') {
+                contenido = '<div style="background:#9b59b6; color:white; padding:40px; border-radius:8px; width:100%;"><h2>Webinar: Diseño Web 2026</h2><p style="margin:10px 0;">Aprende los secretos del diseño moderno este viernes a las 5PM.</p><button style="margin-top:15px; padding:10px 20px; background:#f1c40f; color:#333; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Reservar mi Lugar</button></div>';
+            } else {
+                contenido = '<div style="background:#e67e22; color:white; padding:40px; border-radius:8px; width:100%;"><h2>¡Oferta Flash!</h2><p style="margin:10px 0;">Por tiempo limitado, llévate 2 al precio de 1.</p><button style="margin-top:15px; padding:10px 20px; background:#fff; color:#e67e22; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Aprovechar Oferta</button></div>';
+            }
+            document.getElementById('modal-body').innerHTML = contenido;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        window.onclick = function(event) {
+            let modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
+
