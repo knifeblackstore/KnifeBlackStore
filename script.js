@@ -282,6 +282,18 @@ const initDynamicGrid = () => {
             if (savedGrid) {
                 grid.innerHTML = savedGrid;
                 
+                // FILTRO DE SEGURIDAD: Solo permitir tarjetas válidas. 
+                // Borra automáticamente cualquier "basura" (indicadores sueltos, etc) que se haya guardado por error.
+                Array.from(grid.children).forEach(child => {
+                    const isProduct = child.classList.contains('product-card');
+                    const isPlatform = child.classList.contains('platform-card');
+                    const isItem = child.classList.contains('item');
+                    
+                    if (!isProduct && !isPlatform && !isItem) {
+                        child.remove();
+                    }
+                });
+
                 // Sanatización de seguridad para NO-ADMINS
                 const user = JSON.parse(localStorage.getItem('currentUser'));
                 if (!user || user.role !== 'admin') {
@@ -300,40 +312,105 @@ const initDynamicGrid = () => {
                 addBtn.textContent = '+ Añadir Nuevo Elemento';
                 addBtn.style.cssText = 'display:block; margin: 20px auto; padding: 12px 25px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;';
                 addBtn.onclick = () => {
-                    const children = grid.children;
+                    const children = Array.from(grid.children).filter(c => 
+                        c.classList.contains('product-card') || 
+                        c.classList.contains('platform-card') || 
+                        c.classList.contains('item')
+                    );
                     if (children.length === 0) return;
+                    
+                    let emoji = "✨";
+                    let defaultTitle = "Nuevo Elemento";
+                    let isPlatform = grid.classList.contains('platform-grid');
+                    
+                    if (grid.classList.contains('product-grid')) {
+                        const typeChoice = prompt("Selecciona el tipo de producto:\n1. Pin 🏮\n2. Figura 🎎\n3. Accesorio 🎒\n4. Otro ✨", "1");
+                        if (typeChoice === "1") { emoji = "🏮"; defaultTitle = "Pin Metálico"; }
+                        else if (typeChoice === "2") { emoji = "🎎"; defaultTitle = "Figura de Acción"; }
+                        else if (typeChoice === "3") { emoji = "🎒"; defaultTitle = "Accesorio"; }
+                    } else {
+                        // Para plataformas, no pedir tipo de producto, solo usar el primero como base
+                        const firstEmoji = children[0].querySelector(".platform-icon, .product-img-container")?.innerText.trim();
+                        emoji = firstEmoji || "🎬";
+                        defaultTitle = "Nueva Plataforma";
+                    }
+
                     const clone = children[0].cloneNode(true);
                     const timestamp = Date.now();
-                    clone.querySelectorAll('.editable-content, .platform-name, .platform-desc, .platform-price').forEach((el, index) => {
-                        el.id = 'dynamic_' + timestamp + '_' + index;
-                        if(el.classList.contains('price') || el.classList.contains('platform-price')) el.innerText = '$0.00';
-                        else if(el.tagName === 'H3' || el.tagName === 'H2') el.innerText = 'Nuevo Título';
-                        else el.innerText = 'Haz clic para editar.';
+                    
+                    // Actualizar Icono/Emoji
+                    const iconEl = clone.querySelector(".platform-icon, .product-img-container span, .platform-icon span");
+                    if (iconEl) iconEl.innerText = emoji;
+
+                    clone.querySelectorAll(".editable-content, .platform-name, .platform-desc, .platform-price, .product-name, .product-desc, .product-price").forEach((el, index) => {
+                        el.id = "dynamic_" + timestamp + "_" + index;
+                        if(el.classList.contains("price") || el.classList.contains("platform-price") || el.classList.contains("product-price")) {
+                            el.innerText = isPlatform ? "$0.00 / Mes" : "$0.00";
+                        }
+                        else if(el.tagName === "H3" || el.tagName === "H2" || el.classList.contains("platform-name") || el.classList.contains("product-name")) {
+                            el.innerText = defaultTitle;
+                        }
+                        else el.innerText = "Haz clic para editar descripción.";
                     });
-                    clone.querySelectorAll('.admin-controls-wrapper').forEach(btn => btn.remove());
-                    addAdminButtons(clone, grid);
+
+                    // Limpiar indicadores y controles previos del clon
+                    clone.querySelectorAll(".admin-controls-wrapper, .stock-indicator").forEach(el => el.remove());
+                    
+                    addAdminButtons(clone, grid, safeKey);
                     grid.appendChild(clone);
                     saveGrid(grid, safeKey);
                     initEditableContent();
                 };
                 grid.parentNode.insertBefore(addBtn, grid);
-                Array.from(grid.children).forEach(item => addAdminButtons(item, grid, safeKey));
+
+                // Filtrar para no procesar indicadores sueltos como si fueran productos
+                Array.from(grid.children).forEach(item => {
+                    const isRealCard = item.classList.contains('product-card') || item.classList.contains('platform-card');
+                    const isNavItem = item.classList.contains('item') && item.tagName === 'A'; // Los de index.html son <a>
+                    
+                    if (isRealCard || (isNavItem && grid.id !== 'servicios')) {
+                        addAdminButtons(item, grid, safeKey);
+                    } else if (item.classList.contains('stock-indicator') || (isNavItem && grid.id === 'servicios')) {
+                        // Si es index.html servicios, no queremos controles de stock ni nada dinámico aquí
+                        if (item.classList.contains('stock-indicator')) item.remove();
+                        // Si es un item de navegación en el grid, no le agregamos botones de admin de inventario
+                    }
+                });
             }
         });
     });
 
+    // Función para RESETEAR la página a su estado original (borra la base de datos de esta página)
+    window.resetGridToDefault = () => {
+        if (confirm("⚠️ ¿Estás seguro? Esto borrará todos los productos agregados en ESTA página y volverá al diseño original del archivo HTML.")) {
+            const grids = document.querySelectorAll('.grid, .platform-grid, .product-grid');
+            grids.forEach(grid => {
+                const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + (grid.className);
+                const safeKey = pageKey.replace(/\./g, '_').replace(/\s/g, '_');
+                db.ref('grids/' + safeKey).remove().then(() => {
+                    location.reload();
+                });
+            });
+        }
+    };
+
     window.saveGrid = (grid, safeKey) => {
         const clone = grid.cloneNode(true);
-        // Eliminar botones y controles de admin
-        clone.querySelectorAll('.admin-controls-wrapper').forEach(btn => btn.remove());
-        // Quitar permisos de edición de TODOS los elementos
-        clone.querySelectorAll('[contenteditable="true"], .editable-content').forEach(el => {
+        
+        // LIMPIEZA ABSOLUTA: Eliminar todo lo que NO sea contenido puro del producto
+        clone.querySelectorAll('.admin-controls-wrapper, .stock-indicator, button:not(.buy-btn):not(.add-screen-btn)').forEach(el => el.remove());
+        
+        // Quitar permisos de edición y estilos de administrador de TODOS los elementos
+        clone.querySelectorAll('*').forEach(el => {
             el.removeAttribute('contenteditable');
-            el.style.borderBottom = '';
-            el.style.cursor = 'default';
-            el.title = '';
+            if (el.style.borderBottom.includes('dashed')) el.style.borderBottom = '';
+            if (el.title.includes('clic')) el.title = '';
+            if (el.style.cursor === 'pointer' && !el.classList.contains('buy-btn')) el.style.cursor = '';
         });
-        db.ref('grids/' + safeKey).set(clone.innerHTML);
+
+        db.ref('grids/' + safeKey).set(clone.innerHTML).then(() => {
+            console.log('Grid saved successfully: ' + safeKey);
+        });
     };
 };
 
@@ -463,7 +540,11 @@ function addAdminButtons(item, grid, safeKey) {
     
     if(window.getComputedStyle(item).position === 'static') item.style.position = 'relative';
     item.appendChild(wrapper);
-    updateStockIndicator(item);
+    
+    // Solo mostrar stock si es un producto o plataforma real, no un link de navegación
+    if (item.classList.contains('product-card') || item.classList.contains('platform-card')) {
+        updateStockIndicator(item);
+    }
 }
 
 function updateStockIndicator(item) {
@@ -471,9 +552,13 @@ function updateStockIndicator(item) {
     if (!indicator) {
         indicator = document.createElement('div');
         indicator.className = 'stock-indicator';
-        indicator.style.cssText = 'font-size:0.8rem; margin-top:10px; font-weight:bold;';
-        const target = item.querySelector('.platform-price') || item.querySelector('.price') || item;
-        target.after(indicator);
+        indicator.style.cssText = 'font-size:0.8rem; margin-top:10px; font-weight:bold; width:100%;';
+        const target = item.querySelector('.platform-price') || item.querySelector('.price') || item.querySelector('.product-price');
+        if (target && target.parentNode === item) {
+            target.after(indicator);
+        } else {
+            item.appendChild(indicator);
+        }
     }
     const stock = parseInt(item.getAttribute('data-stock')) || 0;
     indicator.textContent = stock > 0 ? `Stock disponible: ${stock}` : '¡AGOTADO!';
@@ -581,6 +666,19 @@ window.checkoutCart = () => {
     }
     
     let total = cart.reduce((sum, it) => sum + it.price, 0);
+    let description = cart.map(it => it.name).join(', ');
+
+    // REGISTRAR VENTA EN FIREBASE ANTES DE REDIRIGIR
+    const saleData = {
+        customer: user.name,
+        email: user.email,
+        items: cart,
+        total: total,
+        date: new Date().toISOString(),
+        status: 'Pendiente (WhatsApp)'
+    };
+    db.ref('sales').push(saleData);
+
     let message = "🚀 *NUEVO PEDIDO - KNIFEBLACKSTORE*\n\n";
     message += `👤 *Cliente:* ${user.name} (${user.email})\n`;
     message += "------------------------------------------\n";
@@ -609,6 +707,17 @@ window.payWithEpayco = () => {
 
     let total = cart.reduce((sum, it) => sum + it.price, 0);
     let description = cart.map(it => it.name).join(', ');
+
+    // REGISTRAR INTENTO DE VENTA EN FIREBASE
+    const saleData = {
+        customer: user.name,
+        email: user.email,
+        items: cart,
+        total: total,
+        date: new Date().toISOString(),
+        status: 'Iniciada (ePayco)'
+    };
+    db.ref('sales').push(saleData);
 
     var handler = ePayco.checkout.configure({
         key: '491d6a0b6e9941f241d3171195133c61', // LLAVE DE PRUEBAS
@@ -662,7 +771,7 @@ const initInventoryPanel = () => {
     invBtn.onclick = () => {
         invModal.style.display = 'block';
         overlay.style.display = 'block';
-        loadInventoryData();
+        window.loadInventoryData();
     };
 
     overlay.onclick = () => {
@@ -670,20 +779,28 @@ const initInventoryPanel = () => {
         overlay.style.display = 'none';
     };
 
-    const loadInventoryData = () => {
+    window.loadInventoryData = () => {
         invModal.innerHTML = '<h2 style="margin-bottom:20px; color:#00f0ff; text-transform:uppercase; letter-spacing:2px;">📦 Control de Inventario</h2><p>Cargando datos...</p>';
         
-        db.ref('grids').once('value').then(snap => {
-            const allGrids = snap.val() || {};
+        db.ref().once('value').then(snap => {
+            const data = snap.val() || {};
+            const allGrids = data.grids || {};
+            const allSales = data.sales || {};
+
             let tableHTML = `
-                <table style="width:100%; border-collapse:collapse; margin-top:20px; font-size:0.9rem;">
+                <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+                    <button onclick="exportInventoryToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">📥 Excel Inventario</button>
+                    <button onclick="window.showSalesHistory()" style="background:#f39c12; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">🧾 Historial de Ventas</button>
+                    <button onclick="window.resetGridToDefault()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">⚠️ Reiniciar Diseño (BORRAR BASURA)</button>
+                </div>
+                <table id="inventory-table" style="width:100%; border-collapse:collapse; margin-top:20px; font-size:0.9rem;">
                     <thead>
                         <tr style="border-bottom:2px solid #333; text-align:left;">
                             <th style="padding:10px;">Producto</th>
                             <th style="padding:10px;">Categoría</th>
                             <th style="padding:10px;">Precio</th>
                             <th style="padding:10px;">Stock</th>
-                            <th style="padding:10px;">Estado</th>
+                            <th style="padding:10px;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -695,23 +812,22 @@ const initInventoryPanel = () => {
                 tempDiv.innerHTML = allGrids[gridKey];
                 
                 const items = tempDiv.querySelectorAll('.item, .product-card, .platform-card');
-                items.forEach(item => {
+                items.forEach((item, itemIdx) => {
                     hasItems = true;
                     const name = item.querySelector('h3, .product-name, .platform-name')?.innerText || 'Sin nombre';
-                    const price = item.querySelector('.price, .product-price, .platform-price')?.innerText || '$0';
+                    const priceText = item.querySelector('.price, .product-price, .platform-price')?.innerText || '$0';
                     const stock = parseInt(item.getAttribute('data-stock')) || 0;
                     const cat = gridKey.split('_')[1] || 'General';
-
-                    let statusColor = stock > 5 ? '#39ff14' : (stock > 0 ? '#ffae00' : '#ff007f');
-                    let statusText = stock > 5 ? 'OK' : (stock > 0 ? 'Bajo' : 'AGOTADO');
 
                     tableHTML += `
                         <tr style="border-bottom:1px solid #222;">
                             <td style="padding:12px;">${name}</td>
                             <td style="padding:12px; opacity:0.6;">${cat}</td>
-                            <td style="padding:12px; color:#00f0ff;">${price}</td>
-                            <td style="padding:12px; font-weight:bold; color:${statusColor}">${stock}</td>
-                            <td style="padding:12px;"><span style="background:${statusColor}22; color:${statusColor}; padding:3px 8px; border-radius:4px; font-size:0.7rem; border:1px solid ${statusColor}44;">${statusText}</span></td>
+                            <td style="padding:12px;"><input type="text" value="${priceText}" id="price-${gridKey}-${itemIdx}" style="background:#111; color:#00f0ff; border:1px solid #333; padding:5px; width:80px; border-radius:4px;"></td>
+                            <td style="padding:12px;"><input type="number" value="${stock}" id="stock-${gridKey}-${itemIdx}" style="background:#111; color:#39ff14; border:1px solid #333; padding:5px; width:50px; border-radius:4px;"></td>
+                            <td style="padding:12px;">
+                                <button onclick="saveProductEdit('${gridKey}', ${itemIdx})" style="background:#3498db; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem;">Guardar</button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -728,8 +844,168 @@ const initInventoryPanel = () => {
                 <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:15px; border:1px solid #222;">
                     ${tableHTML}
                 </div>
-                <p style="margin-top:20px; font-size:0.8rem; opacity:0.5;">* Los cambios de stock se realizan directamente en cada producto dentro de la tienda.</p>
             `;
+        });
+    };
+
+    window.saveProductEdit = (gridKey, itemIdx) => {
+        const newPrice = document.getElementById(`price-${gridKey}-${itemIdx}`).value;
+        const newStock = document.getElementById(`stock-${gridKey}-${itemIdx}`).value;
+
+        db.ref('grids/' + gridKey).once('value').then(snap => {
+            const html = snap.val();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Limpiar admin-controls y stock-indicators del HTML antes de procesar
+            tempDiv.querySelectorAll('.admin-controls-wrapper, .stock-indicator').forEach(el => el.remove());
+            
+            const items = tempDiv.querySelectorAll('.item, .product-card, .platform-card');
+            const item = items[itemIdx];
+
+            if (item) {
+                const priceEl = item.querySelector('.price, .product-price, .platform-price');
+                if(priceEl) priceEl.innerText = newPrice;
+                item.setAttribute('data-stock', newStock);
+                
+                db.ref('grids/' + gridKey).set(tempDiv.innerHTML).then(() => {
+                    alert('Producto actualizado con éxito. Recarga la página para ver los cambios en la tienda.');
+                    window.loadInventoryData();
+                });
+            }
+        });
+    };
+
+    window.exportInventoryToExcel = () => {
+        let csv = 'Producto,Categoria,Precio,Stock\n';
+        const rows = document.querySelectorAll('#inventory-table tbody tr');
+        rows.forEach(row => {
+            const cols = row.querySelectorAll('td');
+            const name = cols[0].innerText;
+            const cat = cols[1].innerText;
+            const price = cols[2].querySelector('input').value.replace(/,/g, '');
+            const stock = cols[3].querySelector('input').value;
+            csv += `"${name}","${cat}","${price}","${stock}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', 'inventario_knifeblackstore.csv');
+        link.click();
+    };
+
+    window.showSalesHistory = () => {
+        invModal.innerHTML = '<h2 style="color:#00f0ff;">Cargando historial...</h2>';
+        db.ref('sales').once('value').then(snap => {
+            const sales = snap.val() || {};
+            let salesHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2 style="color:#f39c12; text-transform:uppercase;">🧾 Historial de Ventas</h2>
+                    <div>
+                        <button onclick="exportSalesToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:10px;">📥 Excel Ventas</button>
+                        <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">⬅ Volver</button>
+                    </div>
+                </div>
+                <table id="sales-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #333; text-align:left;">
+                            <th style="padding:10px;">Fecha</th>
+                            <th style="padding:10px;">Cliente</th>
+                            <th style="padding:10px;">Total</th>
+                            <th style="padding:10px;">Estado</th>
+                            <th style="padding:10px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (let id in sales) {
+                const s = sales[id];
+                const date = new Date(s.date).toLocaleString();
+                salesHTML += `
+                    <tr style="border-bottom:1px solid #222;">
+                        <td style="padding:10px; opacity:0.7;">${date}</td>
+                        <td style="padding:10px;">${s.customer}<br><span style="font-size:0.7rem; opacity:0.5;">${s.email}</span></td>
+                        <td style="padding:10px; color:#39ff14; font-weight:bold;">$${s.total.toLocaleString()}</td>
+                        <td style="padding:10px;"><span style="background:rgba(243,156,18,0.1); color:#f39c12; padding:3px 8px; border-radius:4px; font-size:0.7rem;">${s.status}</span></td>
+                        <td style="padding:10px;">
+                            <button onclick="printInvoice('${id}')" style="background:#fff; color:#000; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.7rem; font-weight:bold;">🖨️ Factura</button>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            salesHTML += '</tbody></table>';
+            invModal.innerHTML = salesHTML;
+        });
+    };
+
+    window.exportSalesToExcel = () => {
+        let csv = 'Fecha,Cliente,Email,Total,Estado\n';
+        db.ref('sales').once('value').then(snap => {
+            const sales = snap.val() || {};
+            for (let id in sales) {
+                const s = sales[id];
+                csv += `"${new Date(s.date).toLocaleString()}","${s.customer}","${s.email}","${s.total}","${s.status}"\n`;
+            }
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'ventas_knifeblackstore.csv');
+            link.click();
+        });
+    };
+
+    window.printInvoice = (id) => {
+        db.ref('sales/' + id).once('value').then(snap => {
+            const s = snap.val();
+            const printWindow = window.open('', '_blank');
+            const itemsHTML = s.items.map(it => `
+                <tr>
+                    <td style="padding:10px; border-bottom:1px solid #eee;">${it.name}</td>
+                    <td style="padding:10px; border-bottom:1px solid #eee; text-align:right;">$${it.price.toLocaleString()}</td>
+                </tr>
+            `).join('');
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Factura - ${id}</title>
+                    <style>
+                        body { font-family: sans-serif; padding: 40px; color: #333; }
+                        .header { text-align: center; border-bottom: 2px solid #00f0ff; padding-bottom: 20px; }
+                        .details { margin: 20px 0; }
+                        table { width: 100%; border-collapse: collapse; }
+                        .total { font-size: 1.5rem; font-weight: bold; text-align: right; margin-top: 20px; color: #00f0ff; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>KNIFEBLACKSTORE</h1>
+                        <p>Factura de Venta No. ${id.substring(0,8).toUpperCase()}</p>
+                    </div>
+                    <div class="details">
+                        <p><strong>Fecha:</strong> ${new Date(s.date).toLocaleString()}</p>
+                        <p><strong>Cliente:</strong> ${s.customer}</p>
+                        <p><strong>Email:</strong> ${s.email}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr style="background:#f9f9f9;">
+                                <th style="padding:10px; text-align:left;">Producto</th>
+                                <th style="padding:10px; text-align:right;">Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemsHTML}</tbody>
+                    </table>
+                    <div class="total">TOTAL: $${s.total.toLocaleString()}</div>
+                    <p style="text-align:center; margin-top:50px; font-size:0.8rem; color:#888;">Gracias por tu compra en Knifeblackstore.</p>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         });
     };
 };
