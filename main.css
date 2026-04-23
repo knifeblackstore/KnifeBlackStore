@@ -390,6 +390,22 @@ footer {
 .product-price { font-size: 1.8rem; font-weight: 900; color: #39ff14; margin: 15px 0; }
 .platform-price { font-size: 1.5rem; font-weight: 900; color: var(--neon-cyan); margin: 10px 0; }
 
+/* Forzar fuente uniforme en todas las tarjetas — previene mezcla de fuentes en contenido dinámico de Firebase */
+.product-card *, .platform-card *, .item * {
+    font-family: 'Outfit', sans-serif !important;
+}
+.product-card h2, .product-card h3,
+.platform-card h2, .platform-card h3,
+.product-name, .platform-name {
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 700;
+}
+.product-card p, .platform-card p,
+.product-desc, .platform-desc {
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 400;
+}
+
 .buy-btn, .add-screen-btn {
     background: linear-gradient(45deg, #39ff14, #00f0ff);
     color: #000;

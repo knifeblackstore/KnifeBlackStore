@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contacto - knifeblackstore</title>
-    <link rel="stylesheet" href="/main.css?v=2">
+    <link rel="stylesheet" href="/main.css?v=3">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
@@ -212,11 +212,11 @@
         <div class="links menu">
             <a href="index.html">Inicio</a>
             <div class="dropdown">
-                <a href="index.html#servicios">Servicios ▾</a>
+                <a href="index.html#servicios">Servicios â–¾</a>
                 <div class="dropdown-content">
                     <a href="productos.html">Productos y Accesorios</a>
                     <a href="plataformas.html">Plataformas Streaming</a>
-                    <a href="nosotros.html">¿Quién es Knifeblackstore?</a>
+                    <a href="nosotros.html">Â¿QuiÃ©n es Knifeblackstore?</a>
                 </div>
             </div>
             <a href="contacto.html">Contacto</a>
@@ -225,7 +225,7 @@
 
     <header class="contact-hero">
         <h1 style="font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">Ponte en Contacto</h1>
-        <p style="color: #888; font-size: 1.1rem; margin-top: 10px;">Estamos aquí para ayudarte a llevar tus ideas al siguiente nivel.</p>
+        <p style="color: #888; font-size: 1.1rem; margin-top: 10px;">Estamos aquÃ­ para ayudarte a llevar tus ideas al siguiente nivel.</p>
     </header>
 
     <main class="contact-container">
@@ -253,7 +253,7 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 </span>
                 <div class="info-text">
-                    <h3 class="editable-content" id="contact-loc-title">Ubicación</h3>
+                    <h3 class="editable-content" id="contact-loc-title">UbicaciÃ³n</h3>
                     <p class="editable-content" id="contact-loc-text">Pereira, Risaralda</p>
                 </div>
             </div>
@@ -274,12 +274,12 @@
                     <input type="text" id="nombre" placeholder="Tu Nombre Completo" required>
                 </div>
                 <div class="form-group">
-                    <input type="email" id="email" placeholder="Tu Correo Electrónico" required>
+                    <input type="email" id="email" placeholder="Tu Correo ElectrÃ³nico" required>
                 </div>
                 <div class="form-group">
-                    <textarea id="mensaje" placeholder="¿En qué podemos ayudarte?" rows="6"></textarea>
+                    <textarea id="mensaje" placeholder="Â¿En quÃ© podemos ayudarte?" rows="6"></textarea>
                 </div>
-                <button type="submit">Enviar Mensaje Neón</button>
+                <button type="submit">Enviar Mensaje NeÃ³n</button>
             </form>
         </section>
     </main>
@@ -287,7 +287,7 @@
     <!-- PANEL DE MENSAJES - SOLO ADMIN -->
     <section id="admin-messages-panel">
         <h2>
-            💬 Mensajes Recibidos
+            ðŸ’¬ Mensajes Recibidos
             <span id="msg-count-badge" style="display:none;"></span>
         </h2>
         <div id="messages-list">
@@ -314,7 +314,7 @@
 
             list.innerHTML = '';
             if (ids.length === 0) {
-                list.innerHTML = '<div id="msg-empty">No hay mensajes aún. 📨</div>';
+                list.innerHTML = '<div id="msg-empty">No hay mensajes aÃºn. ðŸ“¨</div>';
                 badge.style.display = 'none';
                 return;
             }
@@ -326,7 +326,7 @@
                 if (isNew) unread++;
 
                 const initial   = (m.name  || 'A')[0].toUpperCase();
-                const name      = m.name   || 'Anónimo';
+                const name      = m.name   || 'AnÃ³nimo';
                 const email     = m.email  || 'Sin correo';
                 const preview   = (m.message || '').replace(/\n/g, ' ').substring(0, 60) + ((m.message||'').length > 60 ? '...' : '');
                 const dateStr   = new Date(m.date).toLocaleString('es-CO', {
@@ -346,25 +346,25 @@
                                 <span class="msg-sender">${name}</span>
                                 <span class="msg-email">${email}</span>
                                 ${isNew ? '<span class="msg-badge-new">Nuevo</span>' : ''}
-                                ${hasReply ? '<span style="color:#39ff14;font-size:0.7rem;font-weight:700;">✅ Respondido</span>' : ''}
+                                ${hasReply ? '<span style="color:#39ff14;font-size:0.7rem;font-weight:700;">âœ… Respondido</span>' : ''}
                             </div>
                             <div class="msg-preview">${preview}</div>
                         </div>
                         <div class="msg-header-right">
                             <span class="msg-date">${dateStr}</span>
-                            <span class="msg-chevron">▼</span>
+                            <span class="msg-chevron">â–¼</span>
                         </div>
                     </div>
                     <div class="msg-body-expand">
                         <p class="msg-full-text">${m.message || ''}</p>
                         <div class="msg-actions">
-                            <button class="msg-reply-toggle" onclick="toggleReply('${id}')">✉️ Responder</button>
-                            <button class="msg-del-btn" onclick="deleteMsg('${id}')">🗑️ Eliminar</button>
+                            <button class="msg-reply-toggle" onclick="toggleReply('${id}')">âœ‰ï¸ Responder</button>
+                            <button class="msg-del-btn" onclick="deleteMsg('${id}')">ðŸ—‘ï¸ Eliminar</button>
                         </div>
                         <div class="reply-box" id="reply-${id}">
                             <label>Respuesta para ${name} (${email})</label>
-                            <textarea id="reply-text-${id}" placeholder="Escribe tu respuesta aquí...">${m.reply || ''}</textarea>
-                            <button class="reply-send-btn" id="reply-btn-${id}" onclick="sendReply('${id}', '${email}', '${name}')">📤 Enviar Respuesta</button>
+                            <textarea id="reply-text-${id}" placeholder="Escribe tu respuesta aquÃ­...">${m.reply || ''}</textarea>
+                            <button class="reply-send-btn" id="reply-btn-${id}" onclick="sendReply('${id}', '${email}', '${name}')">ðŸ“¤ Enviar Respuesta</button>
                         </div>
                     </div>
                 `;
@@ -412,24 +412,24 @@
             emailjs.send('service_5hy8csv', 'template_lirlr2z', params)
                 .then(() => {
                     firebase.database().ref('contact_messages/' + id).update({ reply: replyText });
-                    btn.textContent = '✅ Enviado';
+                    btn.textContent = 'âœ… Enviado';
                     btn.style.background = '#27ae60';
                     setTimeout(() => {
                         btn.disabled = false;
-                        btn.textContent = '📤 Enviar Respuesta';
+                        btn.textContent = 'ðŸ“¤ Enviar Respuesta';
                         btn.style.background = '';
                     }, 3000);
                 })
                 .catch(err => {
                     console.error('EmailJS error:', err);
-                    alert('❌ Error al enviar. Revisa la configuración de EmailJS.');
+                    alert('âŒ Error al enviar. Revisa la configuraciÃ³n de EmailJS.');
                     btn.disabled = false;
-                    btn.textContent = '📤 Enviar Respuesta';
+                    btn.textContent = 'ðŸ“¤ Enviar Respuesta';
                 });
         };
 
         window.deleteMsg = (id) => {
-            if (confirm('¿Eliminar este mensaje permanentemente?')) {
+            if (confirm('Â¿Eliminar este mensaje permanentemente?')) {
                 firebase.database().ref('contact_messages/' + id).remove();
             }
         };

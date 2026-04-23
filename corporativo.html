@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Servicios Corporativos - knifeblackstore</title>
-    <link rel="stylesheet" href="/main.css?v=2">
+    <link rel="stylesheet" href="/main.css?v=3">
     <style>
         .plan-item {
             background: white;
@@ -34,7 +34,7 @@
             margin-bottom: 10px;
         }
         .features li::before {
-            content: '✔';
+            content: 'âœ”';
             color: #2ecc71;
             margin-right: 10px;
         }
@@ -63,18 +63,18 @@
             knifeblackstore
         </a>
         <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
-            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Iniciar Sesión</a>
-            <button class="menu-toggle" aria-label="Abrir menú">
+            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Iniciar SesiÃ³n</a>
+            <button class="menu-toggle" aria-label="Abrir menÃº">
                 <span></span><span></span><span></span>
             </button>
         </div>
         <div class="links menu">
             <div class="dropdown">
-                <a href="index.html#servicios">Servicios ▾</a>
+                <a href="index.html#servicios">Servicios â–¾</a>
                 <div class="dropdown-content">
                     <a href="web.html">Web</a>
                     <a href="plataformas.html">Plataformas Streaming</a>
-                    <a href="diseno.html">Diseño</a>
+                    <a href="diseno.html">DiseÃ±o</a>
                 </div>
             </div>
             <a href="index.html#contacto">Contacto</a>
@@ -82,7 +82,7 @@
     </nav>
 
     <header class="hero" style="padding: 40px 5%;">
-        <h1>Páginas Corporativas</h1>
+        <h1>PÃ¡ginas Corporativas</h1>
         <p>Proyecta la mejor imagen de tu empresa con nuestros planes institucionales.</p>
         <div class="btns">
             <a href="web.html" class="b1">Volver a Web</a>
@@ -91,14 +91,14 @@
 
     <section class="grid">
         <div class="plan-item">
-            <h3 class="editable-content" id="corp1-title">Plan Básico</h3>
-            <p class="editable-content" id="corp1-desc">Ideal para pequeñas empresas</p>
+            <h3 class="editable-content" id="corp1-title">Plan BÃ¡sico</h3>
+            <p class="editable-content" id="corp1-desc">Ideal para pequeÃ±as empresas</p>
             <p class="price editable-content" id="corp1-price">$299</p>
             <ul class="features">
-                <li>Diseño responsivo (Móvil y PC)</li>
+                <li>DiseÃ±o responsivo (MÃ³vil y PC)</li>
                 <li>Hasta 5 secciones (Inicio, Nosotros, etc.)</li>
-                <li>Formulario de contacto básico</li>
-                <li>Integración con redes sociales</li>
+                <li>Formulario de contacto bÃ¡sico</li>
+                <li>IntegraciÃ³n con redes sociales</li>
             </ul>
             <button class="contact-btn" onclick="addToCart(this)">Solicitar Plan</button>
         </div>
@@ -107,22 +107,22 @@
             <p class="editable-content" id="corp2-desc">Perfecto para PyMEs en crecimiento</p>
             <p class="price editable-content" id="corp2-price" style="color: #9b59b6;">$599</p>
             <ul class="features">
-                <li>Todo lo del Plan Básico</li>
+                <li>Todo lo del Plan BÃ¡sico</li>
                 <li>Hasta 10 secciones</li>
                 <li>Blog autoadministrable</li>
-                <li>Optimización SEO básica</li>
+                <li>OptimizaciÃ³n SEO bÃ¡sica</li>
             </ul>
             <button class="contact-btn" style="background: #9b59b6;" onclick="addToCart(this)">Solicitar Plan</button>
         </div>
         <div class="plan-item" style="border-color: #e74c3c;">
             <h3 class="editable-content" id="corp3-title">Plan Empresarial</h3>
-            <p class="editable-content" id="corp3-desc">Para grandes compañías</p>
+            <p class="editable-content" id="corp3-desc">Para grandes compaÃ±Ã­as</p>
             <p class="price editable-content" id="corp3-price" style="color: #e74c3c;">$999</p>
             <ul class="features">
                 <li>Todo lo del Plan Profesional</li>
                 <li>Secciones ilimitadas</li>
                 <li>Sistema de usuarios y login</li>
-                <li>Soporte técnico 24/7</li>
+                <li>Soporte tÃ©cnico 24/7</li>
             </ul>
             <button class="contact-btn" style="background: #e74c3c;" onclick="addToCart(this)">Cotizar a Medida</button>
         </div>
@@ -130,7 +130,7 @@
 
     <!-- Carrito Flotante -->
     <div id="cart-widget" style="position:fixed; bottom:20px; right:20px; background:#2c3e50; color:white; padding:15px 20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); display:none; z-index:1000; min-width: 250px;">
-        <h3 style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">🛒 Carrito</h3>
+        <h3 style="margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;">ðŸ›’ Carrito</h3>
         <ul id="cart-items" style="list-style:none; padding:0; margin:0 0 10px 0; font-size: 0.9rem; max-height: 150px; overflow-y: auto;">
         </ul>
         <div style="font-weight: bold; text-align: right; margin-top: 10px; border-top: 1px solid #444; padding-top: 5px;">
