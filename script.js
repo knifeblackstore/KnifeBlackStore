@@ -13,6 +13,10 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.database();
+// Inicializar EmailJS solo si la librería está cargada en la página
+if (typeof emailjs !== 'undefined') {
+    emailjs.init("K_qKROCgi6sp8_Nws");
+}
 
 // Inyectar Script de ePayco
 const epaycoScript = document.createElement('script');
@@ -755,9 +759,34 @@ const initInventoryPanel = () => {
 
     // Crear botón de acceso al panel
     const invBtn = document.createElement('button');
+    invBtn.id = 'admin-inv-btn';
     invBtn.innerHTML = '📊 Inventario';
     invBtn.style.cssText = 'position:fixed; bottom:20px; left:20px; background:#00f0ff; color:black; padding:15px 25px; border-radius:50px; border:none; cursor:pointer; font-weight:900; z-index:9998; box-shadow:0 0 20px rgba(0,240,255,0.4);';
     document.body.appendChild(invBtn);
+
+    // Badge de notificaciones
+    const badge = document.createElement('span');
+    badge.id = 'msg-badge';
+    badge.style.cssText = 'position:absolute; top:-5px; right:-5px; background:#ff007f; color:white; border-radius:50%; width:24px; height:24px; display:none; align-items:center; justify-content:center; font-size:0.7rem; border:2px solid #0a0a0f;';
+    invBtn.appendChild(badge);
+
+    // Escuchar mensajes no leídos en tiempo real
+    db.ref('contact_messages').on('value', snap => {
+        const messages = snap.val() || {};
+        let unreadCount = 0;
+        for (let id in messages) {
+            if (!messages[id].read) unreadCount++;
+        }
+        
+        if (unreadCount > 0) {
+            badge.innerText = unreadCount;
+            badge.style.display = 'flex';
+            invBtn.style.boxShadow = '0 0 25px #ff007f';
+        } else {
+            badge.style.display = 'none';
+            invBtn.style.boxShadow = '0 0 20px rgba(0,240,255,0.4)';
+        }
+    });
 
     const invModal = document.createElement('div');
     invModal.id = 'inventory-modal';
@@ -791,6 +820,7 @@ const initInventoryPanel = () => {
                 <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
                     <button onclick="exportInventoryToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">📥 Excel Inventario</button>
                     <button onclick="window.showSalesHistory()" style="background:#f39c12; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">🧾 Historial de Ventas</button>
+                    <button onclick="window.showMessagesHistory()" style="background:#00f0ff; color:black; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">💬 Mensajes Recibidos</button>
                     <button onclick="window.resetGridToDefault()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">⚠️ Reiniciar Diseño (BORRAR BASURA)</button>
                 </div>
                 <table id="inventory-table" style="width:100%; border-collapse:collapse; margin-top:20px; font-size:0.9rem;">
@@ -893,6 +923,50 @@ const initInventoryPanel = () => {
         link.href = URL.createObjectURL(blob);
         link.setAttribute('download', 'inventario_knifeblackstore.csv');
         link.click();
+    };
+
+    window.showMessagesHistory = () => {
+        invModal.innerHTML = '<h2 style="color:#00f0ff;">Cargando mensajes...</h2>';
+        db.ref('contact_messages').once('value').then(snap => {
+            const messages = snap.val() || {};
+            let msgHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2 style="color:#00f0ff; text-transform:uppercase;">💬 Mensajes de Contacto</h2>
+                    <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">⬅ Volver</button>
+                </div>
+                <div style="display:grid; gap:15px;">
+            `;
+
+            let hasMsg = false;
+            // Ordenar mensajes por fecha (más recientes primero)
+            const sortedIds = Object.keys(messages).sort((a, b) => new Date(messages[b].date) - new Date(messages[a].date));
+
+            sortedIds.forEach(id => {
+                hasMsg = true;
+                const m = messages[id];
+                const date = new Date(m.date).toLocaleString();
+                const isUnread = !m.read;
+                
+                msgHTML += `
+                    <div style="background:${isUnread ? 'rgba(0, 240, 255, 0.1)' : 'rgba(255,255,255,0.05)'}; padding:15px; border-radius:10px; border-left:4px solid ${isUnread ? '#ff007f' : '#00f0ff'};">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:10px; opacity:0.7;">
+                            <span>De: ${m.name} (${m.email}) ${isUnread ? '<b style="color:#ff007f; margin-left:10px;">¡NUEVO!</b>' : ''}</span>
+                            <span>${date}</span>
+                        </div>
+                        <p style="margin:0; line-height:1.4;">${m.message}</p>
+                    </div>
+                `;
+
+                // Marcar como leído
+                if (isUnread) {
+                    db.ref('contact_messages/' + id).update({ read: true });
+                }
+            });
+
+            if (!hasMsg) msgHTML += '<p style="text-align:center; padding:20px; opacity:0.5;">No hay mensajes nuevos.</p>';
+            msgHTML += '</div>';
+            invModal.innerHTML = msgHTML;
+        });
     };
 
     window.showSalesHistory = () => {
@@ -1023,3 +1097,41 @@ window.toggleReadMore = (btn) => {
         btn.textContent = 'Leer más';
     }
 };
+// --- GESTIÓN DE CONTACTO ---
+document.addEventListener('DOMContentLoaded', () => {
+    const contactForm = document.getElementById('formulario');
+    if (contactForm) {
+        contactForm.onsubmit = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('nombre').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('mensaje').value;
+
+            const msgData = {
+                name,
+                email,
+                message,
+                read: false, // Marcar como no leído inicialmente
+                date: new Date().toISOString()
+            };
+
+            // 1. Guardar en Firebase (Panel de Administración)
+            db.ref('contact_messages').push(msgData).then(() => {
+                // 2. Enviar Correo vía EmailJS
+                const templateParams = {
+                    from_name: name,
+                    from_email: email,
+                    message: message
+                };
+
+                return emailjs.send("service_5hy8csv", "template_lirlr2z", templateParams);
+            }).then(() => {
+                alert('🚀 ¡Mensaje enviado con éxito! También se ha enviado una notificación por correo.');
+                contactForm.reset();
+            }).catch(err => {
+                alert('❌ Error al procesar el mensaje. Por favor intenta de nuevo.');
+                console.error('Error en Contacto:', err);
+            });
+        };
+    }
+});

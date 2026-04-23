@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         .contact-page {
             min-height: 100vh;
@@ -68,6 +69,137 @@
                 grid-template-columns: 1fr;
             }
             .contact-hero { padding-top: 60px; }
+        }
+
+        /* === PANEL ADMIN MENSAJES === */
+        #admin-messages-panel {
+            display: none;
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto 80px;
+            padding: 40px;
+            background: rgba(0, 240, 255, 0.03);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+        }
+        #admin-messages-panel h2 {
+            color: #00f0ff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .msg-card {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-left: 4px solid #00f0ff;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
+        .msg-card:hover { box-shadow: 0 0 20px rgba(0,240,255,0.1); }
+        .msg-card.unread { border-left-color: #ff007f; }
+        .msg-header {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 22px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.04);
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .msg-header:hover { background: rgba(255,255,255,0.07); }
+        .msg-card.unread .msg-header { background: rgba(255,0,127,0.05); }
+        .msg-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00f0ff, #7b2ff7);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 1.1rem; color: #fff;
+            flex-shrink: 0;
+        }
+        .msg-header-info { overflow: hidden; }
+        .msg-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
+        .msg-sender { font-weight: 900; color: #fff; font-size: 0.95rem; }
+        .msg-email  { font-size: 0.75rem; color: #888; }
+        .msg-preview { font-size: 0.8rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .msg-header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+        .msg-date { font-size: 0.7rem; color: #555; }
+        .msg-badge-new {
+            background: #ff007f; color: white;
+            font-size: 0.6rem; font-weight: 900;
+            padding: 2px 7px; border-radius: 20px;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .msg-chevron { color: #555; font-size: 0.7rem; transition: transform 0.3s; }
+        .msg-card.open .msg-chevron { transform: rotate(180deg); }
+        .msg-body-expand {
+            display: none;
+            padding: 0 22px 22px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .msg-card.open .msg-body-expand { display: block; }
+        .msg-full-text {
+            color: #ccc; font-size: 0.9rem;
+            line-height: 1.7; white-space: pre-wrap;
+            padding: 18px 0 14px;
+        }
+        .msg-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+        .msg-del-btn {
+            background: none; border: 1px solid #333;
+            color: #e74c3c; border-radius: 8px;
+            padding: 7px 14px; cursor: pointer;
+            font-size: 0.8rem; transition: 0.3s;
+        }
+        .msg-del-btn:hover { background: rgba(231,76,60,0.15); border-color: #e74c3c; }
+        .msg-reply-toggle {
+            background: rgba(0,240,255,0.1); border: 1px solid #00f0ff;
+            color: #00f0ff; border-radius: 8px;
+            padding: 7px 14px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 700; transition: 0.3s;
+        }
+        .msg-reply-toggle:hover { background: rgba(0,240,255,0.2); }
+        .reply-box {
+            display: none;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(0,240,255,0.2);
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 4px;
+        }
+        .reply-box.open { display: block; }
+        .reply-box label { font-size: 0.75rem; color: #00f0ff; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 8px; }
+        .reply-box textarea {
+            width: 100%; min-height: 100px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333; border-radius: 8px;
+            color: #fff; padding: 12px; font-size: 0.9rem;
+            resize: vertical; box-sizing: border-box;
+            font-family: inherit; transition: 0.3s;
+        }
+        .reply-box textarea:focus { outline: none; border-color: #00f0ff; box-shadow: 0 0 10px rgba(0,240,255,0.15); }
+        .reply-send-btn {
+            margin-top: 10px;
+            background: linear-gradient(45deg, #00f0ff, #7b2ff7);
+            color: white; border: none;
+            border-radius: 8px; padding: 10px 22px;
+            cursor: pointer; font-weight: 900;
+            font-size: 0.85rem; transition: 0.3s;
+        }
+        .reply-send-btn:hover { opacity: 0.85; transform: scale(1.02); }
+        .reply-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #msg-empty { text-align: center; padding: 40px; color: #555; font-size: 0.9rem; }
+        #msg-count-badge {
+            background: #ff007f; color: white;
+            border-radius: 20px; padding: 2px 9px;
+            font-size: 0.75rem; font-weight: 900;
         }
     </style>
 </head>
@@ -152,12 +284,164 @@
         </section>
     </main>
 
+    <!-- PANEL DE MENSAJES - SOLO ADMIN -->
+    <section id="admin-messages-panel">
+        <h2>
+            💬 Mensajes Recibidos
+            <span id="msg-count-badge" style="display:none;"></span>
+        </h2>
+        <div id="messages-list">
+            <div id="msg-empty">Cargando mensajes...</div>
+        </div>
+    </section>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user || user.role !== 'admin') return;
+
+        const panel = document.getElementById('admin-messages-panel');
+        const list  = document.getElementById('messages-list');
+        const badge = document.getElementById('msg-count-badge');
+        panel.style.display = 'block';
+
+        const messagesRef = firebase.database().ref('contact_messages');
+        messagesRef.on('value', snap => {
+            const data = snap.val() || {};
+            const ids  = Object.keys(data).sort((a,b) =>
+                new Date(data[b].date) - new Date(data[a].date)
+            );
+
+            list.innerHTML = '';
+            if (ids.length === 0) {
+                list.innerHTML = '<div id="msg-empty">No hay mensajes aún. 📨</div>';
+                badge.style.display = 'none';
+                return;
+            }
+
+            let unread = 0;
+            ids.forEach(id => {
+                const m      = data[id];
+                const isNew  = !m.read;
+                if (isNew) unread++;
+
+                const initial   = (m.name  || 'A')[0].toUpperCase();
+                const name      = m.name   || 'Anónimo';
+                const email     = m.email  || 'Sin correo';
+                const preview   = (m.message || '').replace(/\n/g, ' ').substring(0, 60) + ((m.message||'').length > 60 ? '...' : '');
+                const dateStr   = new Date(m.date).toLocaleString('es-CO', {
+                    day:'2-digit', month:'short', year:'numeric',
+                    hour:'2-digit', minute:'2-digit'
+                });
+                const hasReply  = m.reply ? true : false;
+
+                const card = document.createElement('div');
+                card.className = 'msg-card' + (isNew ? ' unread' : '');
+                card.id = 'card-' + id;
+                card.innerHTML = `
+                    <div class="msg-header" onclick="toggleMsg('${id}')">
+                        <div class="msg-avatar">${initial}</div>
+                        <div class="msg-header-info">
+                            <div class="msg-meta">
+                                <span class="msg-sender">${name}</span>
+                                <span class="msg-email">${email}</span>
+                                ${isNew ? '<span class="msg-badge-new">Nuevo</span>' : ''}
+                                ${hasReply ? '<span style="color:#39ff14;font-size:0.7rem;font-weight:700;">✅ Respondido</span>' : ''}
+                            </div>
+                            <div class="msg-preview">${preview}</div>
+                        </div>
+                        <div class="msg-header-right">
+                            <span class="msg-date">${dateStr}</span>
+                            <span class="msg-chevron">▼</span>
+                        </div>
+                    </div>
+                    <div class="msg-body-expand">
+                        <p class="msg-full-text">${m.message || ''}</p>
+                        <div class="msg-actions">
+                            <button class="msg-reply-toggle" onclick="toggleReply('${id}')">✉️ Responder</button>
+                            <button class="msg-del-btn" onclick="deleteMsg('${id}')">🗑️ Eliminar</button>
+                        </div>
+                        <div class="reply-box" id="reply-${id}">
+                            <label>Respuesta para ${name} (${email})</label>
+                            <textarea id="reply-text-${id}" placeholder="Escribe tu respuesta aquí...">${m.reply || ''}</textarea>
+                            <button class="reply-send-btn" id="reply-btn-${id}" onclick="sendReply('${id}', '${email}', '${name}')">📤 Enviar Respuesta</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+
+                if (isNew) {
+                    firebase.database().ref('contact_messages/' + id).update({ read: true });
+                }
+            });
+
+            badge.textContent = unread > 0 ? unread + ' nuevo' + (unread > 1 ? 's' : '') : '';
+            badge.style.display = unread > 0 ? 'inline-block' : 'none';
+        });
+
+        window.toggleMsg = (id) => {
+            const card = document.getElementById('card-' + id);
+            card.classList.toggle('open');
+        };
+
+        window.toggleReply = (id) => {
+            const box = document.getElementById('reply-' + id);
+            box.classList.toggle('open');
+            if (box.classList.contains('open')) {
+                document.getElementById('reply-text-' + id).focus();
+            }
+        };
+
+        window.sendReply = (id, toEmail, toName) => {
+            const textarea = document.getElementById('reply-text-' + id);
+            const btn      = document.getElementById('reply-btn-' + id);
+            const replyText = textarea.value.trim();
+
+            if (!replyText) { alert('Escribe una respuesta antes de enviar.'); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+
+            const params = {
+                to_name:  toName,
+                to_email: toEmail,
+                message:  replyText,
+                from_name: 'Knifeblackstore'
+            };
+
+            emailjs.send('service_5hy8csv', 'template_lirlr2z', params)
+                .then(() => {
+                    firebase.database().ref('contact_messages/' + id).update({ reply: replyText });
+                    btn.textContent = '✅ Enviado';
+                    btn.style.background = '#27ae60';
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = '📤 Enviar Respuesta';
+                        btn.style.background = '';
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error('EmailJS error:', err);
+                    alert('❌ Error al enviar. Revisa la configuración de EmailJS.');
+                    btn.disabled = false;
+                    btn.textContent = '📤 Enviar Respuesta';
+                });
+        };
+
+        window.deleteMsg = (id) => {
+            if (confirm('¿Eliminar este mensaje permanentemente?')) {
+                firebase.database().ref('contact_messages/' + id).remove();
+            }
+        };
+    });
+    </script>
+
     <footer style="background: #000; padding: 40px 5%; border-top: 1px solid var(--glass-border);">
         <p style="text-align:center; font-size:14px; color:#444;">
             Creado por Mauricio Valencia
         </p>
     </footer>
 
-    <script src="script.js?v=6"></script>
+    <script src="script.js?v=8"></script>
 </body>
 </html>
