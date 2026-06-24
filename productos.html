@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos y Accesorios - knifeblackstore</title>
-    <link rel="stylesheet" href="/main.css?v=3">
+    <link rel="stylesheet" href="main.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
@@ -15,17 +15,23 @@
             <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
             knifeblackstore
         </a>
+        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
         <div class="links menu">
             <a href="index.html">Inicio</a>
             <div class="dropdown">
-                <a href="index.html#servicios">Servicios â–¾</a>
+                <a href="index.html#servicios">Servicios</a>
                 <div class="dropdown-content">
-                    <a href="productos.html">Productos y Accesorios</a>
-                    <a href="plataformas.html">Plataformas Streaming</a>
-                    <a href="nosotros.html">Â¿QuiÃ©n es Knifeblackstore?</a>
+                    <a href="productos.html">Catálogo de Productos</a>
+                    <a href="plataformas.html">Plataformas de Streaming</a>
+                    <a href="nosotros.html">Sobre Knifeblackstore</a>
                 </div>
             </div>
-            <a href="contacto.html">Contacto</a>
+            <a href="contacto.html">Contáctanos</a>
         </div>
     </nav>
 
@@ -67,6 +73,6 @@
         </div>
     </footer>
 
-    <script src="script.js?v=8"></script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>knifeblackstore</title>
-    <link rel="stylesheet" href="/main.css?v=3">
+    <link rel="stylesheet" href="main.css">
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <nav class="nav">
-        <a href="#" class="logo" style="display:flex; align-items:center; gap:10px;">
+        <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
             <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
             knifeblackstore
         </a>
         <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
             <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
-            <button class="menu-toggle" aria-label="Abrir menÃº">
+            <button class="menu-toggle" aria-label="Abrir menú">
                 <span></span><span></span><span></span>
             </button>
         </div>
@@ -26,77 +26,7 @@
                 <a href="index.html#servicios">Servicios</a>
                 <div class="dropdown-content">
                     <a href="productos.html">Catálogo de Productos</a>
-                    <a href="plataformas.html">Plataformas de                     <!-- Modal de Login -->
-                    <div id="loginModal" class="login-modal">
-                        <div class="login-modal-content">
-                            <span class="close-modal">&times;</span>
-                            <h2>Iniciar Sesión</h2>
-                            <form id="loginForm">
-                                <input type="email" placeholder="Email" required class="login-input">
-                                <input type="password" placeholder="Contraseña" required class="login-input">
-                                <button type="submit" class="login-btn">Acceder</button>
-                            </form>
-                            <p style="margin-top:20px; color:#888;">¿No tienes cuenta? <a href="#">Registrarse</a></p>
-                        </div>
-                    </div>                    .login-modal {
-                        display: none;
-                        position: fixed;
-                        z-index: 1000;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(0, 0, 0, 0.7);
-                        backdrop-filter: blur(5px);
-                    }
-                    
-                    .login-modal-content {
-                        background: var(--card-bg);
-                        margin: 10% auto;
-                        padding: 40px;
-                        border-radius: 24px;
-                        border: 1px solid var(--glass-border);
-                        width: 90%;
-                        max-width: 450px;
-                        animation: slideDown 0.4s ease-out;
-                    }
-                    
-                    @keyframes slideDown {
-                        from { transform: translateY(-50px); opacity: 0; }
-                        to { transform: translateY(0); opacity: 1; }
-                    }
-                    
-                    .close-modal {
-                        color: #aaa;
-                        float: right;
-                        font-size: 28px;
-                        font-weight: bold;
-                        cursor: pointer;
-                    }
-                    
-                    .close-modal:hover { color: var(--neon-cyan); }                    // Modal de Login
-                    const loginModal = document.getElementById('loginModal');
-                    const closeModal = document.querySelector('.close-modal');
-                    const loginBtn = document.querySelector('a[href="login.html"]');
-                    
-                    if (loginBtn) {
-                        loginBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            loginModal.style.display = 'block';
-                        });
-                    }
-                    
-                    if (closeModal) {
-                        closeModal.addEventListener('click', () => {
-                            loginModal.style.display = 'none';
-                        });
-                    }
-                    
-                    window.addEventListener('click', (e) => {
-                        if (e.target === loginModal) {
-                            loginModal.style.display = 'none';
-                        }
-                    });Streaming</a>
+                    <a href="plataformas.html">Plataformas de Streaming</a>
                     <a href="nosotros.html">Sobre Knifeblackstore</a>
                 </div>
             </div>
@@ -108,8 +38,8 @@
         <h1>Bienvenido a knifeblackstore</h1>
         <p>Tu tienda streaming de confianza</p>
         <div class="btns">
-                <a href="contacto.html" class="b1">Contáctanos</a>
-                <a href="#servicios" class="b2">Ver Servicios</a>
+            <a href="contacto.html" class="b1">Contáctanos</a>
+            <a href="#servicios" class="b2">Ver Servicios</a>
         </div>
     </header>
 
@@ -118,24 +48,21 @@
             <span>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px #39ff14);"><line x1="16.5" y1="9.4" x2="7.5" y2="4.6"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
             </span>
-                <h3>Catálogo de Productos</h3>
+            <h3>Catálogo de Productos</h3>
         </a>
         <a href="plataformas.html" class="item" style="text-decoration:none; color:inherit;">
             <span>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff007f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px #ff007f);"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
             </span>
-                <h3>Plataformas de Streaming</h3>
+            <h3>Plataformas de Streaming</h3>
         </a>
         <a href="nosotros.html" class="item" style="text-decoration:none; color:inherit;">
             <span>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px #00f0ff);"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
             </span>
-                <h3>Sobre Knifeblackstore</h3>
+            <h3>Sobre Knifeblackstore</h3>
         </a>
     </section>
-
-    <!--Acceder de contacto movida a contacto.html -->
-
 
     <footer>
         <p style="text-align:center; padding:20px; font-size:14px; color:#666;">
@@ -143,6 +70,6 @@
         </p>
     </footer>
 
-    <script src="script.js?v=8"></script>
+    <script src="script.js"></script>
 </body>
 </html>
