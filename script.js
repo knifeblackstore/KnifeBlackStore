@@ -344,7 +344,7 @@ const initDynamicGrid = () => {
                         newCard = document.createElement('article');
                         newCard.className = isPlatformGrid ? 'platform-card' : 'product-card';
                         newCard.innerHTML = isPlatformGrid
-                            ? `<div class="platform-icon">­ƒÄ¼</div><h2 class="platform-name">Nueva Plataforma</h2><p class="platform-desc">Descripción de la plataforma.</p><div class="platform-price">$0.00 <span>/ Mes</span></div><button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>`
+                            ? `<div class="platform-icon">🎮</div><h2 class="platform-name">Nueva Plataforma</h2><p class="platform-desc">Descripción de la plataforma.</p><div class="platform-price">$0.00 <span>/ Mes</span></div><button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>`
                             : `<div class="product-img-container platform-icon"><span>✨</span></div><h2 class="product-name platform-name">Nuevo Producto</h2><p class="product-desc platform-desc">Descripción del producto.</p><div class="product-price platform-price">$0.00</div><button onclick="addToCart(this)" class="buy-btn">Comprar ahora</button>`;
                     }
 
@@ -359,13 +359,13 @@ const initDynamicGrid = () => {
                         if (desc) desc.innerText = 'Haz clic para editar descripción.';
                         if (price) price.innerHTML = '$0.00 <span>/ Mes</span>';
                         const icon = newCard.querySelector('.platform-icon');
-                        if (icon) icon.innerText = '­ƒÄ¼';
+                        if (icon) icon.innerText = '🎮';
                     } else if (isProductGrid) {
-                        const typeChoice = prompt('Selecciona el tipo:\n1. Pin ­ƒÅ«\n2. Figura ­ƒÄÄ\n3. Accesorio ­ƒÄÆ\n4. Otro ✨', '1');
+                        const typeChoice = prompt('Selecciona el tipo:\n1. Pin 📌\n2. Figura 👾\n3. Accesorio 💍\n4. Otro ✨', '1');
                         let emoji = '✨', title = 'Nuevo Producto';
-                        if (typeChoice === '1') { emoji = '­ƒÅ«'; title = 'Pin Metálico'; }
-                        else if (typeChoice === '2') { emoji = '­ƒÄÄ'; title = 'Figura de Acción'; }
-                        else if (typeChoice === '3') { emoji = '­ƒÄÆ'; title = 'Accesorio'; }
+                        if (typeChoice === '1') { emoji = '📌'; title = 'Pin Metálico'; }
+                        else if (typeChoice === '2') { emoji = '👾'; title = 'Figura de Acción'; }
+                        else if (typeChoice === '3') { emoji = '💍'; title = 'Accesorio'; }
                         const iconEl = newCard.querySelector('.platform-icon span, .product-img-container span');
                         if (iconEl) iconEl.innerText = emoji;
                         const name = newCard.querySelector('.product-name, .platform-name, h2');
@@ -737,7 +737,7 @@ const initInventoryPanel = () => {
     // Crear botón de acceso al panel
     const invBtn = document.createElement('button');
     invBtn.id = 'admin-inv-btn';
-    invBtn.innerHTML = '­ƒôè Inventario';
+    invBtn.innerHTML = '📦 Inventario';
     invBtn.style.cssText = 'position:fixed; bottom:20px; left:20px; background:#00f0ff; color:black; padding:15px 25px; border-radius:50px; border:none; cursor:pointer; font-weight:900; z-index:9998; box-shadow:0 0 20px rgba(0,240,255,0.4);';
     document.body.appendChild(invBtn);
 
@@ -786,7 +786,7 @@ const initInventoryPanel = () => {
     };
 
     window.loadInventoryData = () => {
-        invModal.innerHTML = '<h2 style="margin-bottom:20px; color:#00f0ff; text-transform:uppercase; letter-spacing:2px;">­ƒôª Control de Inventario</h2><p>Cargando datos...</p>';
+        invModal.innerHTML = '<h2 style="margin-bottom:20px; color:#00f0ff; text-transform:uppercase; letter-spacing:2px;">📋 Control de Inventario</h2><p>Cargando datos...</p>';
         
         db.ref().once('value').then(snap => {
             const data = snap.val() || {};
@@ -795,9 +795,9 @@ const initInventoryPanel = () => {
 
             let tableHTML = `
                 <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
-                    <button onclick="exportInventoryToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">­ƒôÑ Excel Inventario</button>
-                    <button onclick="window.showSalesHistory()" style="background:#f39c12; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">­ƒº¥ Historial de Ventas</button>
-                    <button onclick="window.showMessagesHistory()" style="background:#00f0ff; color:black; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">­ƒÆ¼ Mensajes Recibidos</button>
+                    <button onclick="exportInventoryToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">📊 Excel Inventario</button>
+                    <button onclick="window.showSalesHistory()" style="background:#f39c12; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">📜 Historial de Ventas</button>
+                    <button onclick="window.showMessagesHistory()" style="background:#00f0ff; color:black; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">💬 Mensajes Recibidos</button>
                     <button onclick="window.resetGridToDefault()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">ÔÜá´©Å Reiniciar Diseño (BORRAR BASURA)</button>
                 </div>
                 <table id="inventory-table" style="width:100%; border-collapse:collapse; margin-top:20px; font-size:0.9rem;">
@@ -845,7 +845,7 @@ const initInventoryPanel = () => {
             tableHTML += '</tbody></table>';
             invModal.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2 style="color:#00f0ff; text-transform:uppercase; letter-spacing:2px; margin:0;">­ƒôª Control de Inventario</h2>
+                    <h2 style="color:#00f0ff; text-transform:uppercase; letter-spacing:2px; margin:0;">📋 Control de Inventario</h2>
                     <button onclick="document.getElementById('inventory-modal').style.display='none'; document.querySelector('#inventory-modal + div').style.display='none';" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
                 </div>
                 <div style="background:rgba(255,255,255,0.02); padding:20px; border-radius:15px; border:1px solid #222;">
@@ -908,7 +908,7 @@ const initInventoryPanel = () => {
             const messages = snap.val() || {};
             let msgHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2 style="color:#00f0ff; text-transform:uppercase;">­ƒÆ¼ Mensajes de Contacto</h2>
+                    <h2 style="color:#00f0ff; text-transform:uppercase;">💬 Mensajes de Contacto</h2>
                     <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">Ô¼à Volver</button>
                 </div>
                 <div style="display:grid; gap:15px;">
@@ -952,9 +952,9 @@ const initInventoryPanel = () => {
             const sales = snap.val() || {};
             let salesHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2 style="color:#f39c12; text-transform:uppercase;">­ƒº¥ Historial de Ventas</h2>
+                    <h2 style="color:#f39c12; text-transform:uppercase;">📜 Historial de Ventas</h2>
                     <div>
-                        <button onclick="exportSalesToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:10px;">­ƒôÑ Excel Ventas</button>
+                        <button onclick="exportSalesToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:10px;">📊 Excel Ventas</button>
                         <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">Ô¼à Volver</button>
                     </div>
                 </div>
@@ -981,7 +981,7 @@ const initInventoryPanel = () => {
                         <td style="padding:10px; color:#39ff14; font-weight:bold;">$${s.total.toLocaleString()}</td>
                         <td style="padding:10px;"><span style="background:rgba(243,156,18,0.1); color:#f39c12; padding:3px 8px; border-radius:4px; font-size:0.7rem;">${s.status}</span></td>
                         <td style="padding:10px;">
-                            <button onclick="printInvoice('${id}')" style="background:#fff; color:#000; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.7rem; font-weight:bold;">­ƒû¿´©Å Factura</button>
+                            <button onclick="printInvoice('${id}')" style="background:#fff; color:#000; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:0.7rem; font-weight:bold;">🧾 Factura</button>
                         </td>
                     </tr>
                 `;
@@ -1248,9 +1248,9 @@ window.openProductGalleryManager = (item, grid, safeKey) => {
                 <div id="gallery-manager-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:200px; overflow-y:auto; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:15px; border-radius:12px; border:1px solid #222;">
                 </div>
                 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-                    <button id="gallery-add-local" style="background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">­ƒôü Subir Imagen Local</button>
-                    <button id="gallery-add-url" style="background:#9b59b6; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">­ƒöù Agregar desde URL</button>
-                    <button id="gallery-add-emoji" style="background:#f1c40f; color:black; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">­ƒÅ« Añadir Emoji/Icono</button>
+                    <button id="gallery-add-local" style="background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">📤 Subir Imagen Local</button>
+                    <button id="gallery-add-url" style="background:#9b59b6; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">🔗 Agregar desde URL</button>
+                    <button id="gallery-add-emoji" style="background:#f1c40f; color:black; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">📌 Añadir Emoji/Icono</button>
                 </div>
                 <button id="gallery-manager-save" style="background:linear-gradient(45deg, #2ecc71, #27ae60); color:white; border:none; padding:12px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer; font-size:1rem; text-transform:uppercase;">Aplicar y Guardar</button>
             </div>
@@ -1336,7 +1336,7 @@ window.openProductGalleryManager = (item, grid, safeKey) => {
         };
 
         overlay.querySelector('#gallery-add-emoji').onclick = () => {
-            const emoji = prompt('Introduce un emoji o icono (ej. ­ƒÄÆ, ­ƒÅ«, ­ƒÄÄ):');
+            const emoji = prompt('Introduce un emoji o icono (ej. 💍, 📌, 👾):');
             if (emoji) {
                 images.push(emoji);
                 renderManager();
