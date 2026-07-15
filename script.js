@@ -319,7 +319,7 @@ const initDynamicGrid = () => {
 
                 const addBtn = document.createElement('button');
                 addBtn.className = 'admin-add-btn';
-                addBtn.textContent = '+ Añadir Nuevo Elemento';
+                addBtn.textContent = '+ AÑADIR NUEVO ELEMENTO';
                 addBtn.style.cssText = 'display:block; margin: 20px auto; padding: 12px 25px; background: linear-gradient(45deg,#2ecc71,#27ae60); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(46,204,113,0.4); transition: 0.3s; z-index:100;';
 
                 addBtn.onclick = () => {
@@ -407,7 +407,7 @@ const initDynamicGrid = () => {
 
     // Función para RESETEAR la página a su estado original (borra la base de datos de esta página)
     window.resetGridToDefault = () => {
-        if (confirm("ÔÜá´©Å ┬┐Estás seguro? Esto borrará todos los productos agregados en ESTA página y volverá al diseño original del archivo HTML.")) {
+        if (confirm("ÔÜá´©Å ¿Estás seguro? Esto borrará todos los productos agregados en ESTA página y volverá al diseño original del archivo HTML.")) {
             const grids = document.querySelectorAll('.grid, .platform-grid, .product-grid');
             grids.forEach(grid => {
                 const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + (grid.className);
@@ -458,7 +458,7 @@ function addAdminButtons(item, grid, safeKey) {
     
     // Botón Imágenes (Soporte Multi-Imagen / Galería)
     const imgBtn = document.createElement('button');
-    imgBtn.textContent = '­ƒôÀ Imágenes';
+    imgBtn.textContent = '📷 IMÁGENES';
     imgBtn.style.cssText = 'background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold;';
     imgBtn.onclick = (e) => {
         e.stopPropagation();
@@ -511,9 +511,9 @@ function addAdminButtons(item, grid, safeKey) {
 
     // Botón Eliminar
     const delBtn = document.createElement('button');
-    delBtn.textContent = '­ƒùæ´©Å Eliminar';
+    delBtn.textContent = '🗑️ ELIMINAR';
     delBtn.style.cssText = 'background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold; margin-top:5px;';
-    delBtn.onclick = (e) => { e.stopPropagation(); if(confirm('┬┐Eliminar este elemento?')) { item.remove(); saveGrid(grid, safeKey); } };
+    delBtn.onclick = (e) => { e.stopPropagation(); if(confirm('¿Eliminar este elemento?')) { item.remove(); saveGrid(grid, safeKey); } };
 
     wrapper.appendChild(imgBtn);
     wrapper.appendChild(stockDiv);
@@ -628,7 +628,7 @@ window.removeFromCart = (i) => {
 };
 
 window.clearCart = () => {
-    if(confirm('┬┐Deseas vaciar el carrito?')) {
+    if(confirm('¿Deseas vaciar el carrito?')) {
         cart = [];
         localStorage.removeItem('shoppingCart');
         updateCartUI();
@@ -1242,7 +1242,7 @@ window.openProductGalleryManager = (item, grid, safeKey) => {
         overlay.innerHTML = `
             <div style="background:#0a0a0f; border:2px solid var(--neon-cyan); border-radius:24px; padding:30px; width:90%; max-width:500px; color:white; box-shadow:0 0 30px rgba(0,240,255,0.2);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3 style="margin:0; text-transform:uppercase; letter-spacing:1px; color:#00f0ff;">­ƒôÀ Imágenes</h3>
+                    <h3 style="margin:0; text-transform:uppercase; letter-spacing:1px; color:#00f0ff;">📷 IMÁGENES</h3>
                     <button id="close-gallery-manager" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
                 </div>
                 <div id="gallery-manager-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:200px; overflow-y:auto; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:15px; border-radius:12px; border:1px solid #222;">
