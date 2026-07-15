@@ -276,130 +276,109 @@ const initEditableContent = () => {
 const initDynamicGrid = () => {
     const grids = document.querySelectorAll('.grid, .platform-grid, .product-grid');
     if (grids.length === 0) return;
-
+    
     grids.forEach(grid => {
-        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + grid.className;
+        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + (grid.className);
         const safeKey = pageKey.replace(/\./g, '_').replace(/\s/g, '_');
 
         db.ref('grids/' + safeKey).once('value').then(snap => {
             const savedGrid = snap.val();
             if (savedGrid) {
                 grid.innerHTML = savedGrid;
-                // Limpiar elementos basura (stock-indicators sueltos, etc.)
+                
+                // FILTRO DE SEGURIDAD: Solo permitir tarjetas válidas. 
+                // Borra automáticamente cualquier "basura" (indicadores sueltos, etc) que se haya guardado por error.
                 Array.from(grid.children).forEach(child => {
-                    if (!child.classList.contains('product-card') &&
-                        !child.classList.contains('platform-card') &&
-                        !child.classList.contains('item')) {
+                    const isProduct = child.classList.contains('product-card');
+                    const isPlatform = child.classList.contains('platform-card');
+                    const isItem = child.classList.contains('item');
+                    
+                    if (!isProduct && !isPlatform && !isItem) {
                         child.remove();
                     }
                 });
+
+                // Sanatización de seguridad para NO-ADMINS
+                const user = JSON.parse(localStorage.getItem('currentUser'));
+                if (!user || user.role !== 'admin') {
+                    grid.querySelectorAll('[contenteditable], .editable-content, .platform-name, .platform-desc, .platform-price, .product-name, .product-price').forEach(el => {
+                        el.removeAttribute('contenteditable');
+                        el.style.borderBottom = 'none';
+                        el.style.cursor = 'default';
+                        el.title = '';
+                    });
+                }
             }
 
             const user = JSON.parse(localStorage.getItem('currentUser'));
-
-            // --- MODO ADMIN ---
             if (user && user.role === 'admin') {
-
-                // Aplicar controles a TODAS las tarjetas del grid
-                Array.from(grid.children).forEach(item => {
-                    const isCard = item.classList.contains('product-card') ||
-                                   item.classList.contains('platform-card') ||
-                                   item.classList.contains('item');
-                    // Excluir links de navegación del grid de servicios en index
-                    const isNavLink = item.tagName === 'A' && grid.id === 'servicios';
-                    if (isCard && !isNavLink) {
-                        addAdminButtons(item, grid, safeKey);
-                    }
-                });
-
-                // Botón Añadir nuevo elemento
-                // Evitar duplicados
-                const existingAddBtn = grid.parentNode.querySelector('.admin-add-btn');
-                if (existingAddBtn) existingAddBtn.remove();
-
                 const addBtn = document.createElement('button');
-                addBtn.className = 'admin-add-btn';
                 addBtn.textContent = '+ Añadir Nuevo Elemento';
-                addBtn.style.cssText = 'display:block; margin: 20px auto; padding: 12px 25px; background: linear-gradient(45deg,#2ecc71,#27ae60); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(46,204,113,0.4); transition: 0.3s; z-index:100;';
-
+                addBtn.style.cssText = 'display:block; margin: 20px auto; padding: 12px 25px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;';
                 addBtn.onclick = () => {
-                    const isPlatformGrid = grid.classList.contains('platform-grid');
-                    const isProductGrid  = grid.classList.contains('product-grid');
-
-                    // Obtener la primera tarjeta real para clonar
-                    const templateCard = Array.from(grid.children).find(c =>
-                        c.classList.contains('product-card') ||
-                        c.classList.contains('platform-card') ||
+                    const children = Array.from(grid.children).filter(c => 
+                        c.classList.contains('product-card') || 
+                        c.classList.contains('platform-card') || 
                         c.classList.contains('item')
                     );
-
-                    let newCard;
-                    if (templateCard) {
-                        newCard = templateCard.cloneNode(true);
-                        // Limpiar controles previos del clon
-                        newCard.querySelectorAll('.admin-controls-wrapper, .stock-indicator, .tag-popular').forEach(el => el.remove());
-                        newCard.removeAttribute('data-stock');
+                    if (children.length === 0) return;
+                    
+                    let emoji = "✨";
+                    let defaultTitle = "Nuevo Elemento";
+                    let isPlatform = grid.classList.contains('platform-grid');
+                    
+                    if (grid.classList.contains('product-grid')) {
+                        const typeChoice = prompt("Selecciona el tipo de producto:\n1. Pin 🏮\n2. Figura 🎎\n3. Accesorio 🎒\n4. Otro ✨", "1");
+                        if (typeChoice === "1") { emoji = "🏮"; defaultTitle = "Pin Metálico"; }
+                        else if (typeChoice === "2") { emoji = "🎎"; defaultTitle = "Figura de Acción"; }
+                        else if (typeChoice === "3") { emoji = "🎒"; defaultTitle = "Accesorio"; }
                     } else {
-                        // Crear tarjeta desde cero si no hay ninguna
-                        newCard = document.createElement('article');
-                        newCard.className = isPlatformGrid ? 'platform-card' : 'product-card';
-                        newCard.innerHTML = isPlatformGrid
-                            ? `<div class="platform-icon">🎬</div><h2 class="platform-name">Nueva Plataforma</h2><p class="platform-desc">Descripción de la plataforma.</p><div class="platform-price">$0.00 <span>/ Mes</span></div><button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>`
-                            : `<div class="product-img-container platform-icon"><span>✨</span></div><h2 class="product-name platform-name">Nuevo Producto</h2><p class="product-desc platform-desc">Descripción del producto.</p><div class="product-price platform-price">$0.00</div><button onclick="addToCart(this)" class="buy-btn">Comprar ahora</button>`;
+                        // Para plataformas, no pedir tipo de producto, solo usar el primero como base
+                        const firstEmoji = children[0].querySelector(".platform-icon, .product-img-container")?.innerText.trim();
+                        emoji = firstEmoji || "🎬";
+                        defaultTitle = "Nueva Plataforma";
                     }
 
+                    const clone = children[0].cloneNode(true);
                     const timestamp = Date.now();
+                    
+                    // Actualizar Icono/Emoji
+                    const iconEl = clone.querySelector(".platform-icon, .product-img-container span, .platform-icon span");
+                    if (iconEl) iconEl.innerText = emoji;
 
-                    // Reiniciar textos del clon
-                    if (isPlatformGrid) {
-                        const name = newCard.querySelector('.platform-name, h2');
-                        const desc = newCard.querySelector('.platform-desc, p');
-                        const price = newCard.querySelector('.platform-price');
-                        if (name) name.innerText = 'Nueva Plataforma';
-                        if (desc) desc.innerText = 'Haz clic para editar descripción.';
-                        if (price) price.innerHTML = '$0.00 <span>/ Mes</span>';
-                        const icon = newCard.querySelector('.platform-icon');
-                        if (icon) icon.innerText = '🎬';
-                    } else if (isProductGrid) {
-                        const typeChoice = prompt('Selecciona el tipo:\n1. Pin 🏮\n2. Figura 🎎\n3. Accesorio 🎒\n4. Otro ✨', '1');
-                        let emoji = '✨', title = 'Nuevo Producto';
-                        if (typeChoice === '1') { emoji = '🏮'; title = 'Pin Metálico'; }
-                        else if (typeChoice === '2') { emoji = '🎎'; title = 'Figura de Acción'; }
-                        else if (typeChoice === '3') { emoji = '🎒'; title = 'Accesorio'; }
-                        const iconEl = newCard.querySelector('.platform-icon span, .product-img-container span');
-                        if (iconEl) iconEl.innerText = emoji;
-                        const name = newCard.querySelector('.product-name, .platform-name, h2');
-                        const desc = newCard.querySelector('.product-desc, .platform-desc, p');
-                        const price = newCard.querySelector('.product-price, .platform-price');
-                        if (name) name.innerText = title;
-                        if (desc) desc.innerText = 'Haz clic para editar descripción.';
-                        if (price) price.innerText = '$0.00';
-                    } else {
-                        newCard.querySelectorAll('h2, h3, p').forEach(el => { el.innerText = 'Nuevo elemento'; });
-                    }
-
-                    // Asignar IDs únicos
-                    newCard.querySelectorAll('[id]').forEach((el, i) => {
-                        el.id = 'dynamic_' + timestamp + '_' + i;
+                    clone.querySelectorAll(".editable-content, .platform-name, .platform-desc, .platform-price, .product-name, .product-desc, .product-price").forEach((el, index) => {
+                        el.id = "dynamic_" + timestamp + "_" + index;
+                        if(el.classList.contains("price") || el.classList.contains("platform-price") || el.classList.contains("product-price")) {
+                            el.innerText = isPlatform ? "$0.00 / Mes" : "$0.00";
+                        }
+                        else if(el.tagName === "H3" || el.tagName === "H2" || el.classList.contains("platform-name") || el.classList.contains("product-name")) {
+                            el.innerText = defaultTitle;
+                        }
+                        else el.innerText = "Haz clic para editar descripción.";
                     });
 
-                    addAdminButtons(newCard, grid, safeKey);
-                    grid.appendChild(newCard);
+                    // Limpiar indicadores y controles previos del clon
+                    clone.querySelectorAll(".admin-controls-wrapper, .stock-indicator").forEach(el => el.remove());
+                    
+                    addAdminButtons(clone, grid, safeKey);
+                    grid.appendChild(clone);
                     saveGrid(grid, safeKey);
                     initEditableContent();
-                    newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 };
+                grid.parentNode.insertBefore(addBtn, grid);
 
-                // Insertar el botón DESPUÉS del grid
-                grid.parentNode.insertBefore(addBtn, grid.nextSibling);
-
-            } else {
-                // NO ADMIN: quitar cualquier atributo editable
-                grid.querySelectorAll('[contenteditable]').forEach(el => {
-                    el.removeAttribute('contenteditable');
-                    el.style.borderBottom = '';
-                    el.style.cursor = '';
-                    el.title = '';
+                // Filtrar para no procesar indicadores sueltos como si fueran productos
+                Array.from(grid.children).forEach(item => {
+                    const isRealCard = item.classList.contains('product-card') || item.classList.contains('platform-card');
+                    const isNavItem = item.classList.contains('item') && item.tagName === 'A'; // Los de index.html son <a>
+                    
+                    if (isRealCard || (isNavItem && grid.id !== 'servicios')) {
+                        addAdminButtons(item, grid, safeKey);
+                    } else if (item.classList.contains('stock-indicator') || (isNavItem && grid.id === 'servicios')) {
+                        // Si es index.html servicios, no queremos controles de stock ni nada dinámico aquí
+                        if (item.classList.contains('stock-indicator')) item.remove();
+                        // Si es un item de navegación en el grid, no le agregamos botones de admin de inventario
+                    }
                 });
             }
         });
@@ -1354,201 +1333,3 @@ window.openProductGalleryManager = (item, grid, safeKey) => {
 
     renderManager();
 };
-
-// --- SISTEMA DE DETALLES TIPO MERCADO LIBRE ---
-let currentProductDetailsId = null;
-
-function createProductDetailsModal() {
-    let modal = document.getElementById('product-details-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'product-details-modal';
-        modal.innerHTML = 
-            <div class="details-container">
-                <button class="details-close" onclick="closeProductDetails()">×</button>
-                <div class="details-left">
-                    <div class="details-gallery" id="details-main-img-container">
-                        <img src="" id="details-main-img">
-                    </div>
-                    <div class="details-gallery-nav" id="details-thumbs"></div>
-                </div>
-                <div class="details-info">
-                    <h1 class="details-title" id="details-title">Título</h1>
-                    <div class="details-price" id="details-price">.00</div>
-                    <p class="details-desc" id="details-desc">Descripción</p>
-                    <button class="details-buy-btn" id="details-buy-btn">Agregar al Carrito</button>
-                    
-                    <div class="reviews-section">
-                        <h3 class="reviews-title">Reseñas de Clientes</h3>
-                        <div id="reviews-list"></div>
-                        <form class="review-form" id="review-form">
-                            <select id="review-stars" required>
-                                <option value="5">⭐⭐⭐⭐⭐ Excelente</option>
-                                <option value="4">⭐⭐⭐⭐ Muy Bueno</option>
-                                <option value="3">⭐⭐⭐ Bueno</option>
-                                <option value="2">⭐⭐ Regular</option>
-                                <option value="1">⭐ Malo</option>
-                            </select>
-                            <textarea id="review-text" rows="3" placeholder="Escribe tu opinión aquí..." required></textarea>
-                            <button type="submit">Enviar Reseña</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        ;
-        document.body.appendChild(modal);
-
-        // Cerrar al hacer clic afuera
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeProductDetails();
-        });
-
-        // Formulario de reseñas
-        document.getElementById('review-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            if (!user) {
-                alert('Debes iniciar sesión para dejar una reseña.');
-                window.location.href = 'login.html';
-                return;
-            }
-            if (!currentProductDetailsId) return;
-
-            const stars = document.getElementById('review-stars').value;
-            const text = document.getElementById('review-text').value;
-            
-            const newReview = {
-                author: user.name || user.email,
-                stars: parseInt(stars),
-                text: text,
-                date: new Date().toISOString()
-            };
-
-            db.ref('reviews/' + currentProductDetailsId).push(newReview).then(() => {
-                document.getElementById('review-form').reset();
-                loadReviews(currentProductDetailsId);
-            }).catch(err => {
-                alert('Error al guardar la reseña. Inténtalo de nuevo.');
-                console.error(err);
-            });
-        });
-    }
-    return modal;
-}
-
-function openProductDetails(card) {
-    // Generar ID único basado en el contenido si no tiene uno
-    const titleEl = card.querySelector('.product-name, .platform-name, h2, h3');
-    if (!titleEl) return;
-    
-    // Si no tiene id, le creamos uno estable basado en el título (limpio)
-    let itemId = titleEl.id;
-    if (!itemId) {
-        itemId = 'prod_' + titleEl.innerText.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-        titleEl.id = itemId;
-    }
-    currentProductDetailsId = itemId;
-
-    const modal = createProductDetailsModal();
-    const title = titleEl.innerText;
-    const desc = card.querySelector('.product-desc, .platform-desc, p:not(.price)')?.innerText || 'Sin descripción';
-    const price = card.querySelector('.product-price, .platform-price, .price')?.innerHTML || '.00';
-    
-    document.getElementById('details-title').innerText = title;
-    document.getElementById('details-desc').innerText = desc;
-    document.getElementById('details-price').innerHTML = price;
-
-    // Configurar botón comprar
-    const buyBtn = document.getElementById('details-buy-btn');
-    buyBtn.onclick = () => {
-        // Simular clic en el botón original
-        const originalBtn = card.querySelector('.buy-btn, .add-screen-btn');
-        if (originalBtn) originalBtn.click();
-        closeProductDetails();
-    };
-
-    // Galería
-    const images = getProductImages(card); // Utiliza la función existente que ya lee de Firebase o DOM
-    const mainImg = document.getElementById('details-main-img');
-    const thumbsContainer = document.getElementById('details-thumbs');
-    thumbsContainer.innerHTML = '';
-
-    if (images.length > 0) {
-        mainImg.src = images[0];
-        if (images.length > 1) {
-            images.forEach((src, idx) => {
-                const thumb = document.createElement('img');
-                thumb.src = src;
-                thumb.className = 'details-gallery-thumb' + (idx === 0 ? ' active' : '');
-                thumb.onclick = () => {
-                    mainImg.src = src;
-                    document.querySelectorAll('.details-gallery-thumb').forEach(t => t.classList.remove('active'));
-                    thumb.classList.add('active');
-                };
-                thumbsContainer.appendChild(thumb);
-            });
-        }
-    } else {
-        // Fallback a ícono
-        const icon = card.querySelector('.platform-icon span, .product-img-container span')?.innerText || '✨';
-        document.getElementById('details-main-img-container').innerHTML = <div style="font-size: 8rem; display:flex; align-items:center; justify-content:center; width:100%; height:100%;"></div>;
-    }
-
-    loadReviews(itemId);
-    
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeProductDetails() {
-    const modal = document.getElementById('product-details-modal');
-    if (modal) {
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
-        currentProductDetailsId = null;
-    }
-}
-
-function loadReviews(itemId) {
-    const list = document.getElementById('reviews-list');
-    list.innerHTML = '<p style="color:#888;">Cargando reseñas...</p>';
-    
-    db.ref('reviews/' + itemId).once('value').then(snap => {
-        const reviews = snap.val();
-        list.innerHTML = '';
-        if (reviews) {
-            Object.values(reviews).reverse().forEach(rev => {
-                const stars = '⭐'.repeat(rev.stars);
-                list.innerHTML += 
-                    <div class="review-card">
-                        <div class="review-header">
-                            <span class="review-author"></span>
-                            <span class="review-stars"></span>
-                        </div>
-                        <div class="review-text"></div>
-                    </div>
-                ;
-            });
-        } else {
-            list.innerHTML = '<p style="color:#888; font-style:italic;">Aún no hay reseñas. ¡Sé el primero en opinar!</p>';
-        }
-    }).catch(err => {
-        list.innerHTML = '<p style="color:#e74c3c;">No se pudieron cargar las reseñas.</p>';
-        console.error(err);
-    });
-}
-
-// Delegación de eventos para abrir detalles al hacer clic en cualquier tarjeta
-document.addEventListener('click', (e) => {
-    // Si hizo clic en un control de admin o en comprar, no abrir detalles
-    if (e.target.closest('.admin-controls-wrapper') || e.target.closest('.buy-btn, .add-screen-btn')) return;
-    
-    // Si hizo clic en la imagen o cualquier parte de la tarjeta
-    const card = e.target.closest('.product-card, .platform-card');
-    if (card) {
-        // Asegurarnos que no estamos en modo edición de admin clickeando un texto
-        if (e.target.isContentEditable) return;
-        openProductDetails(card);
-    }
-});
-
