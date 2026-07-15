@@ -13,7 +13,7 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.database();
-// Inicializar EmailJS solo si la librer├¡a est├í cargada en la p├ígina
+// Inicializar EmailJS solo si la librería está cargada en la página
 if (typeof emailjs !== 'undefined') {
     emailjs.init("K_qKROCgi6sp8_Nws");
 }
@@ -37,7 +37,7 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('mouseleave', () => cursorGlow.style.opacity = '0');
 
-// Men├║ m├│vil
+// Menú móvil
 const menuToggle = document.querySelector('.menu-toggle');
 const menu = document.querySelector('.menu');
 const allLinks = document.querySelectorAll('a[href^="#"]');
@@ -58,12 +58,12 @@ allLinks.forEach(link => {
         const targetSection = document.getElementById(targetId);
         
         if (targetSection) {
-            // Si la secci├│n est├í oculta, mostrarla
+            // Si la sección está oculta, mostrarla
             if (window.getComputedStyle(targetSection).display === 'none') {
                 targetSection.style.display = 'block';
                 targetSection.classList.add('fade-in');
             }
-            // Desplazamiento suave con un peque├▒o delay para asegurar que el display:block se proces├│
+            // Desplazamiento suave con un pequeño delay para asegurar que el display:block se procesó
             setTimeout(() => {
                 targetSection.scrollIntoView({ behavior: 'smooth' });
             }, 50);
@@ -71,7 +71,7 @@ allLinks.forEach(link => {
     });
 });
 
-// Verificar si hay un hash al cargar la p├ígina
+// Verificar si hay un hash al cargar la página
 window.addEventListener('load', () => {
     if (window.location.hash) {
         const targetSection = document.getElementById(window.location.hash.replace('#', ''));
@@ -85,7 +85,7 @@ window.addEventListener('load', () => {
     }
 });
 
-// --- SISTEMA DE BASE DE DATOS FIREBASE Y SESI├ôN ---
+// --- SISTEMA DE BASE DE DATOS FIREBASE Y SESIÓN ---
 
 const initDB = () => {
     db.ref('usersDB').once('value').then(snap => {
@@ -109,18 +109,18 @@ if (registerForm) {
         db.ref('usersDB').once('value').then(snap => {
             const users = snap.val() || [];
             if (users.find(u => u.email === email)) {
-                alert('El correo ya est├í registrado.');
+                alert('El correo ya está registrado.');
                 return;
             }
             users.push({ name, email, password, role });
             db.ref('usersDB').set(users).then(() => {
                 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
                 if (currentUser && currentUser.role === 'admin') {
-                    alert('┬í├ëxito! El usuario "' + name + '" ha sido creado como ' + role.toUpperCase());
+                    alert('¡├ëxito! El usuario "' + name + '" ha sido creado como ' + role.toUpperCase());
                     document.getElementById('registerForm').reset();
                 } else {
                     localStorage.setItem('currentUser', JSON.stringify({ name, email, password, role }));
-                    alert('┬íCuenta creada exitosamente! Bienvenido, ' + name);
+                    alert('¡Cuenta creada exitosamente! Bienvenido, ' + name);
                     window.location.href = 'index.html';
                 }
             });
@@ -139,7 +139,7 @@ if (loginFormLocal) {
         if (emailOrUser === 'Admin' && password === '123456') {
             const adminUser = { email: 'admin@knifeblackstore.com', name: 'Admin Maestro', role: 'admin' };
             localStorage.setItem('currentUser', JSON.stringify(adminUser));
-            alert('┬íBienvenido, Administrador Maestro!');
+            alert('¡Bienvenido, Administrador Maestro!');
             window.location.href = 'index.html';
             return;
         }
@@ -149,10 +149,10 @@ if (loginFormLocal) {
             const user = users.find(u => (u.email === emailOrUser || u.name === emailOrUser) && u.password === password);
             if (user) {
                 localStorage.setItem('currentUser', JSON.stringify(user));
-                alert('Inicio de sesi├│n exitoso. Bienvenido, ' + (user.name || user.email));
+                alert('Inicio de sesión exitoso. Bienvenido, ' + (user.name || user.email));
                 window.location.href = 'index.html';
             } else {
-                alert('Usuario o contrase├▒a incorrectos.');
+                alert('Usuario o contraseña incorrectos.');
             }
         });
     });
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- SISTEMA DE EDICI├ôN EN VIVO (SOLO ADMIN) ---
+// --- SISTEMA DE EDICIÓN EN VIVO (SOLO ADMIN) ---
 const initEditableContent = () => {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     const editableElements = document.querySelectorAll('.editable-content');
@@ -305,21 +305,21 @@ const initDynamicGrid = () => {
                     const isCard = item.classList.contains('product-card') ||
                                    item.classList.contains('platform-card') ||
                                    item.classList.contains('item');
-                    // Excluir links de navegaci├│n del grid de servicios en index
+                    // Excluir links de navegación del grid de servicios en index
                     const isNavLink = item.tagName === 'A' && grid.id === 'servicios';
                     if (isCard && !isNavLink) {
                         addAdminButtons(item, grid, safeKey);
                     }
                 });
 
-                // Bot├│n A├▒adir nuevo elemento
+                // Botón Añadir nuevo elemento
                 // Evitar duplicados
                 const existingAddBtn = grid.parentNode.querySelector('.admin-add-btn');
                 if (existingAddBtn) existingAddBtn.remove();
 
                 const addBtn = document.createElement('button');
                 addBtn.className = 'admin-add-btn';
-                addBtn.textContent = '+ A├▒adir Nuevo Elemento';
+                addBtn.textContent = '+ Añadir Nuevo Elemento';
                 addBtn.style.cssText = 'display:block; margin: 20px auto; padding: 12px 25px; background: linear-gradient(45deg,#2ecc71,#27ae60); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(46,204,113,0.4); transition: 0.3s; z-index:100;';
 
                 addBtn.onclick = () => {
@@ -344,8 +344,8 @@ const initDynamicGrid = () => {
                         newCard = document.createElement('article');
                         newCard.className = isPlatformGrid ? 'platform-card' : 'product-card';
                         newCard.innerHTML = isPlatformGrid
-                            ? `<div class="platform-icon">­ƒÄ¼</div><h2 class="platform-name">Nueva Plataforma</h2><p class="platform-desc">Descripci├│n de la plataforma.</p><div class="platform-price">$0.00 <span>/ Mes</span></div><button onclick="addToCart(this)" class="add-screen-btn">A├▒adir pantalla</button>`
-                            : `<div class="product-img-container platform-icon"><span>Ô£¿</span></div><h2 class="product-name platform-name">Nuevo Producto</h2><p class="product-desc platform-desc">Descripci├│n del producto.</p><div class="product-price platform-price">$0.00</div><button onclick="addToCart(this)" class="buy-btn">Comprar ahora</button>`;
+                            ? `<div class="platform-icon">­ƒÄ¼</div><h2 class="platform-name">Nueva Plataforma</h2><p class="platform-desc">Descripción de la plataforma.</p><div class="platform-price">$0.00 <span>/ Mes</span></div><button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>`
+                            : `<div class="product-img-container platform-icon"><span>✨</span></div><h2 class="product-name platform-name">Nuevo Producto</h2><p class="product-desc platform-desc">Descripción del producto.</p><div class="product-price platform-price">$0.00</div><button onclick="addToCart(this)" class="buy-btn">Comprar ahora</button>`;
                     }
 
                     const timestamp = Date.now();
@@ -356,15 +356,15 @@ const initDynamicGrid = () => {
                         const desc = newCard.querySelector('.platform-desc, p');
                         const price = newCard.querySelector('.platform-price');
                         if (name) name.innerText = 'Nueva Plataforma';
-                        if (desc) desc.innerText = 'Haz clic para editar descripci├│n.';
+                        if (desc) desc.innerText = 'Haz clic para editar descripción.';
                         if (price) price.innerHTML = '$0.00 <span>/ Mes</span>';
                         const icon = newCard.querySelector('.platform-icon');
                         if (icon) icon.innerText = '­ƒÄ¼';
                     } else if (isProductGrid) {
-                        const typeChoice = prompt('Selecciona el tipo:\n1. Pin ­ƒÅ«\n2. Figura ­ƒÄÄ\n3. Accesorio ­ƒÄÆ\n4. Otro Ô£¿', '1');
-                        let emoji = 'Ô£¿', title = 'Nuevo Producto';
-                        if (typeChoice === '1') { emoji = '­ƒÅ«'; title = 'Pin Met├ílico'; }
-                        else if (typeChoice === '2') { emoji = '­ƒÄÄ'; title = 'Figura de Acci├│n'; }
+                        const typeChoice = prompt('Selecciona el tipo:\n1. Pin ­ƒÅ«\n2. Figura ­ƒÄÄ\n3. Accesorio ­ƒÄÆ\n4. Otro ✨', '1');
+                        let emoji = '✨', title = 'Nuevo Producto';
+                        if (typeChoice === '1') { emoji = '­ƒÅ«'; title = 'Pin Metálico'; }
+                        else if (typeChoice === '2') { emoji = '­ƒÄÄ'; title = 'Figura de Acción'; }
                         else if (typeChoice === '3') { emoji = '­ƒÄÆ'; title = 'Accesorio'; }
                         const iconEl = newCard.querySelector('.platform-icon span, .product-img-container span');
                         if (iconEl) iconEl.innerText = emoji;
@@ -372,13 +372,13 @@ const initDynamicGrid = () => {
                         const desc = newCard.querySelector('.product-desc, .platform-desc, p');
                         const price = newCard.querySelector('.product-price, .platform-price');
                         if (name) name.innerText = title;
-                        if (desc) desc.innerText = 'Haz clic para editar descripci├│n.';
+                        if (desc) desc.innerText = 'Haz clic para editar descripción.';
                         if (price) price.innerText = '$0.00';
                     } else {
                         newCard.querySelectorAll('h2, h3, p').forEach(el => { el.innerText = 'Nuevo elemento'; });
                     }
 
-                    // Asignar IDs ├║nicos
+                    // Asignar IDs únicos
                     newCard.querySelectorAll('[id]').forEach((el, i) => {
                         el.id = 'dynamic_' + timestamp + '_' + i;
                     });
@@ -390,7 +390,7 @@ const initDynamicGrid = () => {
                     newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 };
 
-                // Insertar el bot├│n DESPU├ëS del grid
+                // Insertar el botón DESPU├ëS del grid
                 grid.parentNode.insertBefore(addBtn, grid.nextSibling);
 
             } else {
@@ -405,9 +405,9 @@ const initDynamicGrid = () => {
         });
     });
 
-    // Funci├│n para RESETEAR la p├ígina a su estado original (borra la base de datos de esta p├ígina)
+    // Función para RESETEAR la página a su estado original (borra la base de datos de esta página)
     window.resetGridToDefault = () => {
-        if (confirm("ÔÜá´©Å ┬┐Est├ís seguro? Esto borrar├í todos los productos agregados en ESTA p├ígina y volver├í al dise├▒o original del archivo HTML.")) {
+        if (confirm("ÔÜá´©Å ┬┐Estás seguro? Esto borrará todos los productos agregados en ESTA página y volverá al diseño original del archivo HTML.")) {
             const grids = document.querySelectorAll('.grid, .platform-grid, .product-grid');
             grids.forEach(grid => {
                 const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + (grid.className);
@@ -425,7 +425,7 @@ const initDynamicGrid = () => {
         // LIMPIEZA ABSOLUTA: Eliminar todo lo que NO sea contenido puro del producto
         clone.querySelectorAll('.admin-controls-wrapper, .stock-indicator, button:not(.buy-btn):not(.add-screen-btn):not(.gallery-nav-btn)').forEach(el => el.remove());
         
-        // Quitar permisos de edici├│n y estilos de administrador de TODOS los elementos
+        // Quitar permisos de edición y estilos de administrador de TODOS los elementos
         clone.querySelectorAll('*').forEach(el => {
             el.removeAttribute('contenteditable');
             if (el.style.borderBottom.includes('dashed')) el.style.borderBottom = '';
@@ -456,20 +456,20 @@ function addAdminButtons(item, grid, safeKey) {
     wrapper.className = 'admin-controls-wrapper';
     wrapper.style.cssText = 'position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 5px; z-index: 10; background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; border:1px solid #333;';
     
-    // Bot├│n Im├ígenes (Soporte Multi-Imagen / Galer├¡a)
+    // Botón Imágenes (Soporte Multi-Imagen / Galería)
     const imgBtn = document.createElement('button');
-    imgBtn.textContent = '­ƒôÀ Im├ígenes';
+    imgBtn.textContent = '­ƒôÀ Imágenes';
     imgBtn.style.cssText = 'background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold;';
     imgBtn.onclick = (e) => {
         e.stopPropagation();
         if (window.openProductGalleryManager) {
             window.openProductGalleryManager(item, grid, safeKey);
         } else {
-            alert('El gestor de galer├¡a no est├í cargado.');
+            alert('El gestor de galería no está cargado.');
         }
     };
 
-    // Gesti├│n de Stock
+    // Gestión de Stock
     const stockDiv = document.createElement('div');
     stockDiv.style.cssText = 'display:flex; align-items:center; gap:5px; color:white; font-size:0.7rem; margin-top:5px;';
     
@@ -509,7 +509,7 @@ function addAdminButtons(item, grid, safeKey) {
     stockDiv.appendChild(stockLabel);
     stockDiv.appendChild(plusBtn);
 
-    // Bot├│n Eliminar
+    // Botón Eliminar
     const delBtn = document.createElement('button');
     delBtn.textContent = '­ƒùæ´©Å Eliminar';
     delBtn.style.cssText = 'background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold; margin-top:5px;';
@@ -522,7 +522,7 @@ function addAdminButtons(item, grid, safeKey) {
     if(window.getComputedStyle(item).position === 'static') item.style.position = 'relative';
     item.appendChild(wrapper);
     
-    // Solo mostrar stock si es un producto o plataforma real, no un link de navegaci├│n
+    // Solo mostrar stock si es un producto o plataforma real, no un link de navegación
     if (item.classList.contains('product-card') || item.classList.contains('platform-card')) {
         updateStockIndicator(item);
     }
@@ -542,7 +542,7 @@ function updateStockIndicator(item) {
         }
     }
     const stock = parseInt(item.getAttribute('data-stock')) || 0;
-    indicator.textContent = stock > 0 ? `Stock disponible: ${stock}` : '┬íAGOTADO!';
+    indicator.textContent = stock > 0 ? `Stock disponible: ${stock}` : '¡AGOTADO!';
     indicator.style.color = stock > 5 ? '#39ff14' : (stock > 0 ? '#ffae00' : '#ff007f');
 }
 
@@ -580,7 +580,7 @@ const updateCartUI = () => {
         let total = cart.reduce((sum, it) => sum + it.price, 0);
 
         widget.innerHTML = `
-            <h3 style="margin-bottom:20px; text-transform:uppercase; letter-spacing:2px; font-weight:900; background:linear-gradient(to right, var(--neon-cyan), var(--neon-pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">­ƒøÆ Carrito Gamer</h3>
+            <h3 style="margin-bottom:20px; text-transform:uppercase; letter-spacing:2px; font-weight:900; background:linear-gradient(to right, var(--neon-cyan), var(--neon-pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">🛒 Carrito Gamer</h3>
             <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; padding-right:5px;">${itemsHTML}</div>
             <div style="display:flex; justify-content:space-between; font-weight:900; font-size:1.2rem; margin-bottom:20px; border-top:1px solid var(--neon-cyan); padding-top:15px;">
                 <span>TOTAL:</span>
@@ -610,7 +610,7 @@ window.addToCart = (btn) => {
         
         // Efecto visual de agregado
         const originalText = btn.innerText;
-        btn.innerText = '┬íA├æADIDO! Ô£¿';
+        btn.innerText = '¡A├æADIDO! ✨';
         btn.style.borderColor = 'var(--neon-green)';
         setTimeout(() => {
             btn.innerText = originalText;
@@ -638,10 +638,10 @@ window.clearCart = () => {
 window.checkoutCart = () => {
     if (cart.length === 0) return;
     
-    // VERIFICACI├ôN DE SESI├ôN
+    // VERIFICACIÓN DE SESIÓN
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user) {
-        alert('­ƒÜÇ ┬íAlto ah├¡, Gamer! Debes INICIAR SESI├ôN para completar tu compra.');
+        alert('🚀 ¡Alto ahí, Gamer! Debes INICIAR SESIÓN para completar tu compra.');
         window.location.href = 'login.html';
         return;
     }
@@ -660,8 +660,8 @@ window.checkoutCart = () => {
     };
     db.ref('sales').push(saleData);
 
-    let message = "­ƒÜÇ *NUEVO PEDIDO - KNIFEBLACKSTORE*\n\n";
-    message += `­ƒæñ *Cliente:* ${user.name} (${user.email})\n`;
+    let message = "🚀 *NUEVO PEDIDO - KNIFEBLACKSTORE*\n\n";
+    message += `👤 *Cliente:* ${user.name} (${user.email})\n`;
     message += "------------------------------------------\n";
     message += "Hola, quiero adquirir los siguientes productos:\n\n";
     
@@ -669,8 +669,8 @@ window.checkoutCart = () => {
         message += `${idx + 1}. *${it.name}* - $${it.price.toLocaleString()}\n`;
     });
     
-    message += `\n­ƒÆ░ *TOTAL A PAGAR: $${total.toLocaleString()}*\n\n`;
-    message += "Quedo atento para coordinar el pago. ┬íGracias!";
+    message += `\n💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n\n`;
+    message += "Quedo atento para coordinar el pago. ¡Gracias!";
     
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/573108014660?text=${encoded}`, '_blank');
@@ -681,7 +681,7 @@ window.payWithEpayco = () => {
     
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user) {
-        alert('­ƒÜÇ ┬íAlto ah├¡! Debes INICIAR SESI├ôN para realizar el pago seguro.');
+        alert('🚀 ¡Alto ahí! Debes INICIAR SESIÓN para realizar el pago seguro.');
         window.location.href = 'login.html';
         return;
     }
@@ -720,7 +720,7 @@ window.payWithEpayco = () => {
         confirmation: "https://knifeblackstore-1791.web.app/confirmacion",
         response: "https://knifeblackstore-1791.web.app/respuesta",
         name_billing: user.name,
-        address_billing: "Direcci├│n del cliente",
+        address_billing: "Dirección del cliente",
         type_doc_billing: "cc",
         mobile_billing: "3000000000",
         number_doc_billing: "123456789"
@@ -734,7 +734,7 @@ const initInventoryPanel = () => {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user || user.role !== 'admin') return;
 
-    // Crear bot├│n de acceso al panel
+    // Crear botón de acceso al panel
     const invBtn = document.createElement('button');
     invBtn.id = 'admin-inv-btn';
     invBtn.innerHTML = '­ƒôè Inventario';
@@ -747,7 +747,7 @@ const initInventoryPanel = () => {
     badge.style.cssText = 'position:absolute; top:-5px; right:-5px; background:#ff007f; color:white; border-radius:50%; width:24px; height:24px; display:none; align-items:center; justify-content:center; font-size:0.7rem; border:2px solid #0a0a0f;';
     invBtn.appendChild(badge);
 
-    // Escuchar mensajes no le├¡dos en tiempo real
+    // Escuchar mensajes no leídos en tiempo real
     db.ref('contact_messages').on('value', snap => {
         const messages = snap.val() || {};
         let unreadCount = 0;
@@ -798,13 +798,13 @@ const initInventoryPanel = () => {
                     <button onclick="exportInventoryToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">­ƒôÑ Excel Inventario</button>
                     <button onclick="window.showSalesHistory()" style="background:#f39c12; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">­ƒº¥ Historial de Ventas</button>
                     <button onclick="window.showMessagesHistory()" style="background:#00f0ff; color:black; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">­ƒÆ¼ Mensajes Recibidos</button>
-                    <button onclick="window.resetGridToDefault()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">ÔÜá´©Å Reiniciar Dise├▒o (BORRAR BASURA)</button>
+                    <button onclick="window.resetGridToDefault()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">ÔÜá´©Å Reiniciar Diseño (BORRAR BASURA)</button>
                 </div>
                 <table id="inventory-table" style="width:100%; border-collapse:collapse; margin-top:20px; font-size:0.9rem;">
                     <thead>
                         <tr style="border-bottom:2px solid #333; text-align:left;">
                             <th style="padding:10px;">Producto</th>
-                            <th style="padding:10px;">Categor├¡a</th>
+                            <th style="padding:10px;">Categoría</th>
                             <th style="padding:10px;">Precio</th>
                             <th style="padding:10px;">Stock</th>
                             <th style="padding:10px;">Acciones</th>
@@ -876,7 +876,7 @@ const initInventoryPanel = () => {
                 item.setAttribute('data-stock', newStock);
                 
                 db.ref('grids/' + gridKey).set(tempDiv.innerHTML).then(() => {
-                    alert('Producto actualizado con ├®xito. Recarga la p├ígina para ver los cambios en la tienda.');
+                    alert('Producto actualizado con ├®xito. Recarga la página para ver los cambios en la tienda.');
                     window.loadInventoryData();
                 });
             }
@@ -915,7 +915,7 @@ const initInventoryPanel = () => {
             `;
 
             let hasMsg = false;
-            // Ordenar mensajes por fecha (m├ís recientes primero)
+            // Ordenar mensajes por fecha (más recientes primero)
             const sortedIds = Object.keys(messages).sort((a, b) => new Date(messages[b].date) - new Date(messages[a].date));
 
             sortedIds.forEach(id => {
@@ -927,14 +927,14 @@ const initInventoryPanel = () => {
                 msgHTML += `
                     <div style="background:${isUnread ? 'rgba(0, 240, 255, 0.1)' : 'rgba(255,255,255,0.05)'}; padding:15px; border-radius:10px; border-left:4px solid ${isUnread ? '#ff007f' : '#00f0ff'};">
                         <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:10px; opacity:0.7;">
-                            <span>De: ${m.name} (${m.email}) ${isUnread ? '<b style="color:#ff007f; margin-left:10px;">┬íNUEVO!</b>' : ''}</span>
+                            <span>De: ${m.name} (${m.email}) ${isUnread ? '<b style="color:#ff007f; margin-left:10px;">¡NUEVO!</b>' : ''}</span>
                             <span>${date}</span>
                         </div>
                         <p style="margin:0; line-height:1.4;">${m.message}</p>
                     </div>
                 `;
 
-                // Marcar como le├¡do
+                // Marcar como leído
                 if (isUnread) {
                     db.ref('contact_messages/' + id).update({ read: true });
                 }
@@ -1071,10 +1071,10 @@ window.toggleReadMore = (btn) => {
         btn.textContent = 'Leer menos';
     } else {
         content.style.display = 'none';
-        btn.textContent = 'Leer m├ís';
+        btn.textContent = 'Leer más';
     }
 };
-// --- GESTI├ôN DE CONTACTO ---
+// --- GESTIÓN DE CONTACTO ---
 document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('formulario');
     if (contactForm) {
@@ -1088,13 +1088,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 name,
                 email,
                 message,
-                read: false, // Marcar como no le├¡do inicialmente
+                read: false, // Marcar como no leído inicialmente
                 date: new Date().toISOString()
             };
 
-            // 1. Guardar en Firebase (Panel de Administraci├│n)
+            // 1. Guardar en Firebase (Panel de Administración)
             db.ref('contact_messages').push(msgData).then(() => {
-                // 2. Enviar Correo v├¡a EmailJS
+                // 2. Enviar Correo vía EmailJS
                 const templateParams = {
                     from_name: name,
                     from_email: email,
@@ -1103,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 return emailjs.send("service_5hy8csv", "template_lirlr2z", templateParams);
             }).then(() => {
-                alert('­ƒÜÇ ┬íMensaje enviado con ├®xito! Tambi├®n se ha enviado una notificaci├│n por correo.');
+                alert('🚀 ¡Mensaje enviado con ├®xito! Tambi├®n se ha enviado una notificación por correo.');
                 contactForm.reset();
             }).catch(err => {
                 alert('ÔØî Error al procesar el mensaje. Por favor intenta de nuevo.');
@@ -1178,7 +1178,7 @@ const updateProductImageArea = (item, imageList) => {
     if (imageList.length === 0) {
         const placeholder = document.createElement('div');
         placeholder.className = 'product-img-container platform-icon editable-media';
-        placeholder.innerHTML = '<span>Ô£¿</span>';
+        placeholder.innerHTML = '<span>✨</span>';
         targetContainer.replaceWith(placeholder);
     } else if (imageList.length === 1) {
         const imgUrlOrEmoji = imageList[0];
@@ -1242,7 +1242,7 @@ window.openProductGalleryManager = (item, grid, safeKey) => {
         overlay.innerHTML = `
             <div style="background:#0a0a0f; border:2px solid var(--neon-cyan); border-radius:24px; padding:30px; width:90%; max-width:500px; color:white; box-shadow:0 0 30px rgba(0,240,255,0.2);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3 style="margin:0; text-transform:uppercase; letter-spacing:1px; color:#00f0ff;">­ƒôÀ Im├ígenes</h3>
+                    <h3 style="margin:0; text-transform:uppercase; letter-spacing:1px; color:#00f0ff;">­ƒôÀ Imágenes</h3>
                     <button id="close-gallery-manager" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
                 </div>
                 <div id="gallery-manager-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:200px; overflow-y:auto; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:15px; border-radius:12px; border:1px solid #222;">
@@ -1250,7 +1250,7 @@ window.openProductGalleryManager = (item, grid, safeKey) => {
                 <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
                     <button id="gallery-add-local" style="background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">­ƒôü Subir Imagen Local</button>
                     <button id="gallery-add-url" style="background:#9b59b6; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">­ƒöù Agregar desde URL</button>
-                    <button id="gallery-add-emoji" style="background:#f1c40f; color:black; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">­ƒÅ« A├▒adir Emoji/Icono</button>
+                    <button id="gallery-add-emoji" style="background:#f1c40f; color:black; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">­ƒÅ« Añadir Emoji/Icono</button>
                 </div>
                 <button id="gallery-manager-save" style="background:linear-gradient(45deg, #2ecc71, #27ae60); color:white; border:none; padding:12px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer; font-size:1rem; text-transform:uppercase;">Aplicar y Guardar</button>
             </div>
@@ -1258,7 +1258,7 @@ window.openProductGalleryManager = (item, grid, safeKey) => {
 
         const listContainer = overlay.querySelector('#gallery-manager-list');
         if (images.length === 0) {
-            listContainer.innerHTML = '<div style="grid-column: span 4; text-align:center; opacity:0.5; font-size:0.9rem;">Sin im├ígenes o iconos.</div>';
+            listContainer.innerHTML = '<div style="grid-column: span 4; text-align:center; opacity:0.5; font-size:0.9rem;">Sin imágenes o iconos.</div>';
         } else {
             images.forEach((imgUrl, idx) => {
                 const isImg = imgUrl.startsWith('http') || imgUrl.startsWith('data:image');
