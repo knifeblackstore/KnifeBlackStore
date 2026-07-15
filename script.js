@@ -1,4 +1,4 @@
-﻿// Firebase Configuration
+// Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBIW_YWb2VlQsTArOV7fK2li4Aux8X0ucY",
   authDomain: "knifeblackstore-1791.firebaseapp.com",
@@ -443,12 +443,12 @@ function addAdminButtons(item, grid, safeKey) {
     const existingWrapper = item.querySelector('.admin-controls-wrapper');
     if (existingWrapper) existingWrapper.remove();
 
-    // Hacer elementos de texto editables
-    const textEls = item.querySelectorAll('h2, h3, p, .price, .platform-price, .product-price, .product-name, .platform-name');
+    // Hacer elementos de texto editables (y ahora también los iconos/emojis)
+    const textEls = item.querySelectorAll('h2, h3, p, .price, .platform-price, .product-price, .product-name, .platform-name, .platform-icon, .product-img-container span');
     textEls.forEach(el => {
         el.contentEditable = true;
         el.style.borderBottom = '1px dashed var(--neon-cyan)';
-        el.title = 'Haz clic para editar texto';
+        el.title = 'Haz clic para editar texto o emoji';
         el.onblur = () => saveGrid(grid, safeKey);
     });
 
@@ -1531,9 +1531,14 @@ function loadReviews(itemId) {
     });
 }
 
+// Cerrar modal si se hace clic fuera del contenido
 document.addEventListener('click', (e) => {
     if (e.target.closest('.admin-controls-wrapper') || e.target.closest('.buy-btn, .add-screen-btn')) return;
     
+    // Si el usuario es admin, NO abrir el modal al hacer clic en la tarjeta (para no interferir con la edición)
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.role === 'admin') return;
+
     const card = e.target.closest('.product-card, .platform-card');
     if (card) {
         if (e.target.isContentEditable) return;
