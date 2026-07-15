@@ -116,7 +116,7 @@ if (registerForm) {
             db.ref('usersDB').set(users).then(() => {
                 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
                 if (currentUser && currentUser.role === 'admin') {
-                    alert('¡├ëxito! El usuario "' + name + '" ha sido creado como ' + role.toUpperCase());
+                    alert('¡Éxito! El usuario "' + name + '" ha sido creado como ' + role.toUpperCase());
                     document.getElementById('registerForm').reset();
                 } else {
                     localStorage.setItem('currentUser', JSON.stringify({ name, email, password, role }));
@@ -272,7 +272,7 @@ const initEditableContent = () => {
     });
 };
 
-// --- SISTEMA DIN├üMICO DE ART├ìCULOS ---
+// --- SISTEMA DINÁMICO DE ARTÍCULOS ---
 const initDynamicGrid = () => {
     const grids = document.querySelectorAll('.grid, .platform-grid, .product-grid');
     if (grids.length === 0) return;
@@ -390,7 +390,7 @@ const initDynamicGrid = () => {
                     newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 };
 
-                // Insertar el botón DESPU├ëS del grid
+                // Insertar el botón DESPUÉS del grid
                 grid.parentNode.insertBefore(addBtn, grid.nextSibling);
 
             } else {
@@ -407,7 +407,7 @@ const initDynamicGrid = () => {
 
     // Función para RESETEAR la página a su estado original (borra la base de datos de esta página)
     window.resetGridToDefault = () => {
-        if (confirm("ÔÜá´©Å ¿Estás seguro? Esto borrará todos los productos agregados en ESTA página y volverá al diseño original del archivo HTML.")) {
+        if (confirm("⚠️ ¿Estás seguro? Esto borrará todos los productos agregados en ESTA página y volverá al diseño original del archivo HTML.")) {
             const grids = document.querySelectorAll('.grid, .platform-grid, .product-grid');
             grids.forEach(grid => {
                 const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + (grid.className);
@@ -610,7 +610,7 @@ window.addToCart = (btn) => {
         
         // Efecto visual de agregado
         const originalText = btn.innerText;
-        btn.innerText = '¡A├æADIDO! ✨';
+        btn.innerText = '¡AÑADIDO! ✨';
         btn.style.borderColor = 'var(--neon-green)';
         setTimeout(() => {
             btn.innerText = originalText;
@@ -798,7 +798,7 @@ const initInventoryPanel = () => {
                     <button onclick="exportInventoryToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">📊 Excel Inventario</button>
                     <button onclick="window.showSalesHistory()" style="background:#f39c12; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">📜 Historial de Ventas</button>
                     <button onclick="window.showMessagesHistory()" style="background:#00f0ff; color:black; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">💬 Mensajes Recibidos</button>
-                    <button onclick="window.resetGridToDefault()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">ÔÜá´©Å Reiniciar Diseño (BORRAR BASURA)</button>
+                    <button onclick="window.resetGridToDefault()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">⚠️ Reiniciar Diseño (BORRAR BASURA)</button>
                 </div>
                 <table id="inventory-table" style="width:100%; border-collapse:collapse; margin-top:20px; font-size:0.9rem;">
                     <thead>
@@ -828,7 +828,7 @@ const initInventoryPanel = () => {
 
                     tableHTML += `
                         <tr style="border-bottom:1px solid #222;">
-                            <td style="padding:12px;">${name}</td>
+                            <td style="padding:12px;"><input type="text" value="${name}" id="name-${gridKey}-${itemIdx}" style="background:#111; color:white; border:1px solid #333; padding:5px; width:150px; border-radius:4px;"></td>
                             <td style="padding:12px; opacity:0.6;">${cat}</td>
                             <td style="padding:12px;"><input type="text" value="${priceText}" id="price-${gridKey}-${itemIdx}" style="background:#111; color:#00f0ff; border:1px solid #333; padding:5px; width:80px; border-radius:4px;"></td>
                             <td style="padding:12px;"><input type="number" value="${stock}" id="stock-${gridKey}-${itemIdx}" style="background:#111; color:#39ff14; border:1px solid #333; padding:5px; width:50px; border-radius:4px;"></td>
@@ -858,6 +858,7 @@ const initInventoryPanel = () => {
     window.saveProductEdit = (gridKey, itemIdx) => {
         const newPrice = document.getElementById(`price-${gridKey}-${itemIdx}`).value;
         const newStock = document.getElementById(`stock-${gridKey}-${itemIdx}`).value;
+        const newName = document.getElementById(`name-${gridKey}-${itemIdx}`).value;
 
         db.ref('grids/' + gridKey).once('value').then(snap => {
             const html = snap.val();
@@ -871,12 +872,15 @@ const initInventoryPanel = () => {
             const item = items[itemIdx];
 
             if (item) {
+                const nameEl = item.querySelector('h2, h3, .product-name, .platform-name');
+                if(nameEl && newName) nameEl.innerText = newName;
+                
                 const priceEl = item.querySelector('.price, .product-price, .platform-price');
                 if(priceEl) priceEl.innerText = newPrice;
                 item.setAttribute('data-stock', newStock);
                 
                 db.ref('grids/' + gridKey).set(tempDiv.innerHTML).then(() => {
-                    alert('Producto actualizado con ├®xito. Recarga la página para ver los cambios en la tienda.');
+                    alert('Producto actualizado con éxito. Recarga la página para ver los cambios en la tienda.');
                     window.loadInventoryData();
                 });
             }
@@ -909,7 +913,7 @@ const initInventoryPanel = () => {
             let msgHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                     <h2 style="color:#00f0ff; text-transform:uppercase;">💬 Mensajes de Contacto</h2>
-                    <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">Ô¼à Volver</button>
+                    <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">⬅️ Volver</button>
                 </div>
                 <div style="display:grid; gap:15px;">
             `;
@@ -955,7 +959,7 @@ const initInventoryPanel = () => {
                     <h2 style="color:#f39c12; text-transform:uppercase;">📜 Historial de Ventas</h2>
                     <div>
                         <button onclick="exportSalesToExcel()" style="background:#27ae60; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; margin-right:10px;">📊 Excel Ventas</button>
-                        <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">Ô¼à Volver</button>
+                        <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">⬅️ Volver</button>
                     </div>
                 </div>
                 <table id="sales-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
@@ -1103,17 +1107,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 return emailjs.send("service_5hy8csv", "template_lirlr2z", templateParams);
             }).then(() => {
-                alert('🚀 ¡Mensaje enviado con ├®xito! Tambi├®n se ha enviado una notificación por correo.');
+                alert('🚀 ¡Mensaje enviado con éxito! También se ha enviado una notificación por correo.');
                 contactForm.reset();
             }).catch(err => {
-                alert('ÔØî Error al procesar el mensaje. Por favor intenta de nuevo.');
+                alert('❌ Error al procesar el mensaje. Por favor intenta de nuevo.');
                 console.error('Error en Contacto:', err);
             });
         };
     }
 });
 
-// --- SISTEMA DE GALER├ìA DE IM├üGENES M├ÜLTIPLES ---
+// --- SISTEMA DE GALERÍA DE IMÁGENES MÚLTIPLES ---
 window.prevGalleryImage = (event, btn) => {
     event.stopPropagation();
     event.preventDefault();
@@ -1210,12 +1214,12 @@ const updateProductImageArea = (item, imageList) => {
         
         const prevBtn = document.createElement('button');
         prevBtn.className = 'gallery-nav-btn';
-        prevBtn.innerHTML = 'ÔùÇ';
+        prevBtn.innerHTML = '◀';
         prevBtn.setAttribute('onclick', 'prevGalleryImage(event, this)');
         
         const nextBtn = document.createElement('button');
         nextBtn.className = 'gallery-nav-btn';
-        nextBtn.innerHTML = 'ÔûÂ';
+        nextBtn.innerHTML = '▶';
         nextBtn.setAttribute('onclick', 'nextGalleryImage(event, this)');
         
         nav.appendChild(prevBtn);
