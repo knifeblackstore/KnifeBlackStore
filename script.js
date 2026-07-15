@@ -367,17 +367,17 @@ const initDynamicGrid = () => {
                 };
                 grid.parentNode.insertBefore(addBtn, grid);
 
-                // Filtrar para no procesar indicadores sueltos como si fueran productos
+                // Agregar botones de admin a TODAS las tarjetas reales
                 Array.from(grid.children).forEach(item => {
-                    const isRealCard = item.classList.contains('product-card') || item.classList.contains('platform-card');
-                    const isNavItem = item.classList.contains('item') && item.tagName === 'A'; // Los de index.html son <a>
-                    
-                    if (isRealCard || (isNavItem && grid.id !== 'servicios')) {
+                    const isCard = item.classList.contains('product-card') || item.classList.contains('platform-card');
+                    const isGenericItem = item.classList.contains('item');
+                    const isNavLink = item.tagName === 'A' && grid.id === 'servicios';
+                    const isStockIndicator = item.classList.contains('stock-indicator');
+
+                    if (!isNavLink && !isStockIndicator && (isCard || isGenericItem)) {
                         addAdminButtons(item, grid, safeKey);
-                    } else if (item.classList.contains('stock-indicator') || (isNavItem && grid.id === 'servicios')) {
-                        // Si es index.html servicios, no queremos controles de stock ni nada dinámico aquí
-                        if (item.classList.contains('stock-indicator')) item.remove();
-                        // Si es un item de navegación en el grid, no le agregamos botones de admin de inventario
+                    } else if (isStockIndicator) {
+                        item.remove();
                     }
                 });
             }
