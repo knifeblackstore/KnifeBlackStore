@@ -276,109 +276,130 @@ const initEditableContent = () => {
 const initDynamicGrid = () => {
     const grids = document.querySelectorAll('.grid, .platform-grid, .product-grid');
     if (grids.length === 0) return;
-    
+
     grids.forEach(grid => {
-        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + (grid.className);
+        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + grid.className;
         const safeKey = pageKey.replace(/\./g, '_').replace(/\s/g, '_');
 
         db.ref('grids/' + safeKey).once('value').then(snap => {
             const savedGrid = snap.val();
             if (savedGrid) {
                 grid.innerHTML = savedGrid;
-                
-                // FILTRO DE SEGURIDAD: Solo permitir tarjetas válidas. 
-                // Borra automáticamente cualquier "basura" (indicadores sueltos, etc) que se haya guardado por error.
+                // Limpiar elementos basura (stock-indicators sueltos, etc.)
                 Array.from(grid.children).forEach(child => {
-                    const isProduct = child.classList.contains('product-card');
-                    const isPlatform = child.classList.contains('platform-card');
-                    const isItem = child.classList.contains('item');
-                    
-                    if (!isProduct && !isPlatform && !isItem) {
+                    if (!child.classList.contains('product-card') &&
+                        !child.classList.contains('platform-card') &&
+                        !child.classList.contains('item')) {
                         child.remove();
                     }
                 });
-
-                // Sanatización de seguridad para NO-ADMINS
-                const user = JSON.parse(localStorage.getItem('currentUser'));
-                if (!user || user.role !== 'admin') {
-                    grid.querySelectorAll('[contenteditable], .editable-content, .platform-name, .platform-desc, .platform-price, .product-name, .product-price').forEach(el => {
-                        el.removeAttribute('contenteditable');
-                        el.style.borderBottom = 'none';
-                        el.style.cursor = 'default';
-                        el.title = '';
-                    });
-                }
             }
 
             const user = JSON.parse(localStorage.getItem('currentUser'));
+
+            // --- MODO ADMIN ---
             if (user && user.role === 'admin') {
+
+                // Aplicar controles a TODAS las tarjetas del grid
+                Array.from(grid.children).forEach(item => {
+                    const isCard = item.classList.contains('product-card') ||
+                                   item.classList.contains('platform-card') ||
+                                   item.classList.contains('item');
+                    // Excluir links de navegación del grid de servicios en index
+                    const isNavLink = item.tagName === 'A' && grid.id === 'servicios';
+                    if (isCard && !isNavLink) {
+                        addAdminButtons(item, grid, safeKey);
+                    }
+                });
+
+                // Botón Añadir nuevo elemento
+                // Evitar duplicados
+                const existingAddBtn = grid.parentNode.querySelector('.admin-add-btn');
+                if (existingAddBtn) existingAddBtn.remove();
+
                 const addBtn = document.createElement('button');
+                addBtn.className = 'admin-add-btn';
                 addBtn.textContent = '+ Añadir Nuevo Elemento';
-                addBtn.style.cssText = 'display:block; margin: 20px auto; padding: 12px 25px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;';
+                addBtn.style.cssText = 'display:block; margin: 20px auto; padding: 12px 25px; background: linear-gradient(45deg,#2ecc71,#27ae60); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(46,204,113,0.4); transition: 0.3s; z-index:100;';
+
                 addBtn.onclick = () => {
-                    const children = Array.from(grid.children).filter(c => 
-                        c.classList.contains('product-card') || 
-                        c.classList.contains('platform-card') || 
+                    const isPlatformGrid = grid.classList.contains('platform-grid');
+                    const isProductGrid  = grid.classList.contains('product-grid');
+
+                    // Obtener la primera tarjeta real para clonar
+                    const templateCard = Array.from(grid.children).find(c =>
+                        c.classList.contains('product-card') ||
+                        c.classList.contains('platform-card') ||
                         c.classList.contains('item')
                     );
-                    if (children.length === 0) return;
-                    
-                    let emoji = "✨";
-                    let defaultTitle = "Nuevo Elemento";
-                    let isPlatform = grid.classList.contains('platform-grid');
-                    
-                    if (grid.classList.contains('product-grid')) {
-                        const typeChoice = prompt("Selecciona el tipo de producto:\n1. Pin 🏮\n2. Figura 🎎\n3. Accesorio 🎒\n4. Otro ✨", "1");
-                        if (typeChoice === "1") { emoji = "🏮"; defaultTitle = "Pin Metálico"; }
-                        else if (typeChoice === "2") { emoji = "🎎"; defaultTitle = "Figura de Acción"; }
-                        else if (typeChoice === "3") { emoji = "🎒"; defaultTitle = "Accesorio"; }
+
+                    let newCard;
+                    if (templateCard) {
+                        newCard = templateCard.cloneNode(true);
+                        // Limpiar controles previos del clon
+                        newCard.querySelectorAll('.admin-controls-wrapper, .stock-indicator, .tag-popular').forEach(el => el.remove());
+                        newCard.removeAttribute('data-stock');
                     } else {
-                        // Para plataformas, no pedir tipo de producto, solo usar el primero como base
-                        const firstEmoji = children[0].querySelector(".platform-icon, .product-img-container")?.innerText.trim();
-                        emoji = firstEmoji || "🎬";
-                        defaultTitle = "Nueva Plataforma";
+                        // Crear tarjeta desde cero si no hay ninguna
+                        newCard = document.createElement('article');
+                        newCard.className = isPlatformGrid ? 'platform-card' : 'product-card';
+                        newCard.innerHTML = isPlatformGrid
+                            ? `<div class="platform-icon">🎬</div><h2 class="platform-name">Nueva Plataforma</h2><p class="platform-desc">Descripción de la plataforma.</p><div class="platform-price">$0.00 <span>/ Mes</span></div><button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>`
+                            : `<div class="product-img-container platform-icon"><span>✨</span></div><h2 class="product-name platform-name">Nuevo Producto</h2><p class="product-desc platform-desc">Descripción del producto.</p><div class="product-price platform-price">$0.00</div><button onclick="addToCart(this)" class="buy-btn">Comprar ahora</button>`;
                     }
 
-                    const clone = children[0].cloneNode(true);
                     const timestamp = Date.now();
-                    
-                    // Actualizar Icono/Emoji
-                    const iconEl = clone.querySelector(".platform-icon, .product-img-container span, .platform-icon span");
-                    if (iconEl) iconEl.innerText = emoji;
 
-                    clone.querySelectorAll(".editable-content, .platform-name, .platform-desc, .platform-price, .product-name, .product-desc, .product-price").forEach((el, index) => {
-                        el.id = "dynamic_" + timestamp + "_" + index;
-                        if(el.classList.contains("price") || el.classList.contains("platform-price") || el.classList.contains("product-price")) {
-                            el.innerText = isPlatform ? "$0.00 / Mes" : "$0.00";
-                        }
-                        else if(el.tagName === "H3" || el.tagName === "H2" || el.classList.contains("platform-name") || el.classList.contains("product-name")) {
-                            el.innerText = defaultTitle;
-                        }
-                        else el.innerText = "Haz clic para editar descripción.";
+                    // Reiniciar textos del clon
+                    if (isPlatformGrid) {
+                        const name = newCard.querySelector('.platform-name, h2');
+                        const desc = newCard.querySelector('.platform-desc, p');
+                        const price = newCard.querySelector('.platform-price');
+                        if (name) name.innerText = 'Nueva Plataforma';
+                        if (desc) desc.innerText = 'Haz clic para editar descripción.';
+                        if (price) price.innerHTML = '$0.00 <span>/ Mes</span>';
+                        const icon = newCard.querySelector('.platform-icon');
+                        if (icon) icon.innerText = '🎬';
+                    } else if (isProductGrid) {
+                        const typeChoice = prompt('Selecciona el tipo:\n1. Pin 🏮\n2. Figura 🎎\n3. Accesorio 🎒\n4. Otro ✨', '1');
+                        let emoji = '✨', title = 'Nuevo Producto';
+                        if (typeChoice === '1') { emoji = '🏮'; title = 'Pin Metálico'; }
+                        else if (typeChoice === '2') { emoji = '🎎'; title = 'Figura de Acción'; }
+                        else if (typeChoice === '3') { emoji = '🎒'; title = 'Accesorio'; }
+                        const iconEl = newCard.querySelector('.platform-icon span, .product-img-container span');
+                        if (iconEl) iconEl.innerText = emoji;
+                        const name = newCard.querySelector('.product-name, .platform-name, h2');
+                        const desc = newCard.querySelector('.product-desc, .platform-desc, p');
+                        const price = newCard.querySelector('.product-price, .platform-price');
+                        if (name) name.innerText = title;
+                        if (desc) desc.innerText = 'Haz clic para editar descripción.';
+                        if (price) price.innerText = '$0.00';
+                    } else {
+                        newCard.querySelectorAll('h2, h3, p').forEach(el => { el.innerText = 'Nuevo elemento'; });
+                    }
+
+                    // Asignar IDs únicos
+                    newCard.querySelectorAll('[id]').forEach((el, i) => {
+                        el.id = 'dynamic_' + timestamp + '_' + i;
                     });
 
-                    // Limpiar indicadores y controles previos del clon
-                    clone.querySelectorAll(".admin-controls-wrapper, .stock-indicator").forEach(el => el.remove());
-                    
-                    addAdminButtons(clone, grid, safeKey);
-                    grid.appendChild(clone);
+                    addAdminButtons(newCard, grid, safeKey);
+                    grid.appendChild(newCard);
                     saveGrid(grid, safeKey);
                     initEditableContent();
+                    newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 };
-                grid.parentNode.insertBefore(addBtn, grid);
 
-                // Agregar botones de admin a TODAS las tarjetas reales
-                Array.from(grid.children).forEach(item => {
-                    const isCard = item.classList.contains('product-card') || item.classList.contains('platform-card');
-                    const isGenericItem = item.classList.contains('item');
-                    const isNavLink = item.tagName === 'A' && grid.id === 'servicios';
-                    const isStockIndicator = item.classList.contains('stock-indicator');
+                // Insertar el botón DESPUÉS del grid
+                grid.parentNode.insertBefore(addBtn, grid.nextSibling);
 
-                    if (!isNavLink && !isStockIndicator && (isCard || isGenericItem)) {
-                        addAdminButtons(item, grid, safeKey);
-                    } else if (isStockIndicator) {
-                        item.remove();
-                    }
+            } else {
+                // NO ADMIN: quitar cualquier atributo editable
+                grid.querySelectorAll('[contenteditable]').forEach(el => {
+                    el.removeAttribute('contenteditable');
+                    el.style.borderBottom = '';
+                    el.style.cursor = '';
+                    el.title = '';
                 });
             }
         });
