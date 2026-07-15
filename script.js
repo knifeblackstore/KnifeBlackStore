@@ -402,7 +402,7 @@ const initDynamicGrid = () => {
         const clone = grid.cloneNode(true);
         
         // LIMPIEZA ABSOLUTA: Eliminar todo lo que NO sea contenido puro del producto
-        clone.querySelectorAll('.admin-controls-wrapper, .stock-indicator, button:not(.buy-btn):not(.add-screen-btn)').forEach(el => el.remove());
+        clone.querySelectorAll('.admin-controls-wrapper, .stock-indicator, button:not(.buy-btn):not(.add-screen-btn):not(.gallery-nav-btn)').forEach(el => el.remove());
         
         // Quitar permisos de edición y estilos de administrador de TODOS los elementos
         clone.querySelectorAll('*').forEach(el => {
@@ -419,7 +419,8 @@ const initDynamicGrid = () => {
 };
 
 function addAdminButtons(item, grid, safeKey) {
-    if (item.querySelector('.admin-controls-wrapper')) return;
+    const existingWrapper = item.querySelector('.admin-controls-wrapper');
+    if (existingWrapper) existingWrapper.remove();
 
     // Hacer elementos de texto editables
     const textEls = item.querySelectorAll('h2, h3, p, .price, .platform-price, .product-price, .product-name, .platform-name');
@@ -434,61 +435,16 @@ function addAdminButtons(item, grid, safeKey) {
     wrapper.className = 'admin-controls-wrapper';
     wrapper.style.cssText = 'position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 5px; z-index: 10; background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; border:1px solid #333;';
     
-    // Botón Imagen (Dual Mode: URL o Local)
+    // Botón Imágenes (Soporte Multi-Imagen / Galería)
     const imgBtn = document.createElement('button');
-    imgBtn.textContent = '📷 Imagen';
+    imgBtn.textContent = '📷 Imágenes';
     imgBtn.style.cssText = 'background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold;';
     imgBtn.onclick = (e) => {
         e.stopPropagation();
-        
-        const applyImage = (url) => {
-            if (!url) return;
-            let media = item.querySelector('.editable-media') || item.querySelector('.platform-icon') || item.querySelector('span') || item.querySelector('img');
-            if (media) {
-                const img = document.createElement('img');
-                img.src = url;
-                img.className = 'editable-media';
-                img.style.width = '60px'; img.style.height = '60px'; img.style.objectFit = 'contain'; img.style.borderRadius = '8px';
-                media.replaceWith(img);
-                saveGrid(grid, safeKey);
-            }
-        };
-
-        const choice = confirm('¿Deseas subir una imagen LOCAL? (Presiona Cancelar para usar una URL)');
-        if (choice) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = (ev) => {
-                const file = ev.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (re) => {
-                        const tempImg = new Image();
-                        tempImg.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 400;
-                            let width = tempImg.width;
-                            let height = tempImg.height;
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(tempImg, 0, 0, width, height);
-                            applyImage(canvas.toDataURL('image/jpeg', 0.7));
-                        };
-                        tempImg.src = re.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            input.click();
+        if (window.openProductGalleryManager) {
+            window.openProductGalleryManager(item, grid, safeKey);
         } else {
-            const url = prompt('Introduce la URL de la imagen:');
-            if (url) applyImage(url);
+            alert('El gestor de galería no está cargado.');
         }
     };
 
@@ -1135,3 +1091,245 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+// --- SISTEMA DE GALERÍA DE IMÁGENES MÚLTIPLES ---
+window.prevGalleryImage = (event, btn) => {
+    event.stopPropagation();
+    event.preventDefault();
+    const container = btn.closest('.product-gallery-container');
+    if (!container) return;
+    const imgs = Array.from(container.querySelectorAll('.product-gallery-image'));
+    if (imgs.length <= 1) return;
+    let activeIdx = imgs.findIndex(img => img.classList.contains('active') || img.style.display !== 'none');
+    if (activeIdx === -1) activeIdx = 0;
+    imgs[activeIdx].classList.remove('active');
+    imgs[activeIdx].style.display = 'none';
+    let nextIdx = (activeIdx - 1 + imgs.length) % imgs.length;
+    imgs[nextIdx].classList.add('active');
+    imgs[nextIdx].style.display = 'block';
+};
+
+window.nextGalleryImage = (event, btn) => {
+    event.stopPropagation();
+    event.preventDefault();
+    const container = btn.closest('.product-gallery-container');
+    if (!container) return;
+    const imgs = Array.from(container.querySelectorAll('.product-gallery-image'));
+    if (imgs.length <= 1) return;
+    let activeIdx = imgs.findIndex(img => img.classList.contains('active') || img.style.display !== 'none');
+    if (activeIdx === -1) activeIdx = 0;
+    imgs[activeIdx].classList.remove('active');
+    imgs[activeIdx].style.display = 'none';
+    let nextIdx = (activeIdx + 1) % imgs.length;
+    imgs[nextIdx].classList.add('active');
+    imgs[nextIdx].style.display = 'block';
+};
+
+const getProductImages = (item) => {
+    const galleryContainer = item.querySelector('.product-gallery-container');
+    if (galleryContainer) {
+        return Array.from(galleryContainer.querySelectorAll('.product-gallery-image')).map(img => img.src);
+    }
+    const singleImg = item.querySelector('.editable-media');
+    if (singleImg && singleImg.tagName === 'IMG') return [singleImg.src];
+    const legacyImg = item.querySelector('img');
+    if (legacyImg && !legacyImg.closest('.admin-controls-wrapper')) return [legacyImg.src];
+    
+    const iconSpan = item.querySelector('.platform-icon span') || item.querySelector('.product-img-container span');
+    if (iconSpan && iconSpan.innerText.trim()) return [iconSpan.innerText.trim()];
+    
+    return [];
+};
+
+const updateProductImageArea = (item, imageList) => {
+    let targetContainer = item.querySelector('.product-gallery-container') || item.querySelector('.product-img-container') || item.querySelector('.platform-icon') || item.querySelector('.editable-media');
+    if (!targetContainer) {
+        const legacyImg = item.querySelector('img');
+        if(legacyImg && !legacyImg.closest('.admin-controls-wrapper')) targetContainer = legacyImg;
+    }
+    
+    if (!targetContainer) {
+        targetContainer = document.createElement('div');
+        targetContainer.className = 'product-img-container platform-icon';
+        item.prepend(targetContainer);
+    }
+
+    if (imageList.length === 0) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'product-img-container platform-icon editable-media';
+        placeholder.innerHTML = '<span>✨</span>';
+        targetContainer.replaceWith(placeholder);
+    } else if (imageList.length === 1) {
+        const imgUrlOrEmoji = imageList[0];
+        if (imgUrlOrEmoji.startsWith('http') || imgUrlOrEmoji.startsWith('data:image')) {
+            const img = document.createElement('img');
+            img.src = imgUrlOrEmoji;
+            img.className = 'editable-media';
+            img.style.cssText = 'width:60px; height:60px; object-fit:contain; border-radius:8px;';
+            targetContainer.replaceWith(img);
+        } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'product-img-container platform-icon editable-media';
+            placeholder.innerHTML = `<span>${imgUrlOrEmoji}</span>`;
+            targetContainer.replaceWith(placeholder);
+        }
+    } else {
+        const gallery = document.createElement('div');
+        gallery.className = 'product-gallery-container editable-media';
+        imageList.forEach((url, index) => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'product-gallery-image' + (index === 0 ? ' active' : '');
+            img.style.display = index === 0 ? 'block' : 'none';
+            gallery.appendChild(img);
+        });
+
+        const nav = document.createElement('div');
+        nav.className = 'product-gallery-nav';
+        
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'gallery-nav-btn';
+        prevBtn.innerHTML = '◀';
+        prevBtn.setAttribute('onclick', 'prevGalleryImage(event, this)');
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'gallery-nav-btn';
+        nextBtn.innerHTML = '▶';
+        nextBtn.setAttribute('onclick', 'nextGalleryImage(event, this)');
+        
+        nav.appendChild(prevBtn);
+        nav.appendChild(nextBtn);
+        gallery.appendChild(nav);
+        
+        targetContainer.replaceWith(gallery);
+    }
+};
+
+window.openProductGalleryManager = (item, grid, safeKey) => {
+    let images = getProductImages(item);
+    
+    let overlay = document.getElementById('gallery-manager-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'gallery-manager-overlay';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(5px); z-index:20000; display:flex; align-items:center; justify-content:center;';
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+
+    const renderManager = () => {
+        overlay.innerHTML = `
+            <div style="background:#0a0a0f; border:2px solid var(--neon-cyan); border-radius:24px; padding:30px; width:90%; max-width:500px; color:white; box-shadow:0 0 30px rgba(0,240,255,0.2);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0; text-transform:uppercase; letter-spacing:1px; color:#00f0ff;">📷 Imágenes</h3>
+                    <button id="close-gallery-manager" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+                </div>
+                <div id="gallery-manager-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; max-height:200px; overflow-y:auto; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:15px; border-radius:12px; border:1px solid #222;">
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+                    <button id="gallery-add-local" style="background:#3498db; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">📁 Subir Imagen Local</button>
+                    <button id="gallery-add-url" style="background:#9b59b6; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">🔗 Agregar desde URL</button>
+                    <button id="gallery-add-emoji" style="background:#f1c40f; color:black; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">🏮 Añadir Emoji/Icono</button>
+                </div>
+                <button id="gallery-manager-save" style="background:linear-gradient(45deg, #2ecc71, #27ae60); color:white; border:none; padding:12px; border-radius:8px; width:100%; font-weight:bold; cursor:pointer; font-size:1rem; text-transform:uppercase;">Aplicar y Guardar</button>
+            </div>
+        `;
+
+        const listContainer = overlay.querySelector('#gallery-manager-list');
+        if (images.length === 0) {
+            listContainer.innerHTML = '<div style="grid-column: span 4; text-align:center; opacity:0.5; font-size:0.9rem;">Sin imágenes o iconos.</div>';
+        } else {
+            images.forEach((imgUrl, idx) => {
+                const isImg = imgUrl.startsWith('http') || imgUrl.startsWith('data:image');
+                const card = document.createElement('div');
+                card.style.cssText = 'position:relative; width:100%; aspect-ratio:1; background:#111; border-radius:8px; border:1px solid #333; display:flex; align-items:center; justify-content:center; overflow:hidden;';
+                
+                if (isImg) {
+                    const img = document.createElement('img');
+                    img.src = imgUrl;
+                    img.style.cssText = 'width:100%; height:100%; object-fit:contain;';
+                    card.appendChild(img);
+                } else {
+                    const span = document.createElement('span');
+                    span.innerText = imgUrl;
+                    span.style.cssText = 'font-size:2rem;';
+                    card.appendChild(span);
+                }
+
+                const delBtn = document.createElement('button');
+                delBtn.innerHTML = '&times;';
+                delBtn.style.cssText = 'position:absolute; top:2px; right:2px; background:rgba(231,76,60,0.8); color:white; border:none; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; padding:0;';
+                delBtn.onclick = () => {
+                    images.splice(idx, 1);
+                    renderManager();
+                };
+                card.appendChild(delBtn);
+                listContainer.appendChild(card);
+            });
+        }
+
+        overlay.querySelector('#close-gallery-manager').onclick = () => {
+            overlay.style.display = 'none';
+        };
+
+        overlay.querySelector('#gallery-add-local').onclick = () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (ev) => {
+                const file = ev.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (re) => {
+                        const tempImg = new Image();
+                        tempImg.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 400;
+                            let width = tempImg.width;
+                            let height = tempImg.height;
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(tempImg, 0, 0, width, height);
+                            images.push(canvas.toDataURL('image/jpeg', 0.7));
+                            renderManager();
+                        };
+                        tempImg.src = re.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        };
+
+        overlay.querySelector('#gallery-add-url').onclick = () => {
+            const url = prompt('Introduce la URL de la imagen:');
+            if (url) {
+                images.push(url);
+                renderManager();
+            }
+        };
+
+        overlay.querySelector('#gallery-add-emoji').onclick = () => {
+            const emoji = prompt('Introduce un emoji o icono (ej. 🎒, 🏮, 🎎):');
+            if (emoji) {
+                images.push(emoji);
+                renderManager();
+            }
+        };
+
+        overlay.querySelector('#gallery-manager-save').onclick = () => {
+            updateProductImageArea(item, images);
+            overlay.style.display = 'none';
+            if (window.saveGrid && grid && safeKey) {
+                window.saveGrid(grid, safeKey);
+            }
+        };
+    };
+
+    renderManager();
+};
