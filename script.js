@@ -1542,8 +1542,9 @@ document.addEventListener('click', (e) => {
     // Si el usuario es admin, NO abrir el modal al hacer clic en la tarjeta (para no interferir con la edición)
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (user && user.role === 'admin') {
-        // Evitar que el navegador navegue si el admin hace clic en CUALQUIER parte de la tarjeta o texto
-        if (e.target.closest('a.item, a.product-card, a.platform-card') || (e.target.closest('a') && e.target.isContentEditable)) {
+        // Solo evitar la navegación si hace clic EXACTAMENTE en un texto/icono editable.
+        // Si hace clic en el fondo de la tarjeta, permitimos que navegue a la otra pestaña.
+        if (e.target.isContentEditable) {
             e.preventDefault();
         }
         return;
