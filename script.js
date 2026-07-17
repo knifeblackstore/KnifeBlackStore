@@ -1535,6 +1535,31 @@ function loadReviews(itemId) {
     });
 }
 
+const applyTheme = () => {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.role === 'admin') {
+        document.body.classList.add('admin-theme');
+    } else {
+        document.body.classList.remove('admin-theme');
+    }
+};
+applyTheme();
+
+// CSS Global de Corrección y Accesibilidad para Admin
+const adminStyles = document.createElement('style');
+adminStyles.innerHTML = `
+    /* Evitar que los pseudo-elementos ::before (overlays) bloqueen los clics al texto */
+    .item::before, .product-card::before, .platform-card::before {
+        pointer-events: none !important;
+    }
+    /* Asegurar que el texto editable esté siempre por encima de cualquier fondo o decoración */
+    [contenteditable="true"], .admin-controls-wrapper {
+        position: relative !important;
+        z-index: 20 !important;
+    }
+`;
+document.head.appendChild(adminStyles);
+
 // Cerrar modal si se hace clic fuera del contenido
 document.addEventListener('click', (e) => {
     if (e.target.closest('.admin-controls-wrapper') || e.target.closest('.buy-btn, .add-screen-btn')) return;
