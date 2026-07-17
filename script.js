@@ -1535,15 +1535,6 @@ function loadReviews(itemId) {
     });
 }
 
-const applyTheme = () => {
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (user && user.role === 'admin') {
-        document.body.classList.add('admin-theme');
-    } else {
-        document.body.classList.remove('admin-theme');
-    }
-};
-applyTheme();
 
 // CSS Global de Corrección y Accesibilidad para Admin
 const adminStyles = document.createElement('style');
