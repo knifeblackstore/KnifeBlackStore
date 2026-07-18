@@ -601,9 +601,9 @@ const updateCartUI = () => {
         }
 
         let discountSection = `
-            <div style="display:flex; gap:10px; margin-bottom:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
-                <input type="text" id="cart-discount-code" placeholder="Cupón..." style="flex:1; padding:10px; border-radius:8px; border:1px solid #333; background:#0a0a0f; color:#fff; text-transform:uppercase;">
-                <button onclick="applyDiscountCode()" style="background:var(--neon-cyan); color:black; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">Aplicar</button>
+            <div style="display:flex; gap:10px; margin-bottom:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; align-items:center; width:100%; box-sizing:border-box;">
+                <input type="text" id="cart-discount-code" placeholder="CÓDIGO DE CUPÓN..." style="flex:1; width:100%; min-width:120px; padding:12px; border-radius:8px; border:1px solid var(--neon-cyan); background:rgba(0,240,255,0.05); color:#fff; text-transform:uppercase; font-weight:bold; font-size:0.9rem; outline:none; box-sizing:border-box;">
+                <button onclick="applyDiscountCode()" style="background:var(--neon-cyan); color:black; border:none; padding:12px 20px; border-radius:8px; font-weight:900; cursor:pointer; flex-shrink:0; width:auto; max-width:120px; text-transform:uppercase; font-size:0.9rem;">Aplicar</button>
             </div>
             ${window.currentDiscount ? `<button onclick="removeDiscountCode()" style="background:none; border:none; color:var(--neon-pink); text-decoration:underline; cursor:pointer; font-size:0.8rem; margin-top:-10px; margin-bottom:15px; display:block; width:100%; text-align:right;">Quitar cupón</button>` : ''}
         `;
