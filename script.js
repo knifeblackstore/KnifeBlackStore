@@ -773,7 +773,7 @@ window.payWithEpayco = () => {
         name: "Compra en Knifeblackstore",
         description: description,
         currency: "cop",
-        amount: total.toString(),
+        amount: Math.round(total).toString(),
         tax_base: "0",
         tax: "0",
         country: "co",
