@@ -578,10 +578,41 @@ const updateCartUI = () => {
         `).join('');
 
         let total = cart.reduce((sum, it) => sum + it.price, 0);
+        let subtotalHTML = '';
+        
+        if (window.currentDiscount) {
+            let descAmount = window.currentDiscount.type === 'percentage' 
+                ? total * (window.currentDiscount.amount / 100) 
+                : window.currentDiscount.amount;
+            
+            if (descAmount > total) descAmount = total;
+            
+            subtotalHTML = `
+                <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:5px; color:#aaa;">
+                    <span>Subtotal:</span>
+                    <span>$${total.toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:10px; color:#39ff14;">
+                    <span>Cupón (${window.currentDiscount.code}):</span>
+                    <span>-$${descAmount.toLocaleString()}</span>
+                </div>
+            `;
+            total -= descAmount;
+        }
+
+        let discountSection = `
+            <div style="display:flex; gap:10px; margin-bottom:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
+                <input type="text" id="cart-discount-code" placeholder="Cupón..." style="flex:1; padding:10px; border-radius:8px; border:1px solid #333; background:#0a0a0f; color:#fff; text-transform:uppercase;">
+                <button onclick="applyDiscountCode()" style="background:var(--neon-cyan); color:black; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">Aplicar</button>
+            </div>
+            ${window.currentDiscount ? `<button onclick="removeDiscountCode()" style="background:none; border:none; color:var(--neon-pink); text-decoration:underline; cursor:pointer; font-size:0.8rem; margin-top:-10px; margin-bottom:15px; display:block; width:100%; text-align:right;">Quitar cupón</button>` : ''}
+        `;
 
         widget.innerHTML = `
             <h3 style="margin-bottom:20px; text-transform:uppercase; letter-spacing:2px; font-weight:900; background:linear-gradient(to right, var(--neon-cyan), var(--neon-pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">🛒 Carrito Gamer</h3>
             <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; padding-right:5px;">${itemsHTML}</div>
+            ${discountSection}
+            ${subtotalHTML}
             <div style="display:flex; justify-content:space-between; font-weight:900; font-size:1.2rem; margin-bottom:20px; border-top:1px solid var(--neon-cyan); padding-top:15px;">
                 <span>TOTAL:</span>
                 <span style="color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">$${total.toLocaleString()}</span>
@@ -595,6 +626,7 @@ const updateCartUI = () => {
         `;
     } else {
         widget.style.display = 'none';
+        window.currentDiscount = null; // Quitar descuento si se vacía
     }
 };
 
@@ -646,7 +678,18 @@ window.checkoutCart = () => {
         return;
     }
     
-    let total = cart.reduce((sum, it) => sum + it.price, 0);
+    let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
+    let total = subtotal;
+    let descAmount = 0;
+    
+    if (window.currentDiscount) {
+        descAmount = window.currentDiscount.type === 'percentage' 
+            ? total * (window.currentDiscount.amount / 100) 
+            : window.currentDiscount.amount;
+        if (descAmount > total) descAmount = total;
+        total -= descAmount;
+    }
+    
     let description = cart.map(it => it.name).join(', ');
 
     // REGISTRAR VENTA EN FIREBASE ANTES DE REDIRIGIR
@@ -655,6 +698,9 @@ window.checkoutCart = () => {
         email: user.email,
         items: cart,
         total: total,
+        subtotal: subtotal,
+        discountApplied: window.currentDiscount ? window.currentDiscount.code : null,
+        discountAmount: descAmount,
         date: new Date().toISOString(),
         status: 'Pendiente (WhatsApp)'
     };
@@ -668,6 +714,10 @@ window.checkoutCart = () => {
     cart.forEach((it, idx) => {
         message += `${idx + 1}. *${it.name}* - $${it.price.toLocaleString()}\n`;
     });
+    
+    if (window.currentDiscount) {
+        message += `\n🎟️ *Cupón aplicado (${window.currentDiscount.code}):* -$${descAmount.toLocaleString()}\n`;
+    }
     
     message += `\n💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n\n`;
     message += "Quedo atento para coordinar el pago. ¡Gracias!";
@@ -686,7 +736,18 @@ window.payWithEpayco = () => {
         return;
     }
 
-    let total = cart.reduce((sum, it) => sum + it.price, 0);
+    let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
+    let total = subtotal;
+    let descAmount = 0;
+    
+    if (window.currentDiscount) {
+        descAmount = window.currentDiscount.type === 'percentage' 
+            ? total * (window.currentDiscount.amount / 100) 
+            : window.currentDiscount.amount;
+        if (descAmount > total) descAmount = total;
+        total -= descAmount;
+    }
+
     let description = cart.map(it => it.name).join(', ');
 
     // REGISTRAR INTENTO DE VENTA EN FIREBASE
@@ -695,6 +756,9 @@ window.payWithEpayco = () => {
         email: user.email,
         items: cart,
         total: total,
+        subtotal: subtotal,
+        discountApplied: window.currentDiscount ? window.currentDiscount.code : null,
+        discountAmount: descAmount,
         date: new Date().toISOString(),
         status: 'Iniciada (ePayco)'
     };
@@ -1572,4 +1636,171 @@ document.addEventListener('click', (e) => {
         if (e.target.isContentEditable) return;
         openProductDetails(card);
     }
+});
+
+
+// --- SISTEMA DE CUPONES DE DESCUENTO ---
+
+window.currentDiscount = null;
+
+window.applyDiscountCode = () => {
+    const codeInput = document.getElementById('cart-discount-code');
+    if (!codeInput) return;
+    const code = codeInput.value.trim().toUpperCase();
+    
+    if (!code) {
+        alert('Por favor ingresa un código de cupón.');
+        return;
+    }
+    
+    db.ref('discountCodes/' + code).once('value').then(snap => {
+        const discount = snap.val();
+        if (discount && discount.active !== false) {
+            window.currentDiscount = { code: code, ...discount };
+            alert(`¡Cupón ${code} aplicado exitosamente!`);
+            updateCartUI();
+        } else {
+            alert('Código de cupón inválido o expirado.');
+            codeInput.value = '';
+        }
+    }).catch(err => {
+        console.error(err);
+        alert('Error al verificar el cupón.');
+    });
+};
+
+window.removeDiscountCode = () => {
+    window.currentDiscount = null;
+    updateCartUI();
+};
+
+const initDiscountPanel = () => {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user || user.role !== 'admin') return;
+
+    // Crear botón de acceso al panel de cupones (al lado del inventario)
+    const discountBtn = document.createElement('button');
+    discountBtn.id = 'admin-discount-btn';
+    discountBtn.innerHTML = '🎟️ Cupones';
+    discountBtn.style.cssText = 'position:fixed; bottom:80px; left:20px; background:#ff007f; color:white; padding:15px 25px; border-radius:50px; border:none; cursor:pointer; font-weight:900; z-index:9998; box-shadow:0 0 20px rgba(255,0,127,0.4);';
+    document.body.appendChild(discountBtn);
+
+    // Crear Modal de Cupones
+    const modal = document.createElement('div');
+    modal.id = 'discount-modal';
+    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; display:none; justify-content:center; align-items:center; backdrop-filter:blur(10px);';
+    
+    modal.innerHTML = `
+        <div style="background:#111; padding:30px; border-radius:20px; border:1px solid var(--neon-pink); width:90%; max-width:600px; max-height:80vh; overflow-y:auto; color:white;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">
+                <h2 style="color:var(--neon-pink); margin:0;">🎟️ Gestor de Cupones</h2>
+                <button id="close-discount-modal" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:10px; margin-bottom:20px;">
+                <h3 style="margin-top:0;">Crear Nuevo Cupón</h3>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <input type="text" id="new-coupon-code" placeholder="CÓDIGO (Ej: OFERTA20)" style="flex:1; padding:10px; border-radius:5px; border:1px solid #444; background:#222; color:white; text-transform:uppercase;">
+                </div>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <select id="new-coupon-type" style="padding:10px; border-radius:5px; border:1px solid #444; background:#222; color:white;">
+                        <option value="percentage">Porcentaje (%)</option>
+                        <option value="fixed">Monto Fijo ($)</option>
+                    </select>
+                    <input type="number" id="new-coupon-amount" placeholder="Valor (Ej: 20)" style="flex:1; padding:10px; border-radius:5px; border:1px solid #444; background:#222; color:white;">
+                </div>
+                <button id="save-new-coupon" style="background:var(--neon-pink); color:white; border:none; padding:10px 20px; border-radius:5px; font-weight:bold; cursor:pointer; width:100%;">Guardar Cupón</button>
+            </div>
+
+            <h3 style="margin-bottom:10px;">Cupones Activos</h3>
+            <div id="discount-list" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Lista de cupones se cargará aquí -->
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    discountBtn.onclick = () => {
+        modal.style.display = 'flex';
+        loadCoupons();
+    };
+
+    document.getElementById('close-discount-modal').onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    document.getElementById('save-new-coupon').onclick = () => {
+        const codeInput = document.getElementById('new-coupon-code');
+        const typeSelect = document.getElementById('new-coupon-type');
+        const amountInput = document.getElementById('new-coupon-amount');
+        
+        const code = codeInput.value.trim().toUpperCase();
+        const type = typeSelect.value;
+        const amount = parseFloat(amountInput.value);
+        
+        if (!code || isNaN(amount) || amount <= 0) {
+            alert('Por favor completa todos los campos correctamente.');
+            return;
+        }
+
+        db.ref('discountCodes/' + code).set({
+            type: type,
+            amount: amount,
+            active: true
+        }).then(() => {
+            alert('¡Cupón creado exitosamente!');
+            codeInput.value = '';
+            amountInput.value = '';
+            loadCoupons();
+        }).catch(err => {
+            console.error(err);
+            alert('Error al guardar el cupón.');
+        });
+    };
+
+    const loadCoupons = () => {
+        const listDiv = document.getElementById('discount-list');
+        listDiv.innerHTML = '<p>Cargando cupones...</p>';
+        
+        db.ref('discountCodes').once('value').then(snap => {
+            const data = snap.val();
+            if (!data) {
+                listDiv.innerHTML = '<p style="color:#888;">No hay cupones creados.</p>';
+                return;
+            }
+            
+            listDiv.innerHTML = '';
+            Object.keys(data).forEach(code => {
+                const coupon = data[code];
+                const item = document.createElement('div');
+                item.style.cssText = 'background:rgba(255,255,255,0.02); border:1px solid #333; border-radius:8px; padding:15px; display:flex; justify-content:space-between; align-items:center;';
+                
+                const valText = coupon.type === 'percentage' ? `${coupon.amount}%` : `$${coupon.amount.toLocaleString()}`;
+                
+                item.innerHTML = `
+                    <div>
+                        <strong style="color:var(--neon-pink); font-size:1.1rem;">${code}</strong>
+                        <span style="color:#aaa; font-size:0.9rem; margin-left:10px;">Descuento: ${valText}</span>
+                    </div>
+                    <button class="del-coupon-btn" data-code="${code}" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Eliminar</button>
+                `;
+                listDiv.appendChild(item);
+            });
+
+            document.querySelectorAll('.del-coupon-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const codeToDelete = e.target.getAttribute('data-code');
+                    if (confirm(`¿Estás seguro de eliminar el cupón ${codeToDelete}?`)) {
+                        db.ref('discountCodes/' + codeToDelete).remove().then(() => {
+                            loadCoupons();
+                        });
+                    }
+                };
+            });
+        });
+    };
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initDiscountPanel();
 });
