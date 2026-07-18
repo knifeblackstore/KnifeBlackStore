@@ -712,6 +712,8 @@ window.checkoutCart = () => {
     });
     
     if (window.currentDiscount) {
+        // Eliminar el cupón para que sea de un solo uso
+        db.ref('discountCodes/' + window.currentDiscount.code).remove();
         message += `\n🎟️ *Cupón aplicado (${window.currentDiscount.code}):* -$${descAmount.toLocaleString()}\n`;
     }
     
@@ -719,6 +721,13 @@ window.checkoutCart = () => {
     message += "Quedo atento para coordinar el pago. ¡Gracias!";
     
     const encoded = encodeURIComponent(message);
+    
+    // Limpiar carrito
+    localStorage.removeItem('shoppingCart');
+    cart = [];
+    window.currentDiscount = null;
+    updateCartUI();
+    
     window.open(`https://wa.me/573108014660?text=${encoded}`, '_blank');
 };
 
