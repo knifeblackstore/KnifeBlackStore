@@ -618,10 +618,6 @@ const updateCartUI = () => {
                 <span style="color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">$${total.toLocaleString()}</span>
             </div>
             <button onclick="checkoutCart()" style="background:linear-gradient(45deg, var(--neon-cyan), var(--neon-purple)); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Comprar Todo por WhatsApp</button>
-            <button onclick="payWithEpayco()" style="background:#fff; color:#000; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:10px;">
-                <img src="https://multimedia.epayco.co/epayco-landing/v2/logotipo-epayco.png" style="height:20px;">
-                Pagar con Tarjeta / PSE
-            </button>
             <button onclick="clearCart()" style="background:rgba(255,0,127,0.1); color:var(--neon-pink); border:1px solid var(--neon-pink); padding:10px; border-radius:12px; width:100%; cursor:pointer; font-size:0.8rem; font-weight:900;">Vaciar Carrito</button>
         `;
     } else {
