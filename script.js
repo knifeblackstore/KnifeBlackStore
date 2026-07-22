@@ -529,23 +529,7 @@ function addAdminButtons(item, grid, safeKey, isNavLink = false) {
         } 
     };
 
-    if (isNavLink) {
-        const linkBtn = document.createElement('button');
-        linkBtn.textContent = '🔗 ENLACE';
-        linkBtn.style.cssText = 'background: #9b59b6; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;';
-        linkBtn.onclick = (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            const currentHref = item.getAttribute('href') || '';
-            const newHref = prompt('Introduce el enlace al que debe apuntar esta pestaña (ej: figuras.html):', currentHref);
-            if (newHref !== null) {
-                item.setAttribute('href', newHref);
-                saveGrid(grid, safeKey);
-                alert('Enlace actualizado a: ' + newHref + '\nAsegúrate de que ese archivo exista.');
-            }
-        };
-        wrapper.appendChild(linkBtn);
-    } else {
+    if (!isNavLink) {
         wrapper.appendChild(imgBtn);
         wrapper.appendChild(stockDiv);
     }
