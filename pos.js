@@ -280,5 +280,118 @@ document.getElementById('btn-confirm-sale').onclick = async () => {
     loadInventory();
 };
 
+// --- LOGICA DEL DASHBOARD ---
+let allSalesData = [];
+
+document.getElementById('btn-open-dash').onclick = () => {
+    document.getElementById('dashboard-modal').style.display = 'flex';
+    loadDashboardData();
+};
+
+document.getElementById('btn-close-dash').onclick = () => {
+    document.getElementById('dashboard-modal').style.display = 'none';
+};
+
+const loadDashboardData = () => {
+    // Calcular valor del inventario
+    let invValue = 0;
+    allProducts.forEach(p => {
+        invValue += (p.price * p.stock);
+    });
+    document.getElementById('kpi-inventory-value').innerText = `$${invValue.toLocaleString()}`;
+
+    // Cargar Ventas
+    db.ref('sales').once('value').then(snap => {
+        const salesObj = snap.val() || {};
+        allSalesData = [];
+        let totalRevenue = 0;
+        
+        for (let key in salesObj) {
+            allSalesData.push({ id: key, ...salesObj[key] });
+            totalRevenue += salesObj[key].total || 0;
+        }
+        
+        // Ordenar por fecha descendente
+        allSalesData.sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        document.getElementById('kpi-revenue').innerText = `$${totalRevenue.toLocaleString()}`;
+        document.getElementById('kpi-orders').innerText = allSalesData.length;
+        
+        // Llenar tabla (solo ultimas 20 para no saturar)
+        const tbody = document.getElementById('dash-sales-table-body');
+        tbody.innerHTML = '';
+        allSalesData.slice(0, 20).forEach(sale => {
+            const dateStr = new Date(sale.date).toLocaleString();
+            let itemsText = sale.items ? sale.items.map(i => `${i.name}(x${i.qty || 1})`).join(', ') : 'N/A';
+            if(itemsText.length > 50) itemsText = itemsText.substring(0, 47) + '...';
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${dateStr}</td>
+                    <td>${sale.customer}</td>
+                    <td title="${sale.items ? sale.items.map(i => i.name).join(', ') : ''}">${itemsText}</td>
+                    <td style="color:var(--neon-cyan); font-weight:bold;">$${(sale.total||0).toLocaleString()}</td>
+                    <td>${sale.status || 'N/A'}</td>
+                </tr>
+            `;
+        });
+    });
+};
+
+// --- EXPORTACIONES EXCEL (CSV) ---
+document.getElementById('btn-export-sales').onclick = () => {
+    if(allSalesData.length === 0) {
+        alert("Cargando datos o no hay ventas...");
+        return;
+    }
+    
+    let csv = '\uFEFF'; // BOM para Excel
+    csv += 'Fecha,Cliente,Email,Items,Subtotal,Descuento,Total,Estado\n';
+    
+    allSalesData.forEach(s => {
+        const date = new Date(s.date).toLocaleString().replace(/,/g, '');
+        const cust = `"${s.customer || ''}"`;
+        const email = `"${s.email || ''}"`;
+        const items = s.items ? `"${s.items.map(i => `${i.name}(x${i.qty||1})`).join('; ')}"` : '""';
+        const sub = s.subtotal || 0;
+        const desc = s.discountAmount || 0;
+        const tot = s.total || 0;
+        const status = `"${s.status || ''}"`;
+        
+        csv += `${date},${cust},${email},${items},${sub},${desc},${tot},${status}\n`;
+    });
+    
+    downloadCSV(csv, `Ventas_Knifeblack_${new Date().toISOString().split('T')[0]}.csv`);
+};
+
+document.getElementById('btn-export-inv').onclick = () => {
+    if(allProducts.length === 0) {
+        alert("No hay productos cargados...");
+        return;
+    }
+    
+    let csv = '\uFEFF';
+    csv += 'Nombre,Categoria,Precio_Num,Stock,Valor_Total\n';
+    
+    allProducts.forEach(p => {
+        const name = `"${p.name.replace(/"/g, '""')}"`;
+        const cat = `"${p.cat}"`;
+        const valTot = p.price * p.stock;
+        csv += `${name},${cat},${p.price},${p.stock},${valTot}\n`;
+    });
+    
+    downloadCSV(csv, `Inventario_Knifeblack_${new Date().toISOString().split('T')[0]}.csv`);
+};
+
+const downloadCSV = (csvContent, fileName) => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
 // Inicializar
 loadInventory();
