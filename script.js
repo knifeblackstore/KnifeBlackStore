@@ -278,8 +278,9 @@ const initDynamicGrid = () => {
     if (grids.length === 0) return;
 
     grids.forEach(grid => {
-        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + grid.className;
-        const safeKey = pageKey.replace(/\./g, '_').replace(/\s/g, '_');
+        let qs = window.location.search || '';
+        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + qs + '_' + grid.className;
+        const safeKey = pageKey.replace(/\./g, '_').replace(/\s/g, '_').replace(/\?/g, '_').replace(/=/g, '_');
 
         db.ref('grids/' + safeKey).once('value').then(snap => {
             const savedGrid = snap.val();
@@ -375,7 +376,10 @@ const initDynamicGrid = () => {
                         if (desc) desc.innerText = 'Haz clic para editar descripción.';
                         if (price) price.innerText = '$0.00';
                     } else {
-                        newCard.querySelectorAll('h2, h3, p').forEach(el => { el.innerText = 'Nuevo elemento'; });
+                        newCard.querySelectorAll('h2, h3, p').forEach(el => { el.innerText = 'Nueva Pestaña'; });
+                        if (newCard.tagName === 'A') {
+                            newCard.href = `categoria.html?id=cat_${timestamp}`;
+                        }
                     }
 
                     // Asignar IDs únicos
