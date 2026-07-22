@@ -307,8 +307,8 @@ const initDynamicGrid = () => {
                                    item.classList.contains('item');
                     // Excluir links de navegación del grid de servicios en index
                     const isNavLink = item.tagName === 'A' && grid.id === 'servicios';
-                    if (isCard && !isNavLink) {
-                        addAdminButtons(item, grid, safeKey);
+                    if (isCard) {
+                        addAdminButtons(item, grid, safeKey, isNavLink);
                     }
                 });
 
@@ -439,7 +439,7 @@ const initDynamicGrid = () => {
     };
 };
 
-function addAdminButtons(item, grid, safeKey) {
+function addAdminButtons(item, grid, safeKey, isNavLink = false) {
     const existingWrapper = item.querySelector('.admin-controls-wrapper');
     if (existingWrapper) existingWrapper.remove();
 
@@ -462,6 +462,7 @@ function addAdminButtons(item, grid, safeKey) {
     imgBtn.style.cssText = 'background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold;';
     imgBtn.onclick = (e) => {
         e.stopPropagation();
+        e.preventDefault();
         if (window.openProductGalleryManager) {
             window.openProductGalleryManager(item, grid, safeKey);
         } else {
@@ -484,6 +485,7 @@ function addAdminButtons(item, grid, safeKey) {
     plusBtn.style.cssText = 'background:#2ecc71; color:white; border:none; padding:2px 5px; cursor:pointer;';
     plusBtn.onclick = (e) => {
         e.stopPropagation();
+        e.preventDefault();
         let current = parseInt(item.getAttribute('data-stock'));
         item.setAttribute('data-stock', current + 1);
         stockLabel.textContent = 'Stock: ' + (current + 1);
@@ -496,6 +498,7 @@ function addAdminButtons(item, grid, safeKey) {
     minusBtn.style.cssText = 'background:#e74c3c; color:white; border:none; padding:2px 5px; cursor:pointer;';
     minusBtn.onclick = (e) => {
         e.stopPropagation();
+        e.preventDefault();
         let current = parseInt(item.getAttribute('data-stock'));
         if(current > 0) {
             item.setAttribute('data-stock', current - 1);
@@ -513,10 +516,36 @@ function addAdminButtons(item, grid, safeKey) {
     const delBtn = document.createElement('button');
     delBtn.textContent = '🗑️ ELIMINAR';
     delBtn.style.cssText = 'background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold; margin-top:5px;';
-    delBtn.onclick = (e) => { e.stopPropagation(); if(confirm('¿Eliminar este elemento?')) { item.remove(); saveGrid(grid, safeKey); } };
+    delBtn.onclick = (e) => { 
+        e.stopPropagation(); 
+        e.preventDefault(); 
+        if(confirm('¿Eliminar este elemento?')) { 
+            item.remove(); 
+            saveGrid(grid, safeKey); 
+        } 
+    };
 
-    wrapper.appendChild(imgBtn);
-    wrapper.appendChild(stockDiv);
+    if (isNavLink) {
+        const linkBtn = document.createElement('button');
+        linkBtn.textContent = '🔗 ENLACE';
+        linkBtn.style.cssText = 'background: #9b59b6; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px 10px; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;';
+        linkBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const currentHref = item.getAttribute('href') || '';
+            const newHref = prompt('Introduce el enlace al que debe apuntar esta pestaña (ej: figuras.html):', currentHref);
+            if (newHref !== null) {
+                item.setAttribute('href', newHref);
+                saveGrid(grid, safeKey);
+                alert('Enlace actualizado a: ' + newHref + '\nAsegúrate de que ese archivo exista.');
+            }
+        };
+        wrapper.appendChild(linkBtn);
+    } else {
+        wrapper.appendChild(imgBtn);
+        wrapper.appendChild(stockDiv);
+    }
+
     wrapper.appendChild(delBtn);
     
     if(window.getComputedStyle(item).position === 'static') item.style.position = 'relative';
