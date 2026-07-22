@@ -1806,6 +1806,23 @@ const initDiscountPanel = () => {
     };
 };
 
+const initPOSPanel = () => {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user || user.role !== 'admin') return;
+
+    const posBtn = document.createElement('button');
+    posBtn.id = 'admin-pos-btn';
+    posBtn.innerHTML = '🖥️ POS';
+    posBtn.style.cssText = 'position:fixed; bottom:140px; left:20px; background:#a29bfe; color:black; padding:15px 25px; border-radius:50px; border:none; cursor:pointer; font-weight:900; z-index:9998; box-shadow:0 0 20px rgba(162,155,254,0.4); text-decoration:none;';
+    
+    posBtn.onclick = () => {
+        window.location.href = 'pos.html';
+    };
+    
+    document.body.appendChild(posBtn);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     initDiscountPanel();
+    initPOSPanel();
 });

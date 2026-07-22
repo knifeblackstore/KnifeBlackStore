@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS - Knifeblackstore</title>
+    <link rel="stylesheet" href="main.css">
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
+    <style>
+        body { background: #050505; color: #fff; margin: 0; display: flex; height: 100vh; overflow: hidden; font-family: sans-serif; }
+        .pos-container { display: flex; width: 100%; height: 100%; }
+        .catalog-section { flex: 2; padding: 20px; display: flex; flex-direction: column; background: #0a0a0f; border-right: 1px solid var(--neon-cyan); }
+        .cart-section { flex: 1; padding: 20px; display: flex; flex-direction: column; background: #111; position: relative; }
+        
+        .search-bar { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid var(--neon-cyan); background: rgba(0,240,255,0.05); color: #fff; font-size: 1.1rem; margin-bottom: 20px; outline: none; box-sizing: border-box; text-transform: uppercase; }
+        .search-bar:focus { box-shadow: 0 0 15px rgba(0,240,255,0.3); }
+
+        .products-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding-right: 10px; align-content: start; }
+        
+        .pos-product-card { background: #1a1a24; border: 1px solid #333; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; min-height: 120px; }
+        .pos-product-card:hover { border-color: var(--neon-cyan); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,240,255,0.2); }
+        .pos-product-card h3 { margin: 0 0 10px 0; font-size: 0.9rem; color: #fff; }
+        .pos-product-card .price { color: var(--neon-cyan); font-weight: 900; font-size: 1.1rem; }
+        .pos-product-card .stock { font-size: 0.8rem; color: #888; margin-top: 5px; }
+        .pos-product-card .stock.low { color: #e74c3c; font-weight: bold; }
+
+        .cart-items { flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; background: #1a1a24; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--neon-pink); }
+        .cart-item-name { flex: 1; font-size: 0.9rem; }
+        .cart-item-price { color: var(--neon-cyan); font-weight: bold; margin: 0 15px; }
+        .cart-item-del { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 1.2rem; font-weight: bold; padding:0 5px;}
+
+        .totals-box { background: rgba(0,0,0,0.5); border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+        .totals-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1rem; }
+        .totals-row.grand-total { font-size: 1.5rem; font-weight: 900; color: var(--neon-cyan); border-top: 1px solid #333; padding-top: 10px; margin-top: 10px; margin-bottom: 0; }
+
+        .btn-checkout { background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple)); color: white; border: none; padding: 20px; border-radius: 12px; font-size: 1.2rem; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; width: 100%; transition: 0.3s; }
+        .btn-checkout:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-checkout:disabled { background: #333; cursor: not-allowed; opacity: 0.5; transform: none; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { background: #333; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; }
+        .back-btn:hover { background: #444; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+
+        /* Modal Ticket */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .ticket-modal { background: #fff; color: #000; width: 350px; padding: 30px; border-radius: 0; font-family: monospace; }
+        .ticket-modal h2 { text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 1.5rem; text-transform: uppercase; }
+        .ticket-modal p { text-align: center; margin: 0 0 20px 0; font-size: 0.9rem; color: #555; }
+        .ticket-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+        .ticket-total { display: flex; justify-content: space-between; margin-top: 15px; font-size: 1.2rem; font-weight: bold; border-top: 2px solid #000; padding-top: 10px; }
+        .btn-print { background: #000; color: #fff; border: none; padding: 15px; width: 100%; margin-top: 20px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-close-ticket { background: none; border: 1px solid #000; color: #000; padding: 10px; width: 100%; margin-top: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #ticket-content, #ticket-content * { visibility: visible; }
+            #ticket-content { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+            .btn-print, .btn-close-ticket { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="pos-container" id="app" style="display:none;">
+        <div class="catalog-section">
+            <div class="header">
+                <a href="index.html" class="back-btn">⬅ Volver a Tienda</a>
+                <h1 style="margin:0; color:var(--neon-pink); text-transform:uppercase; letter-spacing:2px; font-size:1.5rem;">🖥️ Terminal POS</h1>
+            </div>
+            <input type="text" id="pos-search" class="search-bar" placeholder="BUSCAR POR NOMBRE O CATEGORÍA...">
+            <div class="products-grid" id="pos-grid">
+                <!-- Se cargan por JS -->
+                <p style="color:#888; width:100%; grid-column:1/-1;">Cargando inventario desde la base de datos...</p>
+            </div>
+        </div>
+        
+        <div class="cart-section">
+            <h2 style="margin-top:0; color:var(--neon-cyan); text-transform:uppercase; border-bottom:1px solid #333; padding-bottom:15px; margin-bottom:20px;">🛒 Orden Actual</h2>
+            
+            <div class="cart-items" id="pos-cart-items">
+                <!-- Items del carrito POS -->
+                <p style="color:#888; text-align:center; margin-top:50px;">El carrito está vacío</p>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input type="number" id="manual-discount" placeholder="Desc. manual ($)" style="flex:1; padding:10px; border-radius:8px; border:1px solid #333; background:#0a0a0f; color:#fff; outline:none;">
+                <button id="apply-pos-discount" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">Aplicar Desc.</button>
+            </div>
+
+            <div class="totals-box">
+                <div class="totals-row">
+                    <span>Subtotal:</span>
+                    <span id="pos-subtotal">$0</span>
+                </div>
+                <div class="totals-row" style="color:var(--neon-pink);">
+                    <span>Descuento:</span>
+                    <span id="pos-discount">-$0</span>
+                </div>
+                <div class="totals-row grand-total">
+                    <span>TOTAL:</span>
+                    <span id="pos-total">$0</span>
+                </div>
+            </div>
+            
+            <button class="btn-checkout" id="btn-checkout" disabled>Finalizar Venta</button>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout / Ticket -->
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="ticket-modal" id="ticket-content">
+            <h2>KNIFEBLACK STORE</h2>
+            <p id="ticket-date"></p>
+            <div style="border-bottom:2px dashed #000; margin-bottom:15px;"></div>
+            
+            <div id="ticket-items-container"></div>
+            
+            <div style="border-bottom:2px dashed #000; margin-top:15px; margin-bottom:10px;"></div>
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9rem;">
+                <span>SUBTOTAL:</span>
+                <span id="ticket-subtotal"></span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9rem; color:#e74c3c;">
+                <span>DESCUENTO:</span>
+                <span id="ticket-discount"></span>
+            </div>
+            <div class="ticket-total">
+                <span>TOTAL A PAGAR:</span>
+                <span id="ticket-total"></span>
+            </div>
+            
+            <div style="border-bottom:2px dashed #000; margin-top:15px; margin-bottom:15px;"></div>
+            <p style="font-size:0.8rem; margin:0;">Método de Pago: <select id="payment-method" style="padding:2px; font-family:monospace; border:1px solid #ccc;"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia / Nequi</option><option value="Tarjeta">Tarjeta (Datafono)</option></select></p>
+            <p style="font-size:0.8rem; margin-top:10px;">¡Gracias por su compra!</p>
+            
+            <button class="btn-print" id="btn-confirm-sale">Procesar e Imprimir</button>
+            <button class="btn-close-ticket" id="btn-cancel-sale">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="pos.js?v=1"></script>
+</body>
+</html>
