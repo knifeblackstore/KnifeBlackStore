@@ -735,7 +735,8 @@ window.checkoutCart = () => {
     }
     
     message += `\n💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n\n`;
-    message += "Quedo atento para coordinar el pago. ¡Gracias!";
+    message += "💳 *Enlace de Pago Seguro (Nequi/Wompi):*\nhttps://checkout.nequi.wompi.co/l/VPOS_mXUiKY\n\n";
+    message += "Quedo atento para confirmar el pago. ¡Gracias!";
     
     const encoded = encodeURIComponent(message);
     

@@ -395,3 +395,202 @@ const downloadCSV = (csvContent, fileName) => {
 
 // Inicializar
 loadInventory();
+
+
+// ============================================================================
+// MÓDULO ERP: FINANZAS Y SUSCRIPCIONES
+// ============================================================================
+
+let totalSalesRevenue = 0;
+let additionalIncome = 0;
+let totalExpenses = 0;
+
+// Escuchar cambios en Ventas (POS y Web)
+db.ref('sales').on('value', snap => {
+    let salesTotal = 0;
+    snap.forEach(child => {
+        const sale = child.val();
+        if (sale.status !== 'Cancelada') {
+            salesTotal += (sale.total || 0);
+        }
+    });
+    totalSalesRevenue = salesTotal;
+    updateFinanceKPIs();
+});
+
+// Escuchar cambios en Finanzas (Ingresos Manuales y Egresos)
+db.ref('finances').on('value', snap => {
+    const tbody = document.getElementById('fin-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    additionalIncome = 0;
+    totalExpenses = 0;
+    
+    const records = [];
+    snap.forEach(child => {
+        records.push({ key: child.key, ...child.val() });
+    });
+    
+    // Ordenar descendente por fecha
+    records.sort((a,b) => new Date(b.date) - new Date(a.date));
+    
+    records.forEach(rec => {
+        if (rec.type === 'income') {
+            additionalIncome += rec.amount;
+        } else {
+            totalExpenses += rec.amount;
+        }
+        
+        const dateStr = new Date(rec.date).toLocaleDateString() + ' ' + new Date(rec.date).toLocaleTimeString();
+        const typeClass = rec.type === 'income' ? 'fin-type-income' : 'fin-type-expense';
+        const typeLabel = rec.type === 'income' ? 'Ingreso' : 'Egreso';
+        const sign = rec.type === 'income' ? '+' : '-';
+        
+        tbody.innerHTML += `
+            <tr>
+                <td>${dateStr}</td>
+                <td>${rec.desc}</td>
+                <td class="${typeClass}">${typeLabel}</td>
+                <td class="${typeClass}">${sign}$${rec.amount.toLocaleString()}</td>
+            </tr>
+        `;
+    });
+    
+    updateFinanceKPIs();
+});
+
+function updateFinanceKPIs() {
+    const totalInc = totalSalesRevenue + additionalIncome;
+    const net = totalInc - totalExpenses;
+    
+    const elInc = document.getElementById('fin-total-income');
+    const elExp = document.getElementById('fin-total-expense');
+    const elBal = document.getElementById('fin-balance');
+    
+    if(elInc) elInc.innerText = '$' + totalInc.toLocaleString();
+    if(elExp) elExp.innerText = '$' + totalExpenses.toLocaleString();
+    if(elBal) {
+        elBal.innerText = '$' + net.toLocaleString();
+        if (net < 0) {
+            elBal.style.color = 'var(--neon-pink)';
+            elBal.style.textShadow = '0 0 10px rgba(255,0,127,0.3)';
+        } else {
+            elBal.style.color = 'var(--neon-cyan)';
+            elBal.style.textShadow = '0 0 10px rgba(0,240,255,0.3)';
+        }
+    }
+}
+
+window.addFinancialRecord = () => {
+    const desc = document.getElementById('fin-desc').value.trim();
+    const amount = parseFloat(document.getElementById('fin-amount').value);
+    const type = document.getElementById('fin-type').value;
+    
+    if (!desc || isNaN(amount) || amount <= 0) {
+        alert('Por favor, ingresa una descripción y un monto válido.');
+        return;
+    }
+    
+    db.ref('finances').push({
+        desc: desc,
+        amount: amount,
+        type: type,
+        date: new Date().toISOString()
+    }).then(() => {
+        document.getElementById('fin-desc').value = '';
+        document.getElementById('fin-amount').value = '';
+    });
+};
+
+// ============================================================================
+// GESTOR DE SUSCRIPCIONES (PANTALLAS)
+// ============================================================================
+
+window.addSubscription = () => {
+    const client = document.getElementById('sub-client').value.trim();
+    const phone = document.getElementById('sub-phone').value.trim();
+    const platform = document.getElementById('sub-platform').value.trim();
+    const start = document.getElementById('sub-start').value;
+    const end = document.getElementById('sub-end').value;
+    
+    if (!client || !phone || !platform || !start || !end) {
+        alert('Por favor, completa todos los campos.');
+        return;
+    }
+    
+    db.ref('subscriptions').push({
+        client, phone, platform, start, end,
+        createdAt: new Date().toISOString()
+    }).then(() => {
+        document.getElementById('sub-client').value = '';
+        document.getElementById('sub-phone').value = '';
+        document.getElementById('sub-platform').value = '';
+        document.getElementById('sub-start').value = '';
+        document.getElementById('sub-end').value = '';
+        alert('Suscripción registrada con éxito.');
+    });
+};
+
+db.ref('subscriptions').on('value', snap => {
+    const tbody = document.getElementById('sub-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    const records = [];
+    snap.forEach(child => {
+        records.push({ key: child.key, ...child.val() });
+    });
+    
+    // Ordenar por fecha de vencimiento más próxima
+    records.sort((a,b) => new Date(a.end) - new Date(b.end));
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    records.forEach(sub => {
+        const endDate = new Date(sub.end);
+        const diffTime = endDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        let badgeClass = 'badge-days';
+        let statusText = diffDays + ' días';
+        
+        if (diffDays < 0) {
+            badgeClass += ' expired';
+            statusText = 'Vencida';
+        } else if (diffDays <= 3) {
+            badgeClass += ' danger';
+        } else if (diffDays <= 7) {
+            badgeClass += ' warning';
+        }
+        
+        let waMessage = `Hola ${sub.client}, te recordamos que tu suscripción de ${sub.platform} vence en ${diffDays} días (${sub.end}). ¿Deseas renovarla? 💳 Puedes pagar aquí: https://checkout.nequi.wompi.co/l/VPOS_mXUiKY`;
+        if (diffDays < 0) {
+            waMessage = `Hola ${sub.client}, te informamos que tu suscripción de ${sub.platform} se encuentra VENCIDA desde el ${sub.end}. ¿Deseas reactivarla? 💳 Paga aquí: https://checkout.nequi.wompi.co/l/VPOS_mXUiKY`;
+        }
+        
+        let waLink = `https://wa.me/${sub.phone.replace(/\D/g, '')}?text=${encodeURIComponent(waMessage)}`;
+        
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${sub.client}</strong></td>
+                <td>${sub.phone}</td>
+                <td>${sub.platform}</td>
+                <td>${sub.start}</td>
+                <td>${sub.end}</td>
+                <td><span class="${badgeClass}">${statusText}</span></td>
+                <td style="display:flex; gap:10px;">
+                    <a href="${waLink}" target="_blank" class="btn-wa">📱 Notificar</a>
+                    <button onclick="deleteSubscription('${sub.key}')" style="background:#e74c3c; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;" title="Eliminar">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+});
+
+window.deleteSubscription = (key) => {
+    if (confirm('¿Estás seguro de eliminar este registro de suscripción?')) {
+        db.ref('subscriptions/' + key).remove();
+    }
+};

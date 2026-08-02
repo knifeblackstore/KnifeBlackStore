@@ -89,10 +89,84 @@
             #ticket-content { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
             .btn-print, .btn-close-ticket { display: none !important; }
         }
+    
+        /* ERP Sidebar & Tabs */
+        .erp-layout { display: flex; width: 100%; height: 100vh; }
+        .erp-sidebar { width: 250px; background: #08080c; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px 0; }
+        .erp-sidebar h2 { text-align: center; color: #fff; margin: 0 0 30px 0; font-size: 1.5rem; letter-spacing: 2px; }
+        .erp-sidebar h2 span { color: var(--neon-cyan); }
+        .nav-btn { display: flex; align-items: center; gap: 15px; padding: 15px 25px; color: #aaa; text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: 0.3s; border-left: 4px solid transparent; }
+        .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-btn.active { background: rgba(0,240,255,0.1); color: var(--neon-cyan); border-left-color: var(--neon-cyan); }
+        .nav-btn.logout { margin-top: auto; color: var(--neon-pink); }
+        .nav-btn.logout:hover { background: rgba(255,0,127,0.1); border-left-color: var(--neon-pink); }
+        
+        .erp-main { flex: 1; display: flex; flex-direction: column; background: #050505; position: relative; overflow: hidden; }
+        .tab-pane { display: none; width: 100%; height: 100%; overflow-y: auto; }
+        .tab-pane.active { display: flex; flex-direction: column; }
+
+        /* Finanzas UI */
+        .fin-dashboard { padding: 30px; display:flex; flex-direction: column; gap:20px; }
+        .fin-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .fin-card { background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 15px; padding: 25px; text-align: center; display:flex; flex-direction:column; justify-content:center; }
+        .fin-card h3 { color: #888; font-size: 1rem; margin:0 0 10px 0; text-transform:uppercase; }
+        .fin-card .val { font-size: 2.5rem; font-weight: 900; margin:0; }
+        .fin-card.income .val { color: #2ecc71; text-shadow: 0 0 10px rgba(46,204,113,0.3); }
+        .fin-card.expense .val { color: var(--neon-pink); text-shadow: 0 0 10px rgba(255,0,127,0.3); }
+        .fin-card.balance .val { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0,240,255,0.3); }
+        
+        .fin-controls { display:flex; gap:15px; background:#111; padding:20px; border-radius:12px; border:1px solid #333; align-items:center; flex-wrap:wrap;}
+        .fin-input { flex:1; min-width:150px; background:rgba(255,255,255,0.05); border:1px solid #444; color:#fff; padding:12px; border-radius:8px; outline:none; }
+        .fin-btn { background:var(--neon-pink); color:#fff; border:none; padding:12px 25px; border-radius:8px; font-weight:bold; cursor:pointer; text-transform:uppercase; transition:0.3s;}
+        .fin-btn:hover { filter:brightness(1.2); }
+
+        .fin-table-container { background: #111; border-radius:12px; border:1px solid #333; overflow:hidden; }
+        .fin-table { width: 100%; border-collapse: collapse; }
+        .fin-table th, .fin-table td { padding: 15px; text-align: left; border-bottom: 1px solid #222; }
+        .fin-table th { background: #1a1a24; color: #888; text-transform: uppercase; font-size: 0.9rem; }
+        .fin-type-income { color: #2ecc71; font-weight:bold; }
+        .fin-type-expense { color: var(--neon-pink); font-weight:bold; }
+
+        /* Suscripciones UI */
+        .sub-dashboard { padding: 30px; display:flex; flex-direction: column; gap:20px; }
+        .sub-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background:#111; padding:20px; border-radius:12px; border:1px solid #333; }
+        .sub-btn { background:var(--neon-cyan); color:#000; border:none; padding:12px 25px; border-radius:8px; font-weight:900; cursor:pointer; text-transform:uppercase; transition:0.3s; grid-column:1/-1; }
+        .sub-btn:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(0,240,255,0.3); }
+
+        .sub-table-container { background: #111; border-radius:12px; border:1px solid #333; overflow:x-auto; }
+        .sub-table { width: 100%; border-collapse: collapse; }
+        .sub-table th, .sub-table td { padding: 15px; text-align: left; border-bottom: 1px solid #222; }
+        .sub-table th { background: #1a1a24; color: #888; text-transform: uppercase; font-size: 0.9rem; }
+        
+        .badge-days { background: #2ecc71; color: #000; padding: 5px 10px; border-radius: 20px; font-weight: 900; font-size: 0.8rem; }
+        .badge-days.warning { background: #f1c40f; }
+        .badge-days.danger { background: #e74c3c; color: #fff; }
+        .badge-days.expired { background: #555; color: #fff; }
+        
+        .btn-wa { background: #25D366; color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-wa:hover { filter: brightness(1.1); }
+        
+        /* Ocultar botones antiguos */
+        .back-btn { display:none !important; }
+
     </style>
 </head>
 <body>
-    <div class="pos-container" id="app" style="display:none;">
+    <div class="erp-layout">
+        <aside class="erp-sidebar">
+            <h2>KNIFEBLACK<br><span>ADMIN</span></h2>
+            <a href="#" class="nav-btn active" onclick="switchTab('pos')">🛒 Punto de Venta</a>
+            <a href="#" class="nav-btn" onclick="switchTab('finanzas')">💰 Finanzas</a>
+            <a href="#" class="nav-btn" onclick="switchTab('suscripciones')">📺 Suscripciones</a>
+            <div style="flex:1;"></div>
+            <a href="index.html" class="nav-btn logout">⬅ Volver a Tienda</a>
+        </aside>
+        
+        <main class="erp-main">
+            <!-- TAB POS -->
+            <div id="tab-pos" class="tab-pane active" style="flex-direction:row;">
+                
+    <div class="pos-container" id="app">
         <div class="catalog-section">
             <div class="header">
                 <a href="index.html" class="back-btn">⬅ Volver a Tienda</a>
@@ -219,6 +293,102 @@
         </div>
     </div>
 
-    <script src="pos.js?v=24"></script>
+    
+            </div>
+            
+            <!-- TAB FINANZAS -->
+            <div id="tab-finanzas" class="tab-pane">
+                <div class="fin-dashboard">
+                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Calculadora de Finanzas</h2>
+                    
+                    <div class="fin-kpis">
+                        <div class="fin-card income">
+                            <h3>Ingresos Totales</h3>
+                            <p class="val" id="fin-total-income">$0</p>
+                        </div>
+                        <div class="fin-card expense">
+                            <h3>Egresos Totales</h3>
+                            <p class="val" id="fin-total-expense">$0</p>
+                        </div>
+                        <div class="fin-card balance">
+                            <h3>Balance Neto</h3>
+                            <p class="val" id="fin-balance">$0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="fin-controls">
+                        <input type="text" id="fin-desc" class="fin-input" placeholder="Descripción (ej. Pago Server)">
+                        <input type="number" id="fin-amount" class="fin-input" placeholder="Monto ($)">
+                        <select id="fin-type" class="fin-input" style="flex:0.5;">
+                            <option value="expense">Egreso (Gasto)</option>
+                            <option value="income">Ingreso Manual</option>
+                        </select>
+                        <button class="fin-btn" onclick="addFinancialRecord()">Registrar Movimiento</button>
+                    </div>
+                    
+                    <div class="fin-table-container">
+                        <table class="fin-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Tipo</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fin-table-body">
+                                <!-- Llenado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB SUSCRIPCIONES -->
+            <div id="tab-suscripciones" class="tab-pane">
+                <div class="sub-dashboard">
+                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Gestión de Pantallas</h2>
+                    
+                    <form class="sub-form" onsubmit="event.preventDefault(); addSubscription();">
+                        <input type="text" id="sub-client" class="fin-input" placeholder="Nombre del Cliente" required>
+                        <input type="text" id="sub-phone" class="fin-input" placeholder="WhatsApp (ej. 57300...)" required>
+                        <input type="text" id="sub-platform" class="fin-input" placeholder="Plataforma (ej. Netflix)" required>
+                        <input type="date" id="sub-start" class="fin-input" title="Fecha Activación" required>
+                        <input type="date" id="sub-end" class="fin-input" title="Fecha Vencimiento" required>
+                        <button type="submit" class="sub-btn">Registrar Suscripción</button>
+                    </form>
+                    
+                    <div class="sub-table-container">
+                        <table class="sub-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>WhatsApp</th>
+                                    <th>Plataforma</th>
+                                    <th>Activación</th>
+                                    <th>Vencimiento</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sub-table-body">
+                                <!-- Llenado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+<script src="pos.js?v=26"></script>
 </body>
 </html>
