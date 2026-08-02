@@ -634,7 +634,8 @@ const updateCartUI = () => {
                 <span>TOTAL:</span>
                 <span style="color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">$${total.toLocaleString()}</span>
             </div>
-            <button onclick="checkoutCart()" style="background:linear-gradient(45deg, var(--neon-cyan), var(--neon-purple)); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Comprar Todo por WhatsApp</button>
+            <button onclick="checkoutCart()" style="background:linear-gradient(45deg, #25D366, #128C7E); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">📲 Pedir por WhatsApp</button>
+            <button onclick="checkoutWompi()" style="background:linear-gradient(45deg, #150080, #E6007E); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">💳 Pago Seguro Nequi/Wompi</button>
             <button onclick="clearCart()" style="background:rgba(255,0,127,0.1); color:var(--neon-pink); border:1px solid var(--neon-pink); padding:10px; border-radius:12px; width:100%; cursor:pointer; font-size:0.8rem; font-weight:900;">Vaciar Carrito</button>
         `;
     } else {
@@ -735,8 +736,7 @@ window.checkoutCart = () => {
     }
     
     message += `\n💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n\n`;
-    message += "💳 *Enlace de Pago Seguro (Nequi/Wompi):*\nhttps://checkout.nequi.wompi.co/l/VPOS_mXUiKY\n\n";
-    message += "Quedo atento para confirmar el pago. ¡Gracias!";
+    message += "Quedo atento para coordinar el pago. ¡Gracias!";
     
     const encoded = encodeURIComponent(message);
     
@@ -747,6 +747,56 @@ window.checkoutCart = () => {
     updateCartUI();
     
     window.open(`https://wa.me/573108014660?text=${encoded}`, '_blank');
+};
+
+window.checkoutWompi = () => {
+    if (cart.length === 0) return;
+    
+    // VERIFICACIÓN DE SESIÓN
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) {
+        alert('🚀 ¡Alto ahí, Gamer! Debes INICIAR SESIÓN para completar tu compra.');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
+    let total = subtotal;
+    let descAmount = 0;
+    
+    if (window.currentDiscount) {
+        descAmount = window.currentDiscount.type === 'percentage' 
+            ? total * (window.currentDiscount.amount / 100) 
+            : window.currentDiscount.amount;
+        if (descAmount > total) descAmount = total;
+        total -= descAmount;
+    }
+
+    // REGISTRAR VENTA EN FIREBASE ANTES DE REDIRIGIR A WOMPI
+    const saleData = {
+        customer: user.name,
+        email: user.email,
+        items: cart,
+        total: total,
+        subtotal: subtotal,
+        discountApplied: window.currentDiscount ? window.currentDiscount.code : null,
+        discountAmount: descAmount,
+        date: new Date().toISOString(),
+        status: 'Pendiente (Wompi)'
+    };
+    db.ref('sales').push(saleData);
+
+    if (window.currentDiscount) {
+        db.ref('discountCodes/' + window.currentDiscount.code).remove();
+    }
+    
+    // Limpiar carrito
+    localStorage.removeItem('shoppingCart');
+    cart = [];
+    window.currentDiscount = null;
+    updateCartUI();
+    
+    window.open('https://checkout.nequi.wompi.co/l/VPOS_mXUiKY', '_blank');
 };
 
 window.payWithEpayco = () => {
