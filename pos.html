@@ -149,6 +149,32 @@
         /* Ocultar botones antiguos */
         .back-btn { display:none !important; }
 
+    
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body { overflow-y: auto; height: auto; }
+            .erp-layout { flex-direction: column; height: auto; display: block; }
+            .erp-sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 5px; border-right: none; border-bottom: 2px solid var(--neon-cyan); position: sticky; top: 0; z-index: 100; background: #050505; }
+            .erp-sidebar h2 { display: none; }
+            .nav-btn { flex: 1; justify-content: center; padding: 10px 5px; font-size: 0.8rem; border-left: none; border-bottom: 4px solid transparent; min-width: 33%; }
+            .nav-btn.active { border-left-color: transparent; border-bottom-color: var(--neon-cyan); }
+            .nav-btn.logout { border-left-color: transparent; }
+            .nav-btn.logout:hover { border-left-color: transparent; border-bottom-color: var(--neon-pink); }
+            
+            #tab-pos { flex-direction: column !important; height: auto; display: block; }
+            .pos-container { flex-direction: column; height: auto; display: block; }
+            .catalog-section { width: 100%; border-right: none; height: auto; display: block; overflow: visible; padding: 10px; }
+            .cart-section { width: 100%; border-top: 2px solid var(--neon-cyan); height: auto; display: block; overflow: visible; padding: 10px; }
+            
+            .fin-kpis, .sub-form { grid-template-columns: 1fr; }
+            .fin-controls { flex-direction: column; }
+            .fin-input, .fin-btn, .sub-btn { width: 100%; }
+            
+            .products-grid { grid-template-columns: repeat(2, 1fr); overflow: visible; }
+            .cart-items { overflow: visible; max-height: 400px; overflow-y: auto; }
+            
+            .fin-table-container, .sub-table-container { overflow-x: scroll; }
+        }
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
