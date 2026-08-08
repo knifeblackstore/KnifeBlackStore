@@ -594,3 +594,34 @@ window.deleteSubscription = (key) => {
         db.ref('subscriptions/' + key).remove();
     }
 };
+
+// Auto-calculate subscription end date (30 days)
+document.addEventListener('DOMContentLoaded', () => {
+    const subStart = document.getElementById('sub-start');
+    const subEnd = document.getElementById('sub-end');
+    
+    if (subStart && subEnd) {
+        // Default to today
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        subStart.value = `${yyyy}-${mm}-${dd}`;
+        
+        const updateEnd = () => {
+            if(!subStart.value) return;
+            // Parse local date strictly avoiding timezone shifts
+            const parts = subStart.value.split('-');
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            d.setDate(d.getDate() + 30); // 30 days of subscription
+            
+            const ey = d.getFullYear();
+            const em = String(d.getMonth() + 1).padStart(2, '0');
+            const ed = String(d.getDate()).padStart(2, '0');
+            subEnd.value = `${ey}-${em}-${ed}`;
+        };
+        
+        updateEnd();
+        subStart.addEventListener('change', updateEnd);
+    }
+});
