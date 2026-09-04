@@ -1,6 +1,28 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true
+    "sales": {
+      ".read": true,
+      ".write": true
+    },
+    "finances": {
+      ".read": true,
+      ".write": true
+    },
+    "subscriptions": {
+      ".read": true,
+      ".write": true
+    },
+    "grids": {
+      ".read": true,
+      ".write": true
+    },
+    "discountCodes": {
+      ".read": true,
+      ".write": true
+    },
+    "usersDB": {
+      ".read": true,
+      ".write": true
+    }
   }
 }
