@@ -765,7 +765,10 @@ function resetProductForm() {
     document.getElementById('inv-manufacturer').value = '';
     document.getElementById('inv-price').value = '';
     document.getElementById('inv-stock').value = '';
-    document.getElementById('inv-photo').value = '';
+    const pCam = document.getElementById('inv-photo-cam');
+    if(pCam) pCam.value = '';
+    const pGal = document.getElementById('inv-photo-gal');
+    if(pGal) pGal.value = '';
     document.getElementById('inv-preview').style.display = 'none';
     currentProductImageBase64 = '';
     

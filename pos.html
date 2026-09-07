@@ -446,13 +446,22 @@
                         <input type="number" id="inv-stock" class="fin-input" placeholder="Cantidad en Stock" required>
                         
                         <div style="grid-column: 1/-1; background: rgba(0,240,255,0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-cyan); text-align: center;">
-                            <label for="inv-photo" style="cursor: pointer; font-weight: bold; color: var(--neon-cyan); display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                                <span style="font-size: 2rem;">📷</span>
-                                <span>Tocar para tomar/subir foto</span>
-                            </label>
-                            <input type="file" id="inv-photo" accept="image/*" capture="environment" style="display: none;" onchange="previewProductPhoto(event)">
+                            <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 15px;">
+                                <label for="inv-photo-cam" style="cursor: pointer; background: rgba(0,240,255,0.1); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; transition: 0.2s;">
+                                    <span style="font-size: 2.5rem;">📷</span>
+                                    <span style="color: var(--neon-cyan); font-weight: bold;">Usar Cámara</span>
+                                </label>
+                                <label for="inv-photo-gal" style="cursor: pointer; background: rgba(241,196,15,0.1); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; transition: 0.2s;">
+                                    <span style="font-size: 2.5rem;">📁</span>
+                                    <span style="color: #f1c40f; font-weight: bold;">Subir Galería</span>
+                                </label>
+                            </div>
+                            
+                            <input type="file" id="inv-photo-cam" accept="image/*" capture="environment" style="display: none;" onchange="previewProductPhoto(event)">
+                            <input type="file" id="inv-photo-gal" accept="image/*" style="display: none;" onchange="previewProductPhoto(event)">
+                            
                             <canvas id="inv-canvas" style="display:none;"></canvas>
-                            <img id="inv-preview" style="max-width: 100%; max-height: 200px; margin-top: 15px; border-radius: 8px; display: none; object-fit: contain;">
+                            <img id="inv-preview" style="max-width: 100%; max-height: 200px; margin: 0 auto; border-radius: 8px; display: none; object-fit: contain;">
                         </div>
                         
                         <button type="submit" class="sub-btn" id="btn-save-product" style="grid-column: 1/-1;">Guardar Producto</button>
