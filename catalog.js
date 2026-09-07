@@ -35,7 +35,7 @@ db.ref('products').once('value').then(snap => {
     }
 
     renderCatalog();
-    renderSpecialSelection();
+    
 });
 
 // Renderizado de Selección Especial (Random 2 productos del tipo actual)
