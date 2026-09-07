@@ -59,29 +59,46 @@
         </div>
     </header>
 
-    <main class="product-grid">
-        <!-- Producto Ejemplo 1 -->
-        <article class="product-card">
-            <div class="product-img-container platform-icon">
-                <span>ðŸ®</span>
-            </div>
-            <h2 class="product-name platform-name">Pin Metálico Anime</h2>
-            <p class="product-desc platform-desc">Pin de alta calidad con acabado esmaltado.</p>
-            <div class="product-price platform-price">$15.000</div>
-            <button onclick="addToCart(this)" class="buy-btn">Comprar ahora</button>
-        </article>
+    
+    <div class="catalog-filters">
+        <input type="text" id="cat-search" placeholder="Buscar figura o fabricante...">
+        <select id="cat-franchise">
+            <option value="">Todas las Franquicias</option>
+        </select>
+        <select id="cat-sort">
+            <option value="default">Ordenar por: Defecto</option>
+            <option value="price_asc">Precio: Menor a Mayor</option>
+            <option value="price_desc">Precio: Mayor a Menor</option>
+            <option value="name_asc">Nombre: A - Z</option>
+        </select>
+        <input type="number" id="cat-max-price" placeholder="Precio Máx. (COP)">
+    </div>
 
-        <!-- Producto Ejemplo 2 -->
-        <article class="product-card">
-            <div class="product-img-container platform-icon">
-                <span>ðŸŽŽ</span>
+    <div class="catalog-layout">
+        <aside class="catalog-sidebar">
+            <h3>⭐ Selección Especial</h3>
+            <div id="special-selection">
+                <!-- LLENADO POR JS -->
             </div>
-            <h2 class="product-name platform-name">Figura de Acción</h2>
-            <p class="product-desc platform-desc">Figura coleccionable con detalles premium.</p>
-            <div class="product-price platform-price">$85.000</div>
-            <button onclick="addToCart(this)" class="buy-btn">Comprar ahora</button>
-        </article>
-    </main>
+        </aside>
+        
+        <main class="catalog-main">
+            <div class="catalog-info-bar" id="catalog-info">Mostrando 0 productos</div>
+            <div class="dyn-product-grid" id="catalog-grid">
+                <p style="color:#fff;">Cargando inventario de Firebase...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox-modal" id="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox()">×</button>
+            <img src="" class="lightbox-img" id="lightbox-img">
+        </div>
+    </div>
+    
+    <script src="catalog.js?v=2"></script>
 
     <footer style="background: #000; padding: 60px 20px; border-top: 1px solid #111;">
         <div style="max-width: 1200px; margin: 0 auto; text-align: center;">

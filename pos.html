@@ -198,6 +198,7 @@
             <a href="#" class="nav-btn active" onclick="switchTab('pos')">🛒 Punto de Venta</a>
             <a href="#" class="nav-btn" onclick="switchTab('finanzas')">💰 Finanzas</a>
             <a href="#" class="nav-btn" onclick="switchTab('suscripciones')">📺 Suscripciones</a>
+            <a href="#" class="nav-btn" onclick="switchTab('inventario')">📦 Inventario</a>
             <div style="flex:1;"></div>
             <a href="index.html" class="nav-btn logout">⬅ Volver a Tienda</a>
         </aside>
@@ -412,6 +413,64 @@
                                 </tr>
                             </thead>
                             <tbody id="sub-table-body">
+                                <!-- Llenado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- TAB INVENTARIO -->
+            <div id="tab-inventario" class="tab-pane">
+                <div class="sub-dashboard">
+                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Gestión de Catálogo</h2>
+                    
+                    <form class="sub-form" onsubmit="event.preventDefault(); addProduct();" style="grid-template-columns: 1fr 1fr;">
+                        <input type="text" id="inv-name" class="fin-input" placeholder="Nombre del Producto" required style="grid-column: 1/-1;">
+                        
+                        <select id="inv-type" class="fin-input" required>
+                            <option value="">-- Seleccionar Tipo --</option>
+                            <option value="figura">Figura de Acción</option>
+                            <option value="pin">Pin Metálico</option>
+                        </select>
+                        <select id="inv-condition" class="fin-input" required>
+                            <option value="Nuevo">Nuevo</option>
+                            <option value="Usado / Excelente">Usado / Excelente</option>
+                            <option value="Preventa">Preventa</option>
+                        </select>
+                        
+                        <input type="text" id="inv-franchise" class="fin-input" placeholder="Franquicia (ej. Pokémon, Marvel)">
+                        <input type="text" id="inv-manufacturer" class="fin-input" placeholder="Fabricante (ej. Bandai)">
+                        
+                        <input type="number" id="inv-price" class="fin-input" placeholder="Precio (COP)" required>
+                        <input type="number" id="inv-stock" class="fin-input" placeholder="Cantidad en Stock" required>
+                        
+                        <div style="grid-column: 1/-1; background: rgba(0,240,255,0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-cyan); text-align: center;">
+                            <label for="inv-photo" style="cursor: pointer; font-weight: bold; color: var(--neon-cyan); display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                                <span style="font-size: 2rem;">📷</span>
+                                <span>Tocar para tomar/subir foto</span>
+                            </label>
+                            <input type="file" id="inv-photo" accept="image/*" capture="environment" style="display: none;" onchange="previewProductPhoto(event)">
+                            <canvas id="inv-canvas" style="display:none;"></canvas>
+                            <img id="inv-preview" style="max-width: 100%; max-height: 200px; margin-top: 15px; border-radius: 8px; display: none; object-fit: contain;">
+                        </div>
+                        
+                        <button type="submit" class="sub-btn" id="btn-save-product" style="grid-column: 1/-1;">Guardar Producto</button>
+                    </form>
+                    
+                    <div class="sub-table-container" style="margin-top: 20px;">
+                        <table class="sub-table">
+                            <thead>
+                                <tr>
+                                    <th>Foto</th>
+                                    <th>Nombre</th>
+                                    <th>Tipo</th>
+                                    <th>Precio</th>
+                                    <th>Stock</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inv-table-body">
                                 <!-- Llenado por JS -->
                             </tbody>
                         </table>

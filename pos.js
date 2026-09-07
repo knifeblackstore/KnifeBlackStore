@@ -625,3 +625,125 @@ document.addEventListener('DOMContentLoaded', () => {
         subStart.addEventListener('change', updateEnd);
     }
 });
+
+// ============================================================================
+// GESTOR DE INVENTARIO / CATÁLOGO
+// ============================================================================
+
+let currentProductImageBase64 = '';
+
+window.previewProductPhoto = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.getElementById('inv-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Redimensionar si es muy grande
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+            
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Comprimir a JPEG calidad media para no saturar DB
+            currentProductImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+            
+            const preview = document.getElementById('inv-preview');
+            preview.src = currentProductImageBase64;
+            preview.style.display = 'block';
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+};
+
+window.addProduct = () => {
+    const name = document.getElementById('inv-name').value.trim();
+    const type = document.getElementById('inv-type').value;
+    const condition = document.getElementById('inv-condition').value;
+    const franchise = document.getElementById('inv-franchise').value.trim() || 'Desconocida';
+    const manufacturer = document.getElementById('inv-manufacturer').value.trim() || 'Desconocido';
+    const price = parseFloat(document.getElementById('inv-price').value) || 0;
+    const stock = parseInt(document.getElementById('inv-stock').value) || 0;
+    
+    if (!name || !type || price <= 0) {
+        alert('Nombre, Tipo y Precio son obligatorios.');
+        return;
+    }
+    
+    db.ref('products').push({
+        name,
+        type,
+        condition,
+        franchise,
+        manufacturer,
+        price,
+        stock,
+        image: currentProductImageBase64,
+        createdAt: new Date().toISOString()
+    }).then(() => {
+        alert('Producto añadido con éxito.');
+        // Limpiar formulario
+        document.getElementById('inv-name').value = '';
+        document.getElementById('inv-type').value = '';
+        document.getElementById('inv-condition').value = 'Nuevo';
+        document.getElementById('inv-franchise').value = '';
+        document.getElementById('inv-manufacturer').value = '';
+        document.getElementById('inv-price').value = '';
+        document.getElementById('inv-stock').value = '';
+        document.getElementById('inv-photo').value = '';
+        document.getElementById('inv-preview').style.display = 'none';
+        currentProductImageBase64 = '';
+    });
+};
+
+window.deleteProduct = (key) => {
+    if(confirm('¿Seguro que deseas eliminar este producto del catálogo?')) {
+        db.ref('products/' + key).remove();
+    }
+};
+
+// Escuchar cambios en inventario
+db.ref('products').on('value', snap => {
+    const tbody = document.getElementById('inv-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    snap.forEach(child => {
+        const p = child.val();
+        const imgTag = p.image ? `<img src="${p.image}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">` : '📷';
+        
+        tbody.innerHTML += `
+            <tr>
+                <td>${imgTag}</td>
+                <td>${p.name}</td>
+                <td><span class="badge-days" style="background:#3498db;color:#fff;">${p.type.toUpperCase()}</span></td>
+                <td style="color:var(--neon-cyan); font-weight:bold;">$${p.price.toLocaleString()}</td>
+                <td>${p.stock}</td>
+                <td>
+                    <button onclick="deleteProduct('${child.key}')" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">❌</button>
+                </td>
+            </tr>
+        `;
+    });
+});
