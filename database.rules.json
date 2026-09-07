@@ -23,6 +23,18 @@
     "usersDB": {
       ".read": true,
       ".write": true
+    },
+    "products": {
+      ".read": true,
+      ".write": true
+    },
+    "contact_messages": {
+      ".read": true,
+      ".write": true
+    },
+    "reviews": {
+      ".read": true,
+      ".write": true
     }
   }
 }

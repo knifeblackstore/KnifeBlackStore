@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDynamicGrid();
     initEditableContent();
     updateCartUI();
-    initInventoryPanel();
+    // initInventoryPanel(); // Disabled in favor of pos.html
 });
 
 // --- SISTEMA DE CARRITO GAMER ---
