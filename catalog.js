@@ -1,7 +1,7 @@
 // Lógica del Catálogo Dinámico
 
 let allProducts = [];
-let currentFilterType = window.location.pathname.includes('figuras') ? 'figura' : 'pin';
+let currentFilterType = document.body.getAttribute('data-catalog-type') || 'pin';
 
 // Lightbox Logic
 window.openLightbox = (src) => {
