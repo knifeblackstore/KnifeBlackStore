@@ -631,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================================
 
 let currentProductImageBase64 = '';
+let currentEditKey = null;
 
 window.previewProductPhoto = (event) => {
     const file = event.target.files[0];
@@ -643,7 +644,6 @@ window.previewProductPhoto = (event) => {
             const canvas = document.getElementById('inv-canvas');
             const ctx = canvas.getContext('2d');
             
-            // Redimensionar si es muy grande
             const MAX_WIDTH = 800;
             const MAX_HEIGHT = 800;
             let width = img.width;
@@ -665,7 +665,6 @@ window.previewProductPhoto = (event) => {
             canvas.height = height;
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Comprimir a JPEG calidad media para no saturar DB
             currentProductImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
             
             const preview = document.getElementById('inv-preview');
@@ -691,7 +690,7 @@ window.addProduct = () => {
         return;
     }
     
-    db.ref('products').push({
+    const productData = {
         name,
         type,
         condition,
@@ -700,26 +699,87 @@ window.addProduct = () => {
         price,
         stock,
         image: currentProductImageBase64,
-        createdAt: new Date().toISOString()
-    }).then(() => {
-        alert('Producto añadido con éxito.');
-        // Limpiar formulario
-        document.getElementById('inv-name').value = '';
-        document.getElementById('inv-type').value = '';
-        document.getElementById('inv-condition').value = 'Nuevo';
-        document.getElementById('inv-franchise').value = '';
-        document.getElementById('inv-manufacturer').value = '';
-        document.getElementById('inv-price').value = '';
-        document.getElementById('inv-stock').value = '';
-        document.getElementById('inv-photo').value = '';
-        document.getElementById('inv-preview').style.display = 'none';
-        currentProductImageBase64 = '';
+        updatedAt: new Date().toISOString()
+    };
+    
+    if (currentEditKey) {
+        // Update existing product
+        db.ref('products/' + currentEditKey).update(productData).then(() => {
+            alert('Producto actualizado con éxito.');
+            resetProductForm();
+        });
+    } else {
+        // Add new product
+        productData.createdAt = new Date().toISOString();
+        db.ref('products').push(productData).then(() => {
+            alert('Producto añadido con éxito.');
+            resetProductForm();
+        });
+    }
+};
+
+window.editProduct = (key) => {
+    db.ref('products/' + key).once('value').then(snap => {
+        const p = snap.val();
+        if(!p) return;
+        
+        currentEditKey = key;
+        document.getElementById('inv-name').value = p.name || '';
+        
+        // Handle options carefully
+        const typeEl = document.getElementById('inv-type');
+        if(typeEl) typeEl.value = p.type || 'figura';
+        
+        const condEl = document.getElementById('inv-condition');
+        if(condEl) condEl.value = p.condition || 'Nuevo';
+        
+        document.getElementById('inv-franchise').value = p.franchise || '';
+        document.getElementById('inv-manufacturer').value = p.manufacturer || '';
+        document.getElementById('inv-price').value = p.price || 0;
+        document.getElementById('inv-stock').value = p.stock || 0;
+        
+        const btn = document.querySelector('.btn-add[onclick="addProduct()"]');
+        if(btn) {
+            btn.innerText = '💾 Guardar Cambios';
+            btn.style.background = '#f39c12'; // Orange for editing
+        }
+        
+        if (p.image) {
+            currentProductImageBase64 = p.image;
+            const preview = document.getElementById('inv-preview');
+            preview.src = p.image;
+            preview.style.display = 'block';
+        }
+        
+        // Scroll to top
+        window.scrollTo({top: 0, behavior: 'smooth'});
     });
 };
+
+function resetProductForm() {
+    currentEditKey = null;
+    document.getElementById('inv-name').value = '';
+    document.getElementById('inv-type').value = '';
+    document.getElementById('inv-condition').value = 'Nuevo';
+    document.getElementById('inv-franchise').value = '';
+    document.getElementById('inv-manufacturer').value = '';
+    document.getElementById('inv-price').value = '';
+    document.getElementById('inv-stock').value = '';
+    document.getElementById('inv-photo').value = '';
+    document.getElementById('inv-preview').style.display = 'none';
+    currentProductImageBase64 = '';
+    
+    const btn = document.querySelector('.btn-add[onclick="addProduct()"]');
+    if(btn) {
+        btn.innerText = '➕ Agregar Producto';
+        btn.style.background = 'var(--neon-cyan)';
+    }
+}
 
 window.deleteProduct = (key) => {
     if(confirm('¿Seguro que deseas eliminar este producto del catálogo?')) {
         db.ref('products/' + key).remove();
+        if(currentEditKey === key) resetProductForm();
     }
 };
 
@@ -740,8 +800,9 @@ db.ref('products').on('value', snap => {
                 <td><span class="badge-days" style="background:#3498db;color:#fff;">${p.type.toUpperCase()}</span></td>
                 <td style="color:var(--neon-cyan); font-weight:bold;">$${p.price.toLocaleString()}</td>
                 <td>${p.stock}</td>
-                <td>
-                    <button onclick="deleteProduct('${child.key}')" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">❌</button>
+                <td style="display:flex; gap:10px;">
+                    <button onclick="editProduct('${child.key}')" style="background:#f39c12; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Editar">✏️</button>
+                    <button onclick="deleteProduct('${child.key}')" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Eliminar">❌</button>
                 </td>
             </tr>
         `;
