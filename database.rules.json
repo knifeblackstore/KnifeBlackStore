@@ -26,15 +26,15 @@
       ".write": false
     },
     "sales": {
-      ".read": false,
+      ".read": true,
       ".write": true
     },
     "finances": {
-      ".read": false,
+      ".read": true,
       ".write": true
     },
     "subscriptions": {
-      ".read": false,
+      ".read": true,
       ".write": true
     },
     "discountCodes": {
