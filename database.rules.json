@@ -1,40 +1,49 @@
 {
   "rules": {
-    "sales": {
-      ".read": true,
-      ".write": true
-    },
-    "finances": {
-      ".read": true,
-      ".write": true
-    },
-    "subscriptions": {
-      ".read": true,
-      ".write": true
-    },
-    "grids": {
-      ".read": true,
-      ".write": true
-    },
-    "discountCodes": {
-      ".read": true,
-      ".write": true
-    },
-    "usersDB": {
-      ".read": true,
-      ".write": true
-    },
     "products": {
       ".read": true,
-      ".write": true
-    },
-    "contact_messages": {
-      ".read": true,
-      ".write": true
+      ".write": true,
+      "$productId": {
+        ".validate": "newData.hasChildren(['name', 'price', 'type'])"
+      }
     },
     "reviews": {
       ".read": true,
+      ".write": true,
+      "$reviewId": {
+        ".validate": "newData.hasChildren(['author', 'text', 'stars'])"
+      }
+    },
+    "contact_messages": {
+      ".read": false,
+      ".write": true,
+      "$msgId": {
+        ".validate": "newData.hasChildren(['name', 'message'])"
+      }
+    },
+    "grids": {
+      ".read": true,
+      ".write": false
+    },
+    "sales": {
+      ".read": false,
       ".write": true
+    },
+    "finances": {
+      ".read": false,
+      ".write": true
+    },
+    "subscriptions": {
+      ".read": false,
+      ".write": true
+    },
+    "discountCodes": {
+      ".read": false,
+      ".write": false
+    },
+    "usersDB": {
+      ".read": false,
+      ".write": false
     }
   }
 }
