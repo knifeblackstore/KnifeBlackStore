@@ -1049,7 +1049,7 @@ const initInventoryPanel = () => {
             const messages = snap.val() || {};
             let msgHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2 style="color:#00f0ff; text-transform:uppercase;">💬 Mensajes de Contacto</h2>
+                    <h2 style="color:#00f0ff; text-transform:uppercase;">&#128172; Mensajes de Contacto</h2>
                     <button onclick="window.loadInventoryData()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">⬅️ Volver</button>
                 </div>
                 <div style="display:grid; gap:15px;">

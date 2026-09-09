@@ -15,11 +15,8 @@
       }
     },
     "contact_messages": {
-      ".read": false,
-      ".write": true,
-      "$msgId": {
-        ".validate": "newData.hasChildren(['name', 'message'])"
-      }
+      ".read": true,
+      ".write": true
     },
     "grids": {
       ".read": true,
