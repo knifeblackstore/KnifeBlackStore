@@ -449,10 +449,10 @@ db.ref('finances').on('value', snap => {
         
         tbody.innerHTML += `
             <tr>
-                <td>${dateStr}</td>
-                <td>${rec.desc}</td>
-                <td class="${typeClass}">${typeLabel}</td>
-                <td class="${typeClass}">${sign}$${rec.amount.toLocaleString()}</td>
+                <td data-label="Fecha">${dateStr}</td>
+                <td data-label="Descripción">${rec.desc}</td>
+                <td data-label="Tipo" class="${typeClass}">${typeLabel}</td>
+                <td data-label="Monto" class="${typeClass}">${sign}$${rec.amount.toLocaleString()}</td>
             </tr>
         `;
     });
@@ -574,15 +574,15 @@ db.ref('subscriptions').on('value', snap => {
         
         tbody.innerHTML += `
             <tr>
-                <td><strong>${sub.client}</strong></td>
-                <td>${sub.phone}</td>
-                <td>${sub.platform}</td>
-                <td>${sub.start}</td>
-                <td>${sub.end}</td>
-                <td><span class="${badgeClass}">${statusText}</span></td>
-                <td style="display:flex; gap:10px;">
+                <td data-label="Cliente"><strong>${sub.client}</strong></td>
+                <td data-label="WhatsApp">${sub.phone}</td>
+                <td data-label="Plataforma">${sub.platform}</td>
+                <td data-label="Activación">${sub.start}</td>
+                <td data-label="Vencimiento">${sub.end}</td>
+                <td data-label="Estado"><span class="${badgeClass}">${statusText}</span></td>
+                <td data-label="Acción" style="display:flex; gap:10px; flex-wrap:wrap;">
                     <a href="${waLink}" target="_blank" class="btn-wa">📱 Notificar</a>
-                    <button onclick="deleteSubscription('${sub.key}')" style="background:#e74c3c; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;" title="Eliminar">🗑️</button>
+                    <button onclick="deleteSubscription('${sub.key}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;" title="Eliminar">🗑️</button>
                 </td>
             </tr>
         `;
