@@ -7,10 +7,32 @@ let currentFilterType = document.body.getAttribute('data-catalog-type') || 'pin'
 window.openLightbox = (src) => {
     document.getElementById('lightbox-img').src = src;
     document.getElementById('lightbox').style.display = 'flex';
+    // Push a history state so the mobile "back" button closes the lightbox
+    history.pushState({ lightboxOpen: true }, '', window.location.href);
 };
 window.closeLightbox = () => {
     document.getElementById('lightbox').style.display = 'none';
+    document.getElementById('lightbox-img').src = '';
 };
+
+// When user presses back on mobile, close lightbox instead of leaving the page
+window.addEventListener('popstate', (e) => {
+    const lb = document.getElementById('lightbox');
+    if (lb && lb.style.display === 'flex') {
+        lb.style.display = 'none';
+        document.getElementById('lightbox-img').src = '';
+    }
+});
+
+// Close lightbox on backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+    const lb = document.getElementById('lightbox');
+    if (lb) {
+        lb.addEventListener('click', (e) => {
+            if (e.target === lb) window.closeLightbox();
+        });
+    }
+});
 
 // Cargar desde Firebase
 db.ref('products').once('value').then(snap => {
