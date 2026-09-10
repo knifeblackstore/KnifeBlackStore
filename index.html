@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>knifeblackstore</title>
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="main.css?v=8">
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔪</text></svg>">
+    <link rel="icon" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="icon-192x192.png">
@@ -22,11 +22,163 @@
             });
         }
     </script>
+    <style>
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 5% 60px;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center top, rgba(0, 80, 0, 0.5) 0%, #050505 60%);
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(57, 255, 20, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(57, 255, 20, 0.06) 0%, transparent 40%);
+            pointer-events: none;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #39ff14, #7fff00, #39ff14, transparent);
+            box-shadow: 0 0 20px #39ff14, 0 0 40px rgba(57,255,20,0.5);
+        }
+        .hero-inner {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+            max-width: 1200px;
+            width: 100%;
+            z-index: 1;
+            position: relative;
+        }
+        .logo-glow-ring {
+            flex-shrink: 0;
+            position: relative;
+            width: 340px;
+            height: 340px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-glow-ring::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            background: conic-gradient(#39ff14, #7fff00, #00ff44, #39ff14);
+            animation: spin 4s linear infinite;
+            filter: blur(2px);
+        }
+        .logo-glow-ring::after {
+            content: '';
+            position: absolute;
+            inset: -25px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(57,255,20,0.3) 0%, transparent 70%);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.08); }
+        }
+        .hero-logo {
+            width: 300px;
+            height: 300px;
+            object-fit: contain;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 0 30px rgba(57,255,20,0.8)) drop-shadow(0 0 60px rgba(57,255,20,0.4));
+            animation: logo-float 3s ease-in-out infinite;
+        }
+        @keyframes logo-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
+        }
+        .hero-text { flex: 1; }
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            line-height: 1;
+            margin: 0 0 15px;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(57,255,20,0.4);
+        }
+        .hero-title-accent {
+            display: block;
+            color: #39ff14;
+            font-size: 1.2em;
+            text-shadow: 0 0 20px #39ff14, 0 0 50px rgba(57,255,20,0.7);
+            letter-spacing: 6px;
+        }
+        .hero-sub {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            color: #aaa;
+            margin: 0 0 35px;
+            letter-spacing: 1px;
+        }
+        .hero .btns { display: flex; gap: 20px; flex-wrap: wrap; }
+        .hero .b1 {
+            background: linear-gradient(135deg, #39ff14, #007a00);
+            color: #000;
+            font-weight: 900;
+            padding: 16px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 25px rgba(57,255,20,0.5);
+            transition: 0.3s;
+            display: inline-block;
+        }
+        .hero .b1:hover { transform: translateY(-3px); box-shadow: 0 0 40px rgba(57,255,20,0.9); }
+        .hero .b2 {
+            background: transparent;
+            color: #39ff14;
+            border: 2px solid #39ff14;
+            padding: 14px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            display: inline-block;
+        }
+        .hero .b2:hover { background: rgba(57,255,20,0.12); box-shadow: 0 0 20px rgba(57,255,20,0.4); transform: translateY(-3px); }
+        #servicios { scroll-margin-top: 80px; }
+        @media (max-width: 850px) {
+            .hero { padding: 100px 5% 50px; min-height: auto; }
+            .hero-inner { flex-direction: column; text-align: center; gap: 30px; }
+            .logo-glow-ring { width: 220px; height: 220px; }
+            .hero-logo { width: 200px; height: 200px; }
+            .hero .btns { justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .logo-glow-ring { width: 180px; height: 180px; }
+            .hero-logo { width: 160px; height: 160px; }
+            .hero .btns { flex-direction: column; align-items: center; }
+            .hero .b1, .hero .b2 { width: 100%; text-align: center; box-sizing: border-box; }
+        }
+    </style>
 </head>
 <body>
     <nav class="nav">
         <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
-            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
+            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px; border-radius:50%;">
             knifeblackstore
         </a>
         <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
@@ -40,22 +192,29 @@
             <div class="dropdown">
                 <a href="index.html#servicios">Servicios</a>
                 <div class="dropdown-content">
-                    <a href="productos.html">Pines Metálicos</a>
-                    <a href="figuras.html">Figuras de Acción</a>
+                    <a href="productos.html">Pines Metalicos</a>
+                    <a href="figuras.html">Figuras de Accion</a>
                     <a href="plataformas.html">Plataformas de Streaming</a>
                     <a href="nosotros.html">Sobre Knifeblackstore</a>
                 </div>
             </div>
-            <a href="contacto.html">Contáctanos</a>
+            <a href="contacto.html">Contactanos</a>
         </div>
     </nav>
 
     <header class="hero">
-        <h1>Bienvenido a knifeblackstore</h1>
-        <p>Tu tienda streaming de confianza</p>
-        <div class="btns">
-            <a href="contacto.html" class="b1">Contáctanos</a>
-            <a href="#servicios" class="b2">Ver Servicios</a>
+        <div class="hero-inner">
+            <div class="logo-glow-ring">
+                <img src="logo.png" alt="Knifeblack Store Logo" class="hero-logo">
+            </div>
+            <div class="hero-text">
+                <h1 class="hero-title">KNIFEBLACK<span class="hero-title-accent">STORE</span></h1>
+                <p class="hero-sub">Tu tienda de coleccionables, pines y plataformas streaming</p>
+                <div class="btns">
+                    <a href="#servicios" class="b1">Ver Catalogo</a>
+                    <a href="contacto.html" class="b2">Contactanos</a>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -64,13 +223,13 @@
             <span>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px #39ff14);"><line x1="16.5" y1="9.4" x2="7.5" y2="4.6"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
             </span>
-            <h3>Pines Metálicos</h3>
+            <h3>Pines Metalicos</h3>
         </a>
         <a href="figuras.html" class="item" style="text-decoration:none; color:inherit;">
             <span>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px #f1c40f);"><path d="M12 2l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1 3-6z"></path></svg>
             </span>
-            <h3>Figuras de Acción</h3>
+            <h3>Figuras de Accion</h3>
         </a>
         <a href="plataformas.html" class="item" style="text-decoration:none; color:inherit;">
             <span>
@@ -92,6 +251,6 @@
         </p>
     </footer>
 
-    <script src="script.js?v=27"></script>
+    <script src="script.js?v=29"></script>
 </body>
 </html>
