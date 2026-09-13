@@ -1924,3 +1924,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+// Populate footer stats
+document.addEventListener('DOMContentLoaded', () => {
+    db.ref('products').once('value').then(snap => {
+        const data = snap.val();
+        if (data) {
+            const products = Object.values(data);
+            const total = products.length;
+            const inStock = products.filter(p => p.stock > 0).length;
+            
+            const totalEls = document.querySelectorAll('#stat-total');
+            const availEls = document.querySelectorAll('#stat-avail');
+            
+            totalEls.forEach(el => el.innerText = total);
+            availEls.forEach(el => el.innerText = inStock);
+        }
+    });
+});
