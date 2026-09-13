@@ -38,6 +38,10 @@
       ".read": true,
       ".write": true
     },
+    "partner_stores": {
+      ".read": true,
+      ".write": true
+    },
     "usersDB": {
       ".read": true,
       ".write": true
