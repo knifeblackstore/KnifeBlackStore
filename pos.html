@@ -583,10 +583,13 @@
                             </div>
                             
                             <input type="file" id="inv-photo-cam" accept="image/*" capture="environment" style="display: none;" onchange="previewProductPhoto(event)">
-                            <input type="file" id="inv-photo-gal" accept="image/*" style="display: none;" onchange="previewProductPhoto(event)">
+                            <input type="file" id="inv-photo-gal" accept="image/*" multiple style="display: none;" onchange="previewProductPhoto(event)">
                             
                             <canvas id="inv-canvas" style="display:none;"></canvas>
-                            <img id="inv-preview" style="max-width: 100%; max-height: 200px; margin: 0 auto; border-radius: 8px; display: none; object-fit: contain;">
+                            <img id="inv-preview" style="max-width: 100%; max-height: 160px; margin: 0 auto; border-radius: 8px; display: none; object-fit: contain;">
+                            <!-- Multi-image thumbnail strip -->
+                            <div id="inv-preview-container" style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px;"></div>
+                            <p id="inv-photo-hint" style="color:#888; font-size:0.78rem; margin:6px 0 0;">Puedes seleccionar varias fotos desde la galería</p>
                         </div>
                         
                         <button type="submit" class="sub-btn" id="btn-save-product" style="grid-column: 1/-1;">Guardar Producto</button>

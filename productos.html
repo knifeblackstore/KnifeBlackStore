@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos y Accesorios - knifeblackstore</title>
-    <link rel="stylesheet" href="main.css?v=6">
+    <link rel="stylesheet" href="main.css?v=9">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
@@ -75,7 +75,11 @@
     </div>
 
     <div class="catalog-layout">
-
+        <div class="stock-filter-bar">
+            <button class="stock-filter-btn active" data-filter="all" onclick="setStockFilter('all')">🔘 Todos</button>
+            <button class="stock-filter-btn in-stock" data-filter="in_stock" onclick="setStockFilter('in_stock')">✅ En Stock</button>
+            <button class="stock-filter-btn out-stock" data-filter="out_stock" onclick="setStockFilter('out_stock')">❌ Agotados</button>
+        </div>
             <div class="catalog-info-bar" id="catalog-info">Mostrando 0 productos</div>
             <div class="dyn-product-grid" id="catalog-grid">
                 <p style="color:#fff;">Cargando inventario de Firebase...</p>
@@ -100,6 +104,6 @@
     </footer>
 
     <script src="script.js?v=28"></script>
-    <script src="catalog.js?v=7"></script>
+    <script src="catalog.js?v=8"></script>
 </body>
 </html>

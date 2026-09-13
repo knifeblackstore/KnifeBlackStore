@@ -631,49 +631,75 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================================
 
 let currentProductImageBase64 = '';
+let currentProductImages = []; // Array for multiple photos
 let currentEditKey = null;
 
-window.previewProductPhoto = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
+// Compress and return a base64 string from a File
+function compressImage(file, callback) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
             const canvas = document.getElementById('inv-canvas');
             const ctx = canvas.getContext('2d');
-            
-            const MAX_WIDTH = 800;
-            const MAX_HEIGHT = 800;
-            let width = img.width;
-            let height = img.height;
-            
-            if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
-            } else {
-                if (height > MAX_HEIGHT) {
-                    width *= MAX_HEIGHT / height;
-                    height = MAX_HEIGHT;
-                }
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            currentProductImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
-            
-            const preview = document.getElementById('inv-preview');
-            preview.src = currentProductImageBase64;
-            preview.style.display = 'block';
+            const MAX = 800;
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
+            else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+            canvas.width = w; canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+            callback(canvas.toDataURL('image/jpeg', 0.6));
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+}
+
+window.previewProductPhoto = (event) => {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    const previewContainer = document.getElementById('inv-preview-container');
+
+    files.forEach(file => {
+        compressImage(file, (b64) => {
+            if (!currentProductImageBase64) {
+                currentProductImageBase64 = b64; // first image = main
+            }
+            if (!currentProductImages.includes(b64)) {
+                currentProductImages.push(b64);
+            }
+
+            // Show thumbnail
+            const thumb = document.createElement('div');
+            thumb.style.cssText = 'position:relative; display:inline-block; margin:4px;';
+            const imgEl = document.createElement('img');
+            imgEl.src = b64;
+            imgEl.style.cssText = 'width:70px; height:70px; object-fit:cover; border-radius:8px; border:2px solid var(--neon-cyan); cursor:pointer;';
+            imgEl.onclick = () => window.openLightbox ? window.openLightbox(b64) : null;
+            const delBtn = document.createElement('button');
+            delBtn.innerText = '×';
+            delBtn.style.cssText = 'position:absolute; top:-5px; right:-5px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:0.7rem; line-height:18px; padding:0; text-align:center;';
+            delBtn.onclick = () => {
+                const idx = currentProductImages.indexOf(b64);
+                if (idx > -1) currentProductImages.splice(idx, 1);
+                if (currentProductImageBase64 === b64) {
+                    currentProductImageBase64 = currentProductImages[0] || '';
+                }
+                thumb.remove();
+            };
+            thumb.appendChild(imgEl);
+            thumb.appendChild(delBtn);
+            if (previewContainer) previewContainer.appendChild(thumb);
+
+            // Keep legacy preview visible
+            const legacyPreview = document.getElementById('inv-preview');
+            if (legacyPreview) {
+                legacyPreview.src = currentProductImageBase64;
+                legacyPreview.style.display = 'block';
+            }
+        });
+    });
 };
 
 window.addProduct = () => {
@@ -699,6 +725,7 @@ window.addProduct = () => {
         price,
         stock,
         image: currentProductImageBase64,
+        images: currentProductImages.length > 0 ? currentProductImages : (currentProductImageBase64 ? [currentProductImageBase64] : []),
         updatedAt: new Date().toISOString()
     };
     
@@ -771,6 +798,9 @@ function resetProductForm() {
     if(pGal) pGal.value = '';
     document.getElementById('inv-preview').style.display = 'none';
     currentProductImageBase64 = '';
+    currentProductImages = [];
+    const previewContainer = document.getElementById('inv-preview-container');
+    if (previewContainer) previewContainer.innerHTML = '';
     
     const btn = document.querySelector('.btn-add[onclick="addProduct()"]');
     if(btn) {

@@ -2,6 +2,7 @@
 
 let allProducts = [];
 let currentFilterType = document.body.getAttribute('data-catalog-type') || 'pin';
+let currentStockFilter = 'all'; // 'all' | 'in_stock' | 'out_stock'
 
 // Lightbox Logic
 window.openLightbox = (src) => {
@@ -114,6 +115,9 @@ function renderCatalog() {
     if (maxPrice) {
         filtered = filtered.filter(p => p.price <= maxPrice);
     }
+    // Stock filter buttons
+    if (currentStockFilter === 'in_stock') filtered = filtered.filter(p => p.stock > 0);
+    else if (currentStockFilter === 'out_stock') filtered = filtered.filter(p => p.stock <= 0);
 
     // Ordenar
     if (sort === 'price_asc') filtered.sort((a,b) => a.price - b.price);
@@ -137,9 +141,29 @@ function renderCatalog() {
         
         const typeText = p.type === 'figura' ? 'Figura de Acción' : 'Pin Metálico';
 
+        // Build image gallery (support multiple images)
+        const images = Array.isArray(p.images) && p.images.length > 0
+            ? p.images
+            : (p.image ? [p.image] : ['https://via.placeholder.com/300?text=Sin+Foto']);
+        
+        let galleryHTML = '';
+        if (images.length > 1) {
+            const thumbs = images.map((src, i) =>
+                `<img src="${src}" class="dyn-thumb ${i === 0 ? 'active' : ''}" onclick="selectThumb(this, '${src}')" />`
+            ).join('');
+            galleryHTML = `<div class="dyn-thumbs">${thumbs}</div>`;
+        }
+
+        const waMsg = encodeURIComponent(`Hola! Quiero consultar disponibilidad de: ${p.name}`);
+        const waLink = `https://wa.me/573218823095?text=${waMsg}`;
+        const outOfStockAction = `<a href="${waLink}" target="_blank" class="btn-wa-stock">📲 Consultar por WhatsApp</a>`;
+
         grid.innerHTML += `
             <article class="dyn-card">
-                <img src="${p.image || 'https://via.placeholder.com/300?text=Sin+Foto'}" class="dyn-card-img" onclick="openLightbox(this.src)">
+                <div class="dyn-card-gallery">
+                    <img src="${images[0]}" class="dyn-card-img" id="main-img-${p.id || Math.random().toString(36).slice(2)}" onclick="openLightbox(this.src)">
+                    ${galleryHTML}
+                </div>
                 <div class="dyn-card-body">
                     <h3 class="dyn-card-title">${p.name}</h3>
                     <div class="dyn-card-meta">
@@ -149,11 +173,12 @@ function renderCatalog() {
                         <span>Estado:</span> ${p.condition}
                     </div>
                     <div class="dyn-card-footer">
-                        <div class="dyn-card-price">$${(p.price || 0).toLocaleString()}</div>
+                        <div class="dyn-card-price">${(p.price || 0).toLocaleString()}</div>
                         ${stockBadge}
-                        <button class="btn-dyn-add" onclick="window.addCatalogToCart('${p.name}', ${p.price})" ${!inStock ? 'disabled' : ''}>
-                            ${inStock ? 'Añadir al Carrito' : 'Sin Stock'}
-                        </button>
+                        ${inStock
+                            ? `<button class="btn-dyn-add" onclick="window.addCatalogToCart('${p.name}', ${p.price})">Añadir al Carrito</button>`
+                            : outOfStockAction
+                        }
                     </div>
                 </div>
             </article>
@@ -166,6 +191,24 @@ function renderCatalog() {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', renderCatalog);
 });
+
+// Stock filter buttons
+window.setStockFilter = (filter) => {
+    currentStockFilter = filter;
+    document.querySelectorAll('.stock-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+    renderCatalog();
+};
+
+// Thumbnail selector for multi-image cards
+window.selectThumb = (thumbEl, src) => {
+    const card = thumbEl.closest('.dyn-card');
+    if (!card) return;
+    card.querySelector('.dyn-card-img').src = src;
+    card.querySelectorAll('.dyn-thumb').forEach(t => t.classList.remove('active'));
+    thumbEl.classList.add('active');
+};
 
 // Función global para añadir al carrito
 window.addCatalogToCart = (name, price) => {
