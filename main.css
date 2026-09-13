@@ -821,26 +821,26 @@ footer {
 /* === STOCK FILTER BUTTONS === */
 .stock-filter-bar {
     display: flex;
-    gap: 12px;
-    padding: 20px 0 10px;
+    gap: 8px;
+    padding: 14px 0 8px;
     flex-wrap: wrap;
 }
 .stock-filter-btn {
-    padding: 10px 24px;
+    padding: 6px 16px;
     border-radius: 50px;
-    border: 2px solid #444;
+    border: 1.5px solid #444;
     background: #111;
     color: #aaa;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: 0.25s;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 .stock-filter-btn:hover { border-color: #fff; color: #fff; }
 .stock-filter-btn.active { background: #222; color: #fff; border-color: #fff; }
-.stock-filter-btn.in-stock.active { background: rgba(46,204,113,0.15); color: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 12px rgba(46,204,113,0.3); }
-.stock-filter-btn.out-stock.active { background: rgba(231,76,60,0.15); color: #e74c3c; border-color: #e74c3c; box-shadow: 0 0 12px rgba(231,76,60,0.3); }
+.stock-filter-btn.in-stock.active { background: rgba(46,204,113,0.15); color: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 8px rgba(46,204,113,0.3); }
+.stock-filter-btn.out-stock.active { background: rgba(231,76,60,0.15); color: #e74c3c; border-color: #e74c3c; box-shadow: 0 0 8px rgba(231,76,60,0.3); }
 
 /* === WHATSAPP OUT-OF-STOCK BUTTON === */
 .btn-wa-stock {
