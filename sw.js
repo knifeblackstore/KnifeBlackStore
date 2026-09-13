@@ -1,9 +1,13 @@
-const CACHE_NAME = 'knifeblack-v11';
+const CACHE_NAME = 'knifeblack-v12';
 const urlsToCache = [
   './',
   './index.html',
+  './productos.html',
+  './figuras.html',
   './main.css',
   './script.js',
+  './catalog.js',
+  './pos.js',
   './icon-192x192.png',
   './icon-512x512.png',
   './manifest.json'
@@ -17,18 +21,25 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('fetch', event => {
+  // NETWORK FIRST STRATEGY
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+    fetch(event.request).then(response => {
+      // If valid, clone and cache it
+      if (response && response.status === 200 && response.type === 'basic') {
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseToCache);
+        });
+      }
+      return response;
+    }).catch(() => {
+      // Offline fallback
+      return caches.match(event.request);
+    })
   );
 });
 
@@ -45,4 +56,5 @@ self.addEventListener('activate', event => {
       );
     })
   );
+  event.waitUntil(self.clients.claim());
 });
