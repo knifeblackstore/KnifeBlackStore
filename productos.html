@@ -45,6 +45,28 @@
                     <a href="figuras.html">Figuras de Acción</a>
                     <a href="plataformas.html">Plataformas de Streaming</a>
                     <a href="nosotros.html">Sobre Knifeblackstore</a>
+</head>
+<body class="products-page" data-catalog-type="pin">
+    <nav class="nav">
+        <a href="index.html" class="logo" style="display:flex; align-items:center; gap:10px;">
+            <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
+            knifeblackstore
+        </a>
+        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+            <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="links menu">
+            <a href="index.html">Inicio</a>
+            <div class="dropdown">
+                <a href="index.html#servicios">Servicios</a>
+                <div class="dropdown-content">
+                    <a href="productos.html">Pines Metálicos</a>
+                    <a href="figuras.html">Figuras de Acción</a>
+                    <a href="plataformas.html">Plataformas de Streaming</a>
+                    <a href="nosotros.html">Sobre Knifeblackstore</a>
                 </div>
             </div>
             <a href="contacto.html">Contáctanos</a>
@@ -56,6 +78,11 @@
         <p style="color: #888;">Pines de alta calidad con acabado esmaltado y diseños exclusivos.</p>
         <div class="btns" style="margin-top: 20px;">
             <a href="index.html" class="b1">Volver al Inicio</a>
+        </div>
+        <div class="stock-filter-bar" style="justify-content:center; margin-top:16px;">
+            <button class="stock-filter-btn active" data-filter="all" onclick="setStockFilter('all')">🔘 Todos</button>
+            <button class="stock-filter-btn in-stock" data-filter="in_stock" onclick="setStockFilter('in_stock')">✅ En Stock</button>
+            <button class="stock-filter-btn out-stock" data-filter="out_stock" onclick="setStockFilter('out_stock')">❌ Agotados</button>
         </div>
     </header>
 
@@ -75,11 +102,6 @@
     </div>
 
     <div class="catalog-layout">
-        <div class="stock-filter-bar">
-            <button class="stock-filter-btn active" data-filter="all" onclick="setStockFilter('all')">🔘 Todos</button>
-            <button class="stock-filter-btn in-stock" data-filter="in_stock" onclick="setStockFilter('in_stock')">✅ En Stock</button>
-            <button class="stock-filter-btn out-stock" data-filter="out_stock" onclick="setStockFilter('out_stock')">❌ Agotados</button>
-        </div>
             <div class="catalog-info-bar" id="catalog-info">Mostrando 0 productos</div>
             <div class="dyn-product-grid" id="catalog-grid">
                 <p style="color:#fff;">Cargando inventario de Firebase...</p>
