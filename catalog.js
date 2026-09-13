@@ -155,7 +155,7 @@ function renderCatalog() {
         }
 
         const waMsg = encodeURIComponent(`Hola! Quiero consultar disponibilidad de: ${p.name}`);
-        const waLink = `https://wa.me/573218823095?text=${waMsg}`;
+        const waLink = `https://wa.me/573108014660?text=${waMsg}`;
         const outOfStockAction = `<a href="${waLink}" target="_blank" class="btn-wa-stock">📲 Consultar por WhatsApp</a>`;
 
         grid.innerHTML += `
