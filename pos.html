@@ -324,6 +324,7 @@
             <a href="#" class="nav-btn" onclick="switchTab('finanzas')"><span class="nav-icon">💰</span><span>Finanzas</span></a>
             <a href="#" class="nav-btn" onclick="switchTab('suscripciones')"><span class="nav-icon">📺</span><span>Suscripc.</span></a>
             <a href="#" class="nav-btn" onclick="switchTab('inventario')"><span class="nav-icon">📦</span><span>Inventario</span></a>
+            <a href="#" class="nav-btn" onclick="switchTab('tiendas')"><span class="nav-icon">🤝</span><span>Tiendas</span></a>
             <div style="flex:1;"></div>
             <a href="index.html" class="nav-btn logout"><span class="nav-icon">⬅</span><span>Tienda</span></a>
         </aside>
@@ -614,6 +615,46 @@
                     </div>
                 </div>
             </div>
+
+            <!-- TAB TIENDAS AMIGAS -->
+            <div id="tab-tiendas" class="tab-pane">
+                <div class="sub-dashboard">
+                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Gestión de Tiendas Amigas</h2>
+                    
+                    <form class="sub-form" onsubmit="event.preventDefault(); window.addPartnerStore();" style="grid-template-columns: 1fr 1fr;">
+                        <input type="text" id="partner-name" class="fin-input" placeholder="Nombre de la Tienda" required>
+                        <input type="url" id="partner-url" class="fin-input" placeholder="Enlace (URL) ej: https://..." required>
+                        
+                        <div style="grid-column: 1/-1; background: rgba(0,240,255,0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-cyan); text-align: center;">
+                            <label for="partner-photo" style="cursor: pointer; background: rgba(0,240,255,0.1); padding: 10px 20px; border-radius: 8px; display: inline-block; transition: 0.2s;">
+                                <span style="font-size: 1.5rem;">📁</span>
+                                <span style="color: var(--neon-cyan); font-weight: bold; margin-left:10px;">Subir Logo de Tienda</span>
+                            </label>
+                            <input type="file" id="partner-photo" accept="image/*" style="display: none;" onchange="window.previewPartnerPhoto(event)">
+                            <img id="partner-preview" style="max-width: 100px; max-height: 100px; margin: 10px auto 0; border-radius: 8px; display: none; object-fit: contain;">
+                        </div>
+                        
+                        <button type="submit" class="sub-btn" id="btn-save-partner" style="grid-column: 1/-1;">Guardar Tienda Amiga</button>
+                    </form>
+                    
+                    <div class="sub-table-container" style="margin-top: 20px;">
+                        <table class="sub-table">
+                            <thead>
+                                <tr>
+                                    <th>Logo</th>
+                                    <th>Nombre</th>
+                                    <th>Enlace</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="partner-table-body">
+                                <!-- Llenado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
     

@@ -841,3 +841,79 @@ db.ref('products').on('value', snap => {
         `;
     });
 });
+
+
+// ============================================================================
+// GESTIÓN DE TIENDAS AMIGAS
+// ============================================================================
+let currentPartnerImage = '';
+
+window.previewPartnerPhoto = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Reuse existing compressImage function
+    compressImage(file, (b64) => {
+        currentPartnerImage = b64;
+        const preview = document.getElementById('partner-preview');
+        preview.src = b64;
+        preview.style.display = 'block';
+    });
+};
+
+window.addPartnerStore = () => {
+    const name = document.getElementById('partner-name').value.trim();
+    const url = document.getElementById('partner-url').value.trim();
+    
+    if (!name || !url || !currentPartnerImage) {
+        alert('Nombre, Enlace y Logo son obligatorios.');
+        return;
+    }
+    
+    const partnerData = {
+        name,
+        url,
+        image: currentPartnerImage,
+        createdAt: new Date().toISOString()
+    };
+    
+    db.ref('partner_stores').push(partnerData).then(() => {
+        alert('Tienda Amiga añadida con éxito.');
+        document.getElementById('partner-name').value = '';
+        document.getElementById('partner-url').value = '';
+        document.getElementById('partner-photo').value = '';
+        document.getElementById('partner-preview').style.display = 'none';
+        currentPartnerImage = '';
+    });
+};
+
+window.deletePartnerStore = (key) => {
+    if(confirm('¿Seguro que deseas eliminar esta tienda amiga?')) {
+        db.ref('partner_stores/' + key).remove();
+    }
+};
+
+// Listener para la tabla de tiendas amigas
+db.ref('partner_stores').on('value', snap => {
+    const tbody = document.getElementById('partner-table-body');
+    if(!tbody) return;
+    
+    tbody.innerHTML = '';
+    const data = snap.val();
+    
+    if (data) {
+        Object.keys(data).forEach(key => {
+            const store = data[key];
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td data-label="Logo"><img src="${store.image}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;"></td>
+                <td data-label="Nombre">${store.name}</td>
+                <td data-label="Enlace"><a href="${store.url}" target="_blank" style="color:var(--neon-cyan);">Visitar</a></td>
+                <td data-label="Acción">
+                    <button class="btn-del" onclick="deletePartnerStore('${key}')">Eliminar</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+});

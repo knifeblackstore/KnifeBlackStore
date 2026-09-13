@@ -1894,3 +1894,33 @@ document.addEventListener('DOMContentLoaded', () => {
     initDiscountPanel();
     initPOSPanel();
 });
+
+
+// ============================================================================
+// TIENDAS AMIGAS (Aliados)
+// ============================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const section = document.getElementById('tiendas-amigas-section');
+    const container = document.getElementById('tiendas-amigas-container');
+    
+    if (section && container) {
+        db.ref('partner_stores').once('value').then(snap => {
+            const data = snap.val();
+            if (data) {
+                const stores = Object.values(data);
+                if (stores.length > 0) {
+                    section.style.display = 'block';
+                    container.innerHTML = '';
+                    stores.forEach(store => {
+                        container.innerHTML += `
+                            <a href="${store.url}" target="_blank" style="display:flex; align-items:center; gap:12px; background:rgba(0,240,255,0.05); border:1px solid rgba(0,240,255,0.2); padding:10px 20px; border-radius:50px; text-decoration:none; color:#fff; font-weight:bold; transition:0.3s; box-shadow:0 0 10px rgba(0,0,0,0.5);" onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='var(--neon-cyan)';" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(0,240,255,0.2)';">
+                                <img src="${store.image}" alt="${store.name}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+                                <span>${store.name}</span>
+                            </a>
+                        `;
+                    });
+                }
+            }
+        });
+    }
+});
