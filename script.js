@@ -1943,3 +1943,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+
+// ============================================================================
+// PWA INSTALLATION LOGIC
+// ============================================================================
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    // Stash the event so it can be triggered later.
+    deferredPrompt = e;
+    
+    // Create an "Install App" button dynamically in the nav or hero if it doesn't exist
+    let installBtn = document.getElementById('btn-install-pwa');
+    
+    if (!installBtn) {
+        installBtn = document.createElement('button');
+        installBtn.id = 'btn-install-pwa';
+        installBtn.innerHTML = '📲 Instalar App';
+        installBtn.style.cssText = 'background: #39ff14; color: #000; border: none; padding: 8px 15px; border-radius: 50px; font-weight: bold; cursor: pointer; margin-left: 10px; font-size: 0.9rem; box-shadow: 0 0 10px rgba(57,255,20,0.5); transition: 0.3s;';
+        
+        installBtn.onmouseover = () => installBtn.style.transform = 'scale(1.05)';
+        installBtn.onmouseout = () => installBtn.style.transform = 'scale(1)';
+        
+        // Find a place to append it (like the right side of the nav)
+        const navRightSide = document.querySelector('.nav div[style*="margin-left:auto"]');
+        if (navRightSide) {
+            navRightSide.insertBefore(installBtn, navRightSide.firstChild);
+        }
+    }
+    
+    installBtn.style.display = 'inline-block';
+
+    installBtn.addEventListener('click', async () => {
+        // Hide the app provided install promotion
+        installBtn.style.display = 'none';
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        // We've used the prompt, and can't use it again, throw it away
+        deferredPrompt = null;
+    });
+});
+
+window.addEventListener('appinstalled', () => {
+    // Hide the app-provided install promotion
+    const installBtn = document.getElementById('btn-install-pwa');
+    if(installBtn) installBtn.style.display = 'none';
+    // Clear the deferredPrompt so it can be garbage collected
+    deferredPrompt = null;
+    console.log('PWA was installed');
+});
