@@ -135,6 +135,11 @@ function renderCatalog() {
 
     filtered.forEach(p => {
         const inStock = p.stock > 0;
+        let stylesHTML = '';
+        if (p.styles && Array.isArray(p.styles) && p.styles.length > 0) {
+            const opts = p.styles.map(s => `<option value="${s}">${s}</option>`).join('');
+            stylesHTML = `<select id="style-${p.id}" style="width:100%; margin-top:10px; padding:8px; border-radius:5px; background:#111; color:#fff; border:1px solid #333;"><option value="">-- Elige un estilo --</option>${opts}</select>`;
+        }
         const stockBadge = inStock 
             ? `<span class="dyn-badge-stock badge-in-stock">EN STOCK (${p.stock})</span>` 
             : `<span class="dyn-badge-stock badge-out-stock">AGOTADO</span>`;
@@ -172,11 +177,12 @@ function renderCatalog() {
                         <span>Fabricante:</span> ${p.manufacturer}<br>
                         <span>Estado:</span> ${p.condition}
                     </div>
-                    <div class="dyn-card-footer">
+                    ${stylesHTML}
+                    <div class="dyn-card-footer" style="margin-top:10px;">
                         <div class="dyn-card-price">${(p.price || 0).toLocaleString()}</div>
                         ${stockBadge}
                         ${inStock
-                            ? `<button class="btn-dyn-add" onclick="window.addCatalogToCart('${p.name}', ${p.price})">Añadir al Carrito</button>`
+                            ? `<button class="btn-dyn-add" onclick="window.addCatalogToCart('${p.name}', ${p.price}, '${p.id}')">Añadir al Carrito</button>`
                             : outOfStockAction
                         }
                     </div>
@@ -211,8 +217,19 @@ window.selectThumb = (thumbEl, src) => {
 };
 
 // Función global para añadir al carrito
-window.addCatalogToCart = (name, price) => {
-    cart.push({ name, price });
+window.addCatalogToCart = (name, price, id) => {
+    let finalName = name;
+    if (id) {
+        const styleSel = document.getElementById('style-' + id);
+        if (styleSel) {
+            if (!styleSel.value) {
+                alert('Por favor elige un estilo/diseño antes de añadir al carrito.');
+                return;
+            }
+            finalName += ' (' + styleSel.value + ')';
+        }
+    }
+    cart.push({ name: finalName, price });
     localStorage.setItem('shoppingCart', JSON.stringify(cart));
     // Efecto de botón o recargar UI si está en script.js, pero para simplicidad mostramos alerta y forzamos updateCartUI
     alert('¡Añadido al carrito con éxito!');

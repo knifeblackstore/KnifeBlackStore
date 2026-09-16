@@ -710,6 +710,8 @@ window.addProduct = () => {
     const manufacturer = document.getElementById('inv-manufacturer').value.trim() || 'Desconocido';
     const price = parseFloat(document.getElementById('inv-price').value) || 0;
     const stock = parseInt(document.getElementById('inv-stock').value) || 0;
+    const stylesRaw = document.getElementById('inv-styles') ? document.getElementById('inv-styles').value.trim() : '';
+    const styles = stylesRaw ? stylesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
     
     if (!name || !type || price <= 0) {
         alert('Nombre, Tipo y Precio son obligatorios.');
@@ -724,6 +726,7 @@ window.addProduct = () => {
         manufacturer,
         price,
         stock,
+        styles,
         image: currentProductImageBase64,
         images: currentProductImages.length > 0 ? currentProductImages : (currentProductImageBase64 ? [currentProductImageBase64] : []),
         updatedAt: new Date().toISOString()
@@ -764,6 +767,8 @@ window.editProduct = (key) => {
         document.getElementById('inv-manufacturer').value = p.manufacturer || '';
         document.getElementById('inv-price').value = p.price || 0;
         document.getElementById('inv-stock').value = p.stock || 0;
+        const stylesEl = document.getElementById('inv-styles');
+        if (stylesEl) stylesEl.value = (p.styles && Array.isArray(p.styles)) ? p.styles.join(', ') : '';
         
         const btn = document.querySelector('.btn-add[onclick="addProduct()"]');
         if(btn) {
@@ -792,6 +797,8 @@ function resetProductForm() {
     document.getElementById('inv-manufacturer').value = '';
     document.getElementById('inv-price').value = '';
     document.getElementById('inv-stock').value = '';
+    const stylesEl = document.getElementById('inv-styles');
+    if (stylesEl) stylesEl.value = '';
     const pCam = document.getElementById('inv-photo-cam');
     if(pCam) pCam.value = '';
     const pGal = document.getElementById('inv-photo-gal');
