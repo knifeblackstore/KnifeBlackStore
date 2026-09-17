@@ -85,71 +85,31 @@ window.addEventListener('load', () => {
     }
 });
 
-// --- SISTEMA DE BASE DE DATOS FIREBASE Y SESIÓN ---
-
-const sanitizeKey = (emailOrUser) => {
-    return emailOrUser.toLowerCase().replace(/[\.\#\$\[\]]/g, '_');
-};
-
-const initDB = () => {
-    db.ref('usersDB/knifeblackstore@gmail_com').once('value').then(snap => {
-        if (!snap.exists()) {
-            db.ref('usersDB/knifeblackstore@gmail_com').set({ email: 'knifeblackstore@gmail.com', password: 'Cali2026+-*/', role: 'admin', name: 'knifeblackstore' });
-        }
+// --- SISTEMA DE AUTENTICACIÓN OFICIAL DE FIREBASE ---
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        firebase.auth().signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: 'admin', name: 'Administrador' }));
+                alert('Inicio de sesión exitoso.');
+                window.location.href = 'index.html';
+            })
+            .catch((error) => {
+                alert('Error al iniciar sesión: ' + error.message);
+            });
     });
-};
-initDB();
+}
 
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const name = document.getElementById('regName').value;
-        const email = document.getElementById('regEmail').value;
-        const password = document.getElementById('regPassword').value;
-        const regRoleEl = document.getElementById('regRole');
-        let role = (regRoleEl && regRoleEl.style.display !== 'none') ? regRoleEl.value : 'user';
-
-        const key = sanitizeKey(email);
-        db.ref('usersDB/' + key).once('value').then(snap => {
-            if (snap.exists()) {
-                alert('El correo ya está registrado.');
-                return;
-            }
-            db.ref('usersDB/' + key).set({ name, email, password, role }).then(() => {
-                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-                if (currentUser && currentUser.role === 'admin') {
-                    alert('¡Éxito! El usuario "' + name + '" ha sido creado como ' + role.toUpperCase());
-                    document.getElementById('registerForm').reset();
-                } else {
-                    localStorage.setItem('currentUser', JSON.stringify({ name, email, password, role }));
-                    alert('¡Cuenta creada exitosamente! Bienvenido, ' + name);
-                    window.location.href = 'index.html';
-                }
-            });
-        });
-    });
-}
-
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const emailOrUser = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        const key = sanitizeKey(emailOrUser);
-        
-        db.ref('usersDB/' + key).once('value').then(snap => {
-            const user = snap.val();
-            if (user && user.password === password) {
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                alert('Inicio de sesión exitoso. Bienvenido, ' + (user.name || user.email));
-                window.location.href = 'index.html';
-            } else {
-                alert('Usuario o contraseña incorrectos.');
-            }
-        });
+        alert('El registro público ha sido deshabilitado por seguridad.');
     });
 }
 

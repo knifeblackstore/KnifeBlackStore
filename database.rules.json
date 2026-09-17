@@ -2,7 +2,7 @@
   "rules": {
     "products": {
       ".read": true,
-      ".write": true,
+      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'",
       "$productId": {
         ".validate": "newData.hasChildren(['name', 'price', 'type'])"
       }
@@ -28,26 +28,23 @@
     },
     "finances": {
       ".read": true,
-      ".write": true
+      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'"
     },
     "subscriptions": {
       ".read": true,
-      ".write": true
+      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'"
     },
     "discountCodes": {
       ".read": true,
-      ".write": true
+      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'"
     },
     "partner_stores": {
       ".read": true,
-      ".write": true
+      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'"
     },
     "usersDB": {
       ".read": false,
-      "$userKey": {
-        ".read": true,
-        ".write": true
-      }
+      ".write": false
     }
   }
 }

@@ -6,7 +6,9 @@
   "scripts": {
     "deploy": "firebase deploy"
   },
-  "dependencies": {},
+  "dependencies": {
+    "glob": "^13.0.6"
+  },
   "devDependencies": {
     "firebase-tools": "^13.0.0"
   }
