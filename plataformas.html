@@ -248,7 +248,7 @@
         </a>
         <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
             <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
-            <button class="menu-toggle" aria-label="Abrir menú">
+            <button class="menu-toggle" aria-label="Abrir menï¿½">
                 <span></span><span></span><span></span>
             </button>
         </div>
@@ -257,19 +257,19 @@
             <div class="dropdown">
                 <a href="index.html#servicios">Servicios</a>
                 <div class="dropdown-content">
-                    <a href="productos.html">Pines Metálicos</a>
-                    <a href="figuras.html">Figuras de Acción</a>
+                    <a href="productos.html">Pines Metï¿½licos</a>
+                    <a href="figuras.html">Figuras de Acciï¿½n</a>
                     <a href="plataformas.html">Plataformas de Streaming</a>
                     <a href="nosotros.html">Sobre Knifeblackstore</a>
                 </div>
             </div>
-            <a href="contacto.html">Contáctanos</a>
+            <a href="contacto.html">Contï¿½ctanos</a>
         </div>
     </nav>
 
     <header class="platforms-hero">
         <h1>Plataformas Streaming</h1>
-        <p>Las mejores plataformas del mercado, ahora a tu alcance. Compra por pantallas y ahorra más.</p>
+        <p>Las mejores plataformas del mercado, ahora a tu alcance. Compra por pantallas y ahorra mï¿½s.</p>
         <div class="btns" style="margin-top: 30px;">
             <a href="index.html" class="b1">Volver al Inicio</a>
         </div>
@@ -278,21 +278,21 @@
     <main class="platform-grid">
         <!-- Netflix -->
         <article class="platform-card card-netflix">
-            <div class="tag-popular">Más Vendida</div>
+            <div class="tag-popular">Mï¿½s Vendida</div>
             <div class="platform-icon">??</div>
             <h2 class="platform-name">Netflix</h2>
-            <p class="platform-desc">Calidad 4K Ultra HD + HDR. Acceso inmediato a todo el catálogo.</p>
+            <p class="platform-desc">Calidad 4K Ultra HD + HDR. Acceso inmediato a todo el catï¿½logo.</p>
             <div class="platform-price">$12.000 <span>/ Mes</span></div>
-            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+            <button onclick="addToCart(this)" class="add-screen-btn">Aï¿½adir pantalla</button>
         </article>
 
         <!-- Disney Plus -->
         <article class="platform-card card-disney">
             <div class="platform-icon">?</div>
             <h2 class="platform-name">Disney+</h2>
-            <p class="platform-desc">Todo Marvel, Star Wars y los clásicos de Disney en un solo lugar.</p>
+            <p class="platform-desc">Todo Marvel, Star Wars y los clï¿½sicos de Disney en un solo lugar.</p>
             <div class="platform-price">$10.000 <span>/ Mes</span></div>
-            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+            <button onclick="addToCart(this)" class="add-screen-btn">Aï¿½adir pantalla</button>
         </article>
 
         <!-- HBO Max -->
@@ -301,16 +301,16 @@
             <h2 class="platform-name">HBO Max</h2>
             <p class="platform-desc">Las mejores series originales y estrenos de Warner Bros.</p>
             <div class="platform-price">$9.000 <span>/ Mes</span></div>
-            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+            <button onclick="addToCart(this)" class="add-screen-btn">Aï¿½adir pantalla</button>
         </article>
 
         <!-- Amazon Prime -->
         <article class="platform-card card-prime">
             <div class="platform-icon">??</div>
             <h2 class="platform-name">Prime Video</h2>
-            <p class="platform-desc">Series originales, películas y envíos gratis en tus compras.</p>
+            <p class="platform-desc">Series originales, pelï¿½culas y envï¿½os gratis en tus compras.</p>
             <div class="platform-price">$8.000 <span>/ Mes</span></div>
-            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+            <button onclick="addToCart(this)" class="add-screen-btn">Aï¿½adir pantalla</button>
         </article>
 
         <!-- Crunchyroll -->
@@ -319,7 +319,7 @@
             <h2 class="platform-name">Crunchyroll</h2>
             <p class="platform-desc">La mayor biblioteca de anime del mundo, sin anuncios.</p>
             <div class="platform-price">$7.000 <span>/ Mes</span></div>
-            <button onclick="addToCart(this)" class="add-screen-btn">Añadir pantalla</button>
+            <button onclick="addToCart(this)" class="add-screen-btn">Aï¿½adir pantalla</button>
         </article>
     </main>
 
@@ -329,6 +329,36 @@
         </div>
     </footer>
 
-    <script src="script.js?v=36"></script>
+    
+
+    <!-- BOOTLOADER SEGURO CLOUDFLARE -->
+    <script>
+        window.appScripts = ['script.js?v=36'];
+        async function bootApp() {
+            try {
+                const res = await fetch('https://shy-cherry-ededknifeblackstore-api.knifeblackstore.workers.dev/');
+                const data = await res.json();
+                
+                if (data.active === 'firebase') {
+                    firebase.initializeApp(data.firebase);
+                } else if (data.active === 'supabase') {
+                    // Failover a Supabase (lÃ³gica a implementar en Fase 3/4)
+                }
+
+                for (let src of window.appScripts) {
+                    await new Promise((resolve) => {
+                        const s = document.createElement('script');
+                        s.src = src;
+                        s.onload = resolve;
+                        document.body.appendChild(s);
+                    });
+                }
+            } catch(e) {
+                console.error("Error al iniciar el sistema seguro:", e);
+                alert("Error de conexiÃ³n segura. Por favor recarga la pÃ¡gina.");
+            }
+        }
+        bootApp();
+    </script>
 </body>
 </html>

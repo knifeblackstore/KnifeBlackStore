@@ -1,17 +1,5 @@
 // Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBIW_YWb2VlQsTArOV7fK2li4Aux8X0ucY",
-  authDomain: "knifeblackstore-1791.firebaseapp.com",
-  databaseURL: "https://knifeblackstore-1791-default-rtdb.firebaseio.com",
-  projectId: "knifeblackstore-1791",
-  storageBucket: "knifeblackstore-1791.firebasestorage.app",
-  messagingSenderId: "395101425109",
-  appId: "1:395101425109:web:905bb04ffadc1f7e38815c",
-  measurementId: "G-75NNCB77H8"
-};
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+// Firebase inicializado dinámicamente vía Cloudflare Worker
 const db = firebase.database();
 // Inicializar EmailJS solo si la librería está cargada en la página
 if (typeof emailjs !== 'undefined') {
