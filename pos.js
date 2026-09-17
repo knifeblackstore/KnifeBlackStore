@@ -924,3 +924,77 @@ db.ref('partner_stores').on('value', snap => {
         });
     }
 });
+\n
+// ============================================================================
+// GESTIÓN DE USUARIOS Y PERMISOS
+// ============================================================================
+const initUsersPanel = () => {
+    const tbody = document.getElementById('users-tbody');
+    if (!tbody) return;
+
+    db.ref('usersDB').on('value', snap => {
+        const users = snap.val() || {};
+        tbody.innerHTML = '';
+        
+        for (const uid in users) {
+            const u = users[uid];
+            // No mostrar al Master Admin para evitar que se quite permisos a sí mismo
+            if (u.email === 'knifeblackstore@gmail.com') continue;
+
+            const perms = u.permissions || {};
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <strong style="color:#fff;">${u.name || 'Sin Nombre'}</strong><br>
+                    <small style="color:#888;">${u.email}</small>
+                </td>
+                <td>
+                    <select class="fin-input role-select" data-uid="${uid}" style="min-width:100px; padding:5px; margin:0;">
+                        <option value="user" ${u.role === 'user' ? 'selected' : ''}>Usuario</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                </td>
+                <td style="text-align:center;">
+                    <input type="checkbox" class="perm-chk" data-uid="${uid}" data-perm="products" ${perms.products ? 'checked' : ''} style="transform: scale(1.5);">
+                </td>
+                <td style="text-align:center;">
+                    <input type="checkbox" class="perm-chk" data-uid="${uid}" data-perm="stores" ${perms.stores ? 'checked' : ''} style="transform: scale(1.5);">
+                </td>
+                <td style="text-align:center;">
+                    <input type="checkbox" class="perm-chk" data-uid="${uid}" data-perm="coupons" ${perms.coupons ? 'checked' : ''} style="transform: scale(1.5);">
+                </td>
+                <td style="text-align:center;">
+                    <input type="checkbox" class="perm-chk" data-uid="${uid}" data-perm="finances" ${perms.finances ? 'checked' : ''} style="transform: scale(1.5);">
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Listeners para cambiar rol
+        document.querySelectorAll('.role-select').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                const uid = e.target.getAttribute('data-uid');
+                const newRole = e.target.value;
+                db.ref('usersDB/' + uid + '/role').set(newRole);
+                alert('Rango actualizado correctamente.');
+            });
+        });
+
+        // Listeners para cambiar permisos
+        document.querySelectorAll('.perm-chk').forEach(chk => {
+            chk.addEventListener('change', (e) => {
+                const uid = e.target.getAttribute('data-uid');
+                const perm = e.target.getAttribute('data-perm');
+                const isChecked = e.target.checked;
+                db.ref('usersDB/' + uid + '/permissions/' + perm).set(isChecked);
+                // No spamming alerts on checkboxes, it saves instantly silently
+            });
+        });
+    });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Retrasar un poco para asegurar que Firebase cargó
+    setTimeout(initUsersPanel, 1500);
+});
