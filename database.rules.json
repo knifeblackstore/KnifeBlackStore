@@ -2,7 +2,7 @@
   "rules": {
     "products": {
       ".read": true,
-      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'",
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')",
       "$productId": {
         ".validate": "newData.hasChildren(['name', 'price', 'type'])"
       }
@@ -28,23 +28,27 @@
     },
     "finances": {
       ".read": true,
-      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'"
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
     },
     "subscriptions": {
       ".read": true,
-      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'"
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
     },
     "discountCodes": {
       ".read": true,
-      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'"
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
     },
     "partner_stores": {
       ".read": true,
-      ".write": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'"
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
     },
     "usersDB": {
       ".read": false,
-      ".write": false
+      "$uid": {
+        ".read": "auth != null && ($uid === auth.uid || auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && ($uid === auth.uid || auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')",
+        ".validate": "newData.child('role').val() === 'user' || auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin'"
+      }
     }
   }
 }

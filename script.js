@@ -96,12 +96,27 @@ if (loginForm) {
         firebase.auth().signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 const user = userCredential.user;
-                const role = (email.toLowerCase() === 'knifeblackstore@gmail.com') ? 'admin' : 'user';
                 const name = user.displayName || email.split('@')[0];
                 
-                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: name }));
-                alert('Inicio de sesión exitoso. Bienvenido, ' + name);
-                window.location.href = 'index.html';
+                // Verificar si es master admin o admin en la DB
+                if (email.toLowerCase() === 'knifeblackstore@gmail.com') {
+                    localStorage.setItem('currentUser', JSON.stringify({ email: email, role: 'admin', name: name }));
+                    alert('Inicio de sesión exitoso. Bienvenido, ' + name);
+                    window.location.href = 'index.html';
+                } else {
+                    db.ref('usersDB/' + user.uid).once('value').then(snap => {
+                        const dbUser = snap.val();
+                        const role = (dbUser && dbUser.role === 'admin') ? 'admin' : 'user';
+                        localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: name }));
+                        alert('Inicio de sesión exitoso. Bienvenido, ' + name);
+                        window.location.href = 'index.html';
+                    }).catch(() => {
+                        // Fallback a user si no hay datos
+                        localStorage.setItem('currentUser', JSON.stringify({ email: email, role: 'user', name: name }));
+                        alert('Inicio de sesión exitoso. Bienvenido, ' + name);
+                        window.location.href = 'index.html';
+                    });
+                }
             })
             .catch((error) => {
                 alert('Error al iniciar sesión. Verifica tus datos o crea una cuenta nueva.\n(' + error.message + ')');
@@ -116,21 +131,65 @@ if (registerForm) {
         const name = document.getElementById('regName').value;
         const email = document.getElementById('regEmail').value;
         const password = document.getElementById('regPassword').value;
+        const regRoleEl = document.getElementById('regRole');
         
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                const user = userCredential.user;
-                return user.updateProfile({
-                    displayName: name
-                }).then(() => {
-                    localStorage.setItem('currentUser', JSON.stringify({ email: email, role: 'user', name: name }));
-                    alert('¡Cuenta creada exitosamente! Bienvenido, ' + name);
-                    window.location.href = 'index.html';
+        let desiredRole = 'user';
+        if (regRoleEl && regRoleEl.style.display !== 'none') {
+            desiredRole = regRoleEl.value;
+        }
+
+        const currentUserLocal = JSON.parse(localStorage.getItem('currentUser'));
+        const isCurrentAdmin = currentUserLocal && currentUserLocal.role === 'admin';
+
+        if (desiredRole === 'admin') {
+            if (!isCurrentAdmin) {
+                alert("No tienes permiso para crear administradores.");
+                return;
+            }
+            // Crear admin sin cerrar la sesión actual usando app secundaria
+            if (!firebase.apps.find(app => app.name === 'Secondary')) {
+                firebase.initializeApp(firebaseConfig, 'Secondary');
+            }
+            const secondaryApp = firebase.app('Secondary');
+            secondaryApp.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const newUser = userCredential.user;
+                    newUser.updateProfile({ displayName: name });
+                    // Guardar rol en DB usando la sesión del Admin Master (App principal)
+                    db.ref('usersDB/' + newUser.uid).set({
+                        email: email,
+                        role: 'admin',
+                        name: name
+                    }).then(() => {
+                        secondaryApp.auth().signOut();
+                        alert('¡Administrador ' + name + ' creado exitosamente!');
+                        document.getElementById('registerForm').reset();
+                    });
+                })
+                .catch((error) => {
+                    alert('Error al crear administrador: ' + error.message);
                 });
-            })
-            .catch((error) => {
-                alert('Error al crear cuenta: ' + error.message);
-            });
+        } else {
+            // Registro de usuario normal
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    user.updateProfile({ displayName: name });
+                    
+                    db.ref('usersDB/' + user.uid).set({
+                        email: email,
+                        role: 'user',
+                        name: name
+                    }).then(() => {
+                        localStorage.setItem('currentUser', JSON.stringify({ email: email, role: 'user', name: name }));
+                        alert('¡Cuenta creada exitosamente! Bienvenido, ' + name);
+                        window.location.href = 'index.html';
+                    });
+                })
+                .catch((error) => {
+                    alert('Error al crear cuenta: ' + error.message);
+                });
+        }
     });
 }
 
