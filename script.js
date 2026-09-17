@@ -87,10 +87,14 @@ window.addEventListener('load', () => {
 
 // --- SISTEMA DE BASE DE DATOS FIREBASE Y SESIÓN ---
 
+const sanitizeKey = (emailOrUser) => {
+    return emailOrUser.toLowerCase().replace(/[\.\#\$\[\]]/g, '_');
+};
+
 const initDB = () => {
-    db.ref('usersDB').once('value').then(snap => {
+    db.ref('usersDB/admin_admin_com').once('value').then(snap => {
         if (!snap.exists()) {
-            db.ref('usersDB').set([{ email: 'admin@admin.com', password: 'admin', role: 'admin' }]);
+            db.ref('usersDB/admin_admin_com').set({ email: 'admin@admin.com', password: 'admin', role: 'admin', name: 'admin' });
         }
     });
 };
@@ -106,14 +110,13 @@ if (registerForm) {
         const regRoleEl = document.getElementById('regRole');
         let role = (regRoleEl && regRoleEl.style.display !== 'none') ? regRoleEl.value : 'user';
 
-        db.ref('usersDB').once('value').then(snap => {
-            const users = snap.val() || [];
-            if (users.find(u => u.email === email)) {
+        const key = sanitizeKey(email);
+        db.ref('usersDB/' + key).once('value').then(snap => {
+            if (snap.exists()) {
                 alert('El correo ya está registrado.');
                 return;
             }
-            users.push({ name, email, password, role });
-            db.ref('usersDB').set(users).then(() => {
+            db.ref('usersDB/' + key).set({ name, email, password, role }).then(() => {
                 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
                 if (currentUser && currentUser.role === 'admin') {
                     alert('¡Éxito! El usuario "' + name + '" ha sido creado como ' + role.toUpperCase());
@@ -128,26 +131,18 @@ if (registerForm) {
     });
 }
 
-const loginFormLocal = document.getElementById('loginForm');
-if (loginFormLocal) {
-    loginFormLocal.addEventListener('submit', (e) => {
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const emailOrUser = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
 
-        // ACCESO ADMINISTRADOR MAESTRO
-        if (emailOrUser === 'Admin' && password === '123456') {
-            const adminUser = { email: 'admin@knifeblackstore.com', name: 'Admin Maestro', role: 'admin' };
-            localStorage.setItem('currentUser', JSON.stringify(adminUser));
-            alert('¡Bienvenido, Administrador Maestro!');
-            window.location.href = 'index.html';
-            return;
-        }
-
-        db.ref('usersDB').once('value').then(snap => {
-            const users = snap.val() || [];
-            const user = users.find(u => (u.email === emailOrUser || u.name === emailOrUser) && u.password === password);
-            if (user) {
+        const key = sanitizeKey(emailOrUser);
+        
+        db.ref('usersDB/' + key).once('value').then(snap => {
+            const user = snap.val();
+            if (user && user.password === password) {
                 localStorage.setItem('currentUser', JSON.stringify(user));
                 alert('Inicio de sesión exitoso. Bienvenido, ' + (user.name || user.email));
                 window.location.href = 'index.html';
