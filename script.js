@@ -95,12 +95,16 @@ if (loginForm) {
         
         firebase.auth().signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
-                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: 'admin', name: 'Administrador' }));
-                alert('Inicio de sesión exitoso.');
+                const user = userCredential.user;
+                const role = (email.toLowerCase() === 'knifeblackstore@gmail.com') ? 'admin' : 'user';
+                const name = user.displayName || email.split('@')[0];
+                
+                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: name }));
+                alert('Inicio de sesión exitoso. Bienvenido, ' + name);
                 window.location.href = 'index.html';
             })
             .catch((error) => {
-                alert('Error al iniciar sesión: ' + error.message);
+                alert('Error al iniciar sesión. Verifica tus datos o crea una cuenta nueva.\n(' + error.message + ')');
             });
     });
 }
@@ -109,13 +113,35 @@ const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        alert('El registro público ha sido deshabilitado por seguridad.');
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                return user.updateProfile({
+                    displayName: name
+                }).then(() => {
+                    localStorage.setItem('currentUser', JSON.stringify({ email: email, role: 'user', name: name }));
+                    alert('¡Cuenta creada exitosamente! Bienvenido, ' + name);
+                    window.location.href = 'index.html';
+                });
+            })
+            .catch((error) => {
+                alert('Error al crear cuenta: ' + error.message);
+            });
     });
 }
 
 const logoutUser = () => {
-    localStorage.removeItem('currentUser');
-    window.location.href = 'index.html';
+    firebase.auth().signOut().then(() => {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html';
+    }).catch(() => {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html';
+    });
 };
 
 const applyTheme = () => {
