@@ -929,6 +929,14 @@ db.ref('partner_stores').on('value', snap => {
 // GESTIÓN DE USUARIOS Y PERMISOS
 // ============================================================================
 const initUsersPanel = () => {
+    const userLocal = JSON.parse(localStorage.getItem('currentUser'));
+    if (!userLocal || userLocal.email !== 'knifeblackstore@gmail.com') {
+        // Ocultar pestaña de usuarios si no es el master admin
+        const usersNavBtn = document.querySelector('a[onclick="switchTab(\\\'usuarios\\\')"]');
+        if (usersNavBtn) usersNavBtn.style.display = 'none';
+        return; // Detener aquí para que no de error de Firebase
+    }
+
     const tbody = document.getElementById('users-tbody');
     if (!tbody) return;
 
