@@ -92,9 +92,9 @@ const sanitizeKey = (emailOrUser) => {
 };
 
 const initDB = () => {
-    db.ref('usersDB/knifeblackstore_gmail_com').once('value').then(snap => {
+    db.ref('usersDB/knifeblackstore@gmail_com').once('value').then(snap => {
         if (!snap.exists()) {
-            db.ref('usersDB/knifeblackstore_gmail_com').set({ email: 'knifeblackstore@gmail.com', password: 'Cali2026+-*/', role: 'admin', name: 'knifeblackstore' });
+            db.ref('usersDB/knifeblackstore@gmail_com').set({ email: 'knifeblackstore@gmail.com', password: 'Cali2026+-*/', role: 'admin', name: 'knifeblackstore' });
         }
     });
 };
