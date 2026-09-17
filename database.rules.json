@@ -2,7 +2,7 @@
   "rules": {
     "products": {
       ".read": true,
-      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')",
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('permissions').child('products').val() === true)",
       "$productId": {
         ".validate": "newData.hasChildren(['name', 'price', 'type'])"
       }
@@ -28,22 +28,22 @@
     },
     "finances": {
       ".read": true,
-      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('permissions').child('finances').val() === true)"
     },
     "subscriptions": {
       ".read": true,
-      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('permissions').child('finances').val() === true)"
     },
     "discountCodes": {
       ".read": true,
-      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('permissions').child('coupons').val() === true)"
     },
     "partner_stores": {
       ".read": true,
-      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('permissions').child('stores').val() === true)"
     },
     "usersDB": {
-      ".read": false,
+      ".read": "auth != null && auth.token.email === 'knifeblackstore@gmail.com'",
       "$uid": {
         ".read": "auth != null && ($uid === auth.uid || auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')",
         ".write": "auth != null && ($uid === auth.uid || auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')",

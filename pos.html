@@ -325,7 +325,7 @@
             <a href="#" class="nav-btn" onclick="switchTab('finanzas')"><span class="nav-icon">💰</span><span>Finanzas</span></a>
             <a href="#" class="nav-btn" onclick="switchTab('suscripciones')"><span class="nav-icon">📺</span><span>Suscripc.</span></a>
             <a href="#" class="nav-btn" onclick="switchTab('inventario')"><span class="nav-icon">📦</span><span>Inventario</span></a>
-            <a href="#" class="nav-btn" onclick="switchTab('tiendas')"><span class="nav-icon">🤝</span><span>Tiendas</span></a>
+            <a href="#" class="nav-btn" onclick="switchTab('tiendas')"><span class="nav-icon">🤝</span><span>Tiendas</span></a>\n            <a href="#" class="nav-btn" onclick="switchTab('usuarios')"><span class="nav-icon">👥</span><span>Usuarios</span></a>
             <div style="flex:1;"></div>
             <a href="index.html" class="nav-btn logout"><span class="nav-icon">⬅</span><span>Tienda</span></a>
         </aside>
@@ -657,7 +657,31 @@
                 </div>
             </div>
 
-        </main>
+        
+            <!-- TAB USUARIOS Y PERMISOS -->
+            <div id="tab-usuarios" class="tab-pane">
+                <div class="fin-dashboard">
+                    <h1 style="color:white;">👥 Gestión de Usuarios y Permisos</h1>
+                    <div class="fin-table-container">
+                        <table class="fin-table" id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Rango</th>
+                                    <th>📦 Productos</th>
+                                    <th>🤝 Tiendas</th>
+                                    <th>🎟️ Cupones</th>
+                                    <th>💰 Finanzas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <!-- Renderizado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+\n        </main>
     </div>
     
     <script>
@@ -668,6 +692,6 @@
             event.currentTarget.classList.add('active');
         }
     </script>
-<script src="pos.js?v=5?v=28"></script>
+<script src="pos.js?v=29"></script>
 </body>
 </html>
