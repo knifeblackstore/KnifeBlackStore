@@ -364,6 +364,9 @@
                         document.body.appendChild(s);
                     });
                 }
+                
+                // Forzar el evento DOMContentLoaded
+                document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
             } catch(e) {
                 console.error("Error al iniciar el sistema seguro:", e);
                 alert("Error de conexión segura. Por favor recarga la página.");
