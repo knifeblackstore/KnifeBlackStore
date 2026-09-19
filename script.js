@@ -714,11 +714,7 @@ window.checkoutCart = () => {
     
     // VERIFICACIÓN DE SESIÓN
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user) {
-        alert('🚀 ¡Alto ahí, Gamer! Debes INICIAR SESIÓN para completar tu compra.');
-        window.location.href = 'login.html';
-        return;
-    }
+    
     
     let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
     let total = subtotal;
@@ -736,8 +732,8 @@ window.checkoutCart = () => {
 
     // REGISTRAR VENTA EN FIREBASE ANTES DE REDIRIGIR
     const saleData = {
-        customer: user.name,
-        email: user.email,
+        customer: user ? user.name : 'Cliente Invitado',
+        email: user ? user.email : 'invitado@tienda',
         items: cart,
         total: total,
         subtotal: subtotal,
@@ -749,7 +745,7 @@ window.checkoutCart = () => {
     db.ref('sales').push(saleData);
 
     let message = "🚀 *NUEVO PEDIDO - KNIFEBLACKSTORE*\n\n";
-    message += `👤 *Cliente:* ${user.name} (${user.email})\n`;
+    message += `👤 *Cliente:* ${user ? user.name : 'Cliente Invitado'} (${user ? user.email : 'Sin Registro'})\n`;
     message += "------------------------------------------\n";
     message += "Hola, quiero adquirir los siguientes productos:\n\n";
     
@@ -782,11 +778,7 @@ window.checkoutWompi = () => {
     
     // VERIFICACIÓN DE SESIÓN
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user) {
-        alert('🚀 ¡Alto ahí, Gamer! Debes INICIAR SESIÓN para completar tu compra.');
-        window.location.href = 'login.html';
-        return;
-    }
+    
     
     let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
     let total = subtotal;
@@ -802,8 +794,8 @@ window.checkoutWompi = () => {
 
     // REGISTRAR VENTA EN FIREBASE ANTES DE REDIRIGIR A WOMPI
     const saleData = {
-        customer: user.name,
-        email: user.email,
+        customer: user ? user.name : 'Cliente Invitado',
+        email: user ? user.email : 'invitado@tienda',
         items: cart,
         total: total,
         subtotal: subtotal,
@@ -831,11 +823,7 @@ window.payWithEpayco = () => {
     if (cart.length === 0) return;
     
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user) {
-        alert('🚀 ¡Alto ahí! Debes INICIAR SESIÓN para realizar el pago seguro.');
-        window.location.href = 'login.html';
-        return;
-    }
+    
 
     let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
     let total = subtotal;
@@ -853,8 +841,8 @@ window.payWithEpayco = () => {
 
     // REGISTRAR INTENTO DE VENTA EN FIREBASE
     const saleData = {
-        customer: user.name,
-        email: user.email,
+        customer: user ? user.name : 'Cliente Invitado',
+        email: user ? user.email : 'invitado@tienda',
         items: cart,
         total: total,
         subtotal: subtotal,
@@ -880,11 +868,11 @@ window.payWithEpayco = () => {
         country: "co",
         lang: "es",
         external: "false",
-        extra1: user.name,
-        extra2: user.email,
+        extra1: user ? user.name : 'Cliente Invitado',
+        extra2: user ? user.email : 'invitado@tienda',
         confirmation: "https://knifeblackstore-1791.web.app/confirmacion",
         response: "https://knifeblackstore-1791.web.app/respuesta",
-        name_billing: user.name,
+        name_billing: user ? user.name : 'Cliente Invitado',
         address_billing: "Dirección del cliente",
         type_doc_billing: "cc",
         mobile_billing: "3000000000",
