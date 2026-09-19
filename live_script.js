@@ -636,9 +636,11 @@ window.checkoutCart = () => {
     db.ref('sales').push(saleData);
 
     let message = "🚀 *NUEVO PEDIDO - KNIFEBLACKSTORE*\n\n";
-    message += `👤 *Cliente:* ${user ? user.name : 'Cliente Invitado'} (${user ? user.email : 'Sin Registro'})\n`;
-    message += "------------------------------------------\n";
-    message += "Hola, quiero adquirir los siguientes productos:\n\n";
+    if (user) {
+        message += `👤 *Cliente:* ${user.name} (${user.email})\n`;
+        message += "------------------------------------------\n";
+    }
+    message += "Hola, estoy interesado en los siguientes productos:\n\n";
     
     cart.forEach((it, idx) => {
         message += `${idx + 1}. *${it.name}* - $${it.price.toLocaleString()}\n`;
