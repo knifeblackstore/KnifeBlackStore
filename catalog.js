@@ -137,8 +137,13 @@ function renderCatalog() {
         const inStock = p.stock > 0;
         let stylesHTML = '';
         if (p.styles && Array.isArray(p.styles) && p.styles.length > 0) {
-            const opts = p.styles.map(s => `<option value="${s}">${s}</option>`).join('');
-            stylesHTML = `<select id="style-${p.id}" style="width:100%; margin-top:10px; padding:8px; border-radius:5px; background:#111; color:#fff; border:1px solid #333;"><option value="">-- Elige un estilo --</option>${opts}</select>`;
+            const opts = p.styles.map((s, idx) => {
+                const isUnavailable = p.unavailableStyles && p.unavailableStyles.includes(s);
+                const styleAttr = isUnavailable ? 'color: #ff4444; text-decoration: line-through;' : '';
+                const disabledAttr = isUnavailable ? 'disabled' : '';
+                return `<option value="${s}" style="${styleAttr}" ${disabledAttr} data-idx="${idx}">${s}${isUnavailable ? ' (Agotado)' : ''}</option>`;
+            }).join('');
+            stylesHTML = `<select id="style-${p.id}" onchange="window.updateProductImage(this, '${p.id}')" style="width:100%; margin-top:10px; padding:8px; border-radius:5px; background:#111; color:#fff; border:1px solid #333;"><option value="" data-idx="-1">-- Elige un estilo --</option>${opts}</select>`;
         }
         const stockBadge = inStock 
             ? `<span class="dyn-badge-stock badge-in-stock">EN STOCK (${p.stock})</span>` 
