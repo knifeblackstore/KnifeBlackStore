@@ -699,6 +699,11 @@ window.addProduct = () => {
     const stock = parseInt(document.getElementById('inv-stock').value) || 0;
     const stylesRaw = document.getElementById('inv-styles') ? document.getElementById('inv-styles').value.trim() : '';
     const styles = stylesRaw ? stylesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+      
+      const unavailableStyles = [];
+      document.querySelectorAll('.unavailable-chk').forEach(chk => {
+          if (chk.checked) unavailableStyles.push(chk.value);
+      });
     
     if (!name || !type || price <= 0) {
         alert('Nombre, Tipo y Precio son obligatorios.');
@@ -714,6 +719,7 @@ window.addProduct = () => {
         price,
         stock,
         styles,
+          unavailableStyles,
         image: currentProductImageBase64,
         images: currentProductImages.length > 0 ? currentProductImages : (currentProductImageBase64 ? [currentProductImageBase64] : []),
         updatedAt: new Date().toISOString()
@@ -724,14 +730,14 @@ window.addProduct = () => {
         db.ref('products/' + currentEditKey).update(productData).then(() => {
             alert('Producto actualizado con éxito.');
             resetProductForm();
-        });
+        }).catch(e => alert('Error al actualizar: ' + e.message));
     } else {
         // Add new product
         productData.createdAt = new Date().toISOString();
         db.ref('products').push(productData).then(() => {
             alert('Producto añadido con éxito.');
             resetProductForm();
-        });
+        }).catch(e => alert('Error al crear producto: ' + e.message));
     }
 };
 
@@ -755,7 +761,11 @@ window.editProduct = (key) => {
         document.getElementById('inv-price').value = p.price || 0;
         document.getElementById('inv-stock').value = p.stock || 0;
         const stylesEl = document.getElementById('inv-styles');
-        if (stylesEl) stylesEl.value = (p.styles && Array.isArray(p.styles)) ? p.styles.join(', ') : '';
+        if (stylesEl) {
+            stylesEl.value = (p.styles && Array.isArray(p.styles)) ? p.styles.join(', ') : '';
+            window.currentUnavailableStyles = p.unavailableStyles || [];
+            updateUnavailableStylesUI();
+        }
         
         const btn = document.querySelector('.btn-add[onclick="addProduct()"]');
         if(btn) {
@@ -786,6 +796,8 @@ function resetProductForm() {
     document.getElementById('inv-stock').value = '';
     const stylesEl = document.getElementById('inv-styles');
     if (stylesEl) stylesEl.value = '';
+      window.currentUnavailableStyles = [];
+      updateUnavailableStylesUI();
     const pCam = document.getElementById('inv-photo-cam');
     if(pCam) pCam.value = '';
     const pGal = document.getElementById('inv-photo-gal');
@@ -992,3 +1004,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Retrasar un poco para asegurar que Firebase cargó
     setTimeout(initUsersPanel, 1500);
 });
+
+
+window.currentUnavailableStyles = [];
+window.updateUnavailableStylesUI = () => {
+    const container = document.getElementById('inv-unavailable-styles-container');
+    if (!container) return;
+    
+    const stylesRaw = document.getElementById('inv-styles').value.trim();
+    const styles = stylesRaw ? stylesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+    
+    if (styles.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '<div style="width:100%; color:#aaa; font-size:0.8rem; margin-bottom:5px;">Marcar estilos agotados:</div>';
+    styles.forEach(s => {
+        const isChecked = window.currentUnavailableStyles.includes(s) ? 'checked' : '';
+        html += `<label style="background:#111; padding:5px 10px; border-radius:15px; border:1px solid #333; font-size:0.85rem; cursor:pointer; display:flex; align-items:center; gap:5px;">
+            <input type="checkbox" class="unavailable-chk" value="${s}" ${isChecked}> ${s}
+        </label>`;
+    });
+    container.innerHTML = html;
+};
