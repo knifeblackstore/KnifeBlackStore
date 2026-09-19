@@ -72,6 +72,80 @@ window.addEventListener('load', () => {
         }
     }
 });
+// Firebase Configuration
+// Firebase inicializado dinámicamente vía Cloudflare Worker
+const db = firebase.database();
+// Inicializar EmailJS solo si la librería está cargada en la página
+if (typeof emailjs !== 'undefined') {
+    emailjs.init("K_qKROCgi6sp8_Nws");
+}
+
+// Inyectar Script de ePayco
+const epaycoScript = document.createElement('script');
+epaycoScript.src = 'https://checkout.epayco.co/checkout.js';
+document.head.appendChild(epaycoScript);
+
+// Gamer Cursor Effect
+const cursorGlow = document.createElement('div');
+cursorGlow.id = 'cursor-glow';
+cursorGlow.style.cssText = 'position:fixed; width:200px; height:200px; background:radial-gradient(circle, rgba(0,240,255,0.15) 0%, transparent 70%); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%, -50%); transition:0.1s ease-out; opacity:0;';
+document.body.appendChild(cursorGlow);
+
+document.addEventListener('mousemove', (e) => {
+    cursorGlow.style.left = e.clientX + 'px';
+    cursorGlow.style.top = e.clientY + 'px';
+    cursorGlow.style.opacity = '1';
+});
+
+document.addEventListener('mouseleave', () => cursorGlow.style.opacity = '0');
+
+// Menú móvil
+const menuToggle = document.querySelector('.menu-toggle');
+const menu = document.querySelector('.menu');
+const allLinks = document.querySelectorAll('a[href^="#"]');
+
+if (menuToggle) {
+    menuToggle.addEventListener('click', () => {
+        menu.classList.toggle('active');
+    });
+}
+
+allLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        if(menu) menu.classList.remove('active');
+        
+        const targetId = link.getAttribute('href').replace('#', '');
+        if (!targetId) return; // Si es solo "#", no hacer nada
+        
+        const targetSection = document.getElementById(targetId);
+        
+        if (targetSection) {
+            // Si la sección está oculta, mostrarla
+            if (window.getComputedStyle(targetSection).display === 'none') {
+                targetSection.style.display = 'block';
+                targetSection.classList.add('fade-in');
+            }
+            // Desplazamiento suave con un pequeño delay para asegurar que el display:block se procesó
+            setTimeout(() => {
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            }, 50);
+        }
+    });
+});
+
+// Verificar si hay un hash al cargar la página
+window.addEventListener('load', () => {
+    if (window.location.hash) {
+        const targetSection = document.getElementById(window.location.hash.replace('#', ''));
+        if (targetSection && window.getComputedStyle(targetSection).display === 'none') {
+            targetSection.style.display = 'block';
+            targetSection.classList.add('fade-in');
+            setTimeout(() => {
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    }
+});
 
 // --- SISTEMA DE AUTENTICACIÓN OFICIAL DE FIREBASE ---
 const loginForm = document.getElementById('loginForm');
@@ -81,7 +155,10 @@ if (loginForm) {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         
-        firebase.auth().signInWithEmailAndPassword(email, password)
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => {
+                return firebase.auth().signInWithEmailAndPassword(email, password);
+            })
             .then((userCredential) => {
                 const user = userCredential.user;
                 const name = user.displayName || email.split('@')[0];
