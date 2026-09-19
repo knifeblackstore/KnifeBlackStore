@@ -507,23 +507,25 @@ window.addSubscription = () => {
         return;
     }
     
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        alert("Debug: Firebase Auth currentUser es null. Por favor recarga la página.");
-        return;
-    }
-    
-    db.ref('subscriptions').push({
-        client, phone, platform, start, end,
-        createdAt: new Date().toISOString()
-    }).then(() => {
-        document.getElementById('sub-client').value = '';
-        document.getElementById('sub-phone').value = '';
-        document.getElementById('sub-platform').value = '';
-        document.getElementById('sub-start').value = '';
-        document.getElementById('sub-end').value = '';
-        alert('Suscripción registrada con éxito.');
-    }).catch(e => alert('Error al registrar suscripción: ' + e.message + ' | User: ' + user.email));
+    firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+            alert("Debug: Firebase Auth currentUser es null definitivo. Intentando sincronizar sesión...");
+            // Force re-auth if possible or alert user
+            return;
+        }
+        
+        db.ref('subscriptions').push({
+            client, phone, platform, start, end,
+            createdAt: new Date().toISOString()
+        }).then(() => {
+            document.getElementById('sub-client').value = '';
+            document.getElementById('sub-phone').value = '';
+            document.getElementById('sub-platform').value = '';
+            document.getElementById('sub-start').value = '';
+            document.getElementById('sub-end').value = '';
+            alert('Suscripción registrada con éxito.');
+        }).catch(e => alert('Error al registrar suscripción: ' + e.message + ' | User: ' + user.email));
+    });
 };
 
 db.ref('subscriptions').on('value', snap => {
