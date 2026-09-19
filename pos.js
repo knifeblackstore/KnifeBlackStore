@@ -487,7 +487,8 @@ window.addFinancialRecord = () => {
     }).then(() => {
         document.getElementById('fin-desc').value = '';
         document.getElementById('fin-amount').value = '';
-    });
+        alert('Registro añadido con éxito.');
+    }).catch(e => alert('Error al guardar registro financiero: ' + e.message));
 };
 
 // ============================================================================
@@ -516,7 +517,7 @@ window.addSubscription = () => {
         document.getElementById('sub-start').value = '';
         document.getElementById('sub-end').value = '';
         alert('Suscripción registrada con éxito.');
-    });
+    }).catch(e => alert('Error al registrar suscripción: ' + e.message));
 };
 
 db.ref('subscriptions').on('value', snap => {
@@ -890,7 +891,7 @@ window.addPartnerStore = () => {
         document.getElementById('partner-photo').value = '';
         document.getElementById('partner-preview').style.display = 'none';
         currentPartnerImage = '';
-    });
+    }).catch(e => alert('Error al añadir tienda: ' + e.message));
 };
 
 window.deletePartnerStore = (key) => {
