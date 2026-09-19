@@ -746,7 +746,7 @@ window.addProduct = () => {
         db.ref('products').push(productData).then(() => {
             alert('Producto añadido con éxito.');
             resetProductForm();
-        }).catch(e => alert('Error al crear producto: ' + e.message));
+        }).catch(e => alert('Error al crear producto: ' + e.message + ' | User: ' + (firebase.auth().currentUser ? firebase.auth().currentUser.email : 'NULL')));
     }
 };
 
