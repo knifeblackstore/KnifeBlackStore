@@ -821,11 +821,42 @@ window.editProduct = (key) => {
             btn.style.background = '#f39c12'; // Orange for editing
         }
         
-        if (p.image) {
-            currentProductImageBase64 = p.image;
-            const preview = document.getElementById('inv-preview');
-            preview.src = p.image;
-            preview.style.display = 'block';
+        const previewContainer = document.getElementById('inv-preview-container');
+        if (previewContainer) previewContainer.innerHTML = '';
+        currentProductImages = [];
+        
+        const loadImagesToPreview = (imagesArray) => {
+            imagesArray.forEach(b64 => {
+                if (!currentProductImageBase64) currentProductImageBase64 = b64;
+                if (!currentProductImages.includes(b64)) currentProductImages.push(b64);
+                
+                const thumb = document.createElement('div');
+                thumb.style.cssText = 'position:relative; display:inline-block; margin:4px;';
+                const imgEl = document.createElement('img');
+                imgEl.src = b64;
+                imgEl.style.cssText = 'width:70px; height:70px; object-fit:cover; border-radius:8px; border:2px solid var(--neon-cyan); cursor:pointer;';
+                imgEl.onclick = () => window.openLightbox ? window.openLightbox(b64) : null;
+                const delBtn = document.createElement('button');
+                delBtn.innerText = '❌';
+                delBtn.style.cssText = 'position:absolute; top:-5px; right:-5px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:0.7rem; line-height:18px; padding:0; text-align:center;';
+                delBtn.onclick = () => {
+                    const idx = currentProductImages.indexOf(b64);
+                    if (idx > -1) currentProductImages.splice(idx, 1);
+                    if (currentProductImageBase64 === b64) {
+                        currentProductImageBase64 = currentProductImages[0] || '';
+                    }
+                    thumb.remove();
+                };
+                thumb.appendChild(imgEl);
+                thumb.appendChild(delBtn);
+                if (previewContainer) previewContainer.appendChild(thumb);
+            });
+        };
+
+        if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+            loadImagesToPreview(p.images);
+        } else if (p.image) {
+            loadImagesToPreview([p.image]);
         }
         
         // Scroll to top
