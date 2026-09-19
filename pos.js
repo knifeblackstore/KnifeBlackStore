@@ -9,6 +9,29 @@ if (!user || user.role !== 'admin') {
     window.location.href = 'index.html';
 } else {
     document.getElementById('app').style.display = 'flex';
+    
+    // Check if Firebase Auth dropped the session (Opera GX issue)
+    let authCheckComplete = false;
+    firebase.auth().onAuthStateChanged((firebaseUser) => {
+        authCheckComplete = true;
+        if (!firebaseUser) {
+            const pass = prompt("⚠️ Tu navegador (Opera GX) bloqueó la sesión de seguridad.\n\nIngresa tu contraseña de administrador aquí mismo para reconectar Firebase y poder guardar:");
+            if (pass) {
+                firebase.auth().signInWithEmailAndPassword(user.email, pass)
+                    .then(() => alert("¡Reconectado con éxito! Ya puedes guardar."))
+                    .catch(e => {
+                        alert("Error: " + e.message);
+                    });
+            }
+        }
+    });
+    
+    // Fallback if listener doesn't fire
+    setTimeout(() => {
+        if (!authCheckComplete && !firebase.auth().currentUser) {
+            console.warn("Auth listener delayed.");
+        }
+    }, 5000);
 }
 
 // Variables Globales POS
@@ -743,10 +766,26 @@ window.addProduct = () => {
     } else {
         // Add new product
         productData.createdAt = new Date().toISOString();
+    if (!firebase.auth().currentUser) {
+        const pass = prompt("⚠️ Tu sesión está desconectada. Ingresa tu contraseña de administrador para reconectar Firebase antes de guardar:");
+        if (pass) {
+            const userStore = JSON.parse(localStorage.getItem('currentUser'));
+            firebase.auth().signInWithEmailAndPassword(userStore.email, pass)
+                .then(() => {
+                    alert("¡Reconectado! Guardando producto...");
+                    db.ref('products').push(productData).then(() => {
+                        alert('Producto añadido con éxito.');
+                        resetProductForm();
+                    }).catch(e => alert('Error: ' + e.message));
+                })
+                .catch(e => alert("Contraseña incorrecta."));
+        }
+    } else {
         db.ref('products').push(productData).then(() => {
             alert('Producto añadido con éxito.');
             resetProductForm();
         }).catch(e => alert('Error al crear producto: ' + e.message + ' | User: ' + (firebase.auth().currentUser ? firebase.auth().currentUser.email : 'NULL')));
+    }
     }
 };
 
