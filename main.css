@@ -862,6 +862,27 @@ footer {
 
 /* === MULTI-IMAGE GALLERY IN PRODUCT CARDS === */
 .dyn-card-gallery { position: relative; }
+.carousel-btn {
+    position: absolute;
+    top: 110px;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    z-index: 2;
+}
+.carousel-btn:hover { background: var(--neon-cyan); color: black; }
+.prev-btn { left: 5px; }
+.next-btn { right: 5px; }
 .dyn-thumbs {
     display: flex;
     gap: 6px;

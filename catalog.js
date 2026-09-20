@@ -77,7 +77,7 @@ function renderSpecialSelection() {
         
         container.innerHTML += `
             <div class="special-card">
-                <img src="${p.image || 'https://via.placeholder.com/300?text=Sin+Foto'}" onclick="openLightbox(this.src)">
+                <img src="${p.image || 'https://via.placeholder.com/300?text=Sin+Foto'}" onclick="window.handleImageClick(this.src, event)">
                 <div class="special-card-info">
                     <span class="badge" style="background:${badgeColor}; color:${badgeText};">${p.condition.toUpperCase()}</span>
                     <h4>${p.name}</h4>
@@ -159,8 +159,8 @@ function renderCatalog() {
         let galleryHTML = '';
         if (images.length > 1) {
             const thumbs = images.map((src, i) =>
-                `<img src="${src}" class="dyn-thumb ${i === 0 ? 'active' : ''}" onclick="selectThumb(this, '${src}')" />`
-            ).join('');
+                  `<img src="${src}" class="dyn-thumb ${i === 0 ? 'active' : ''}" onclick="window.selectThumb('${p.id}', ${i}, event)" />`
+              ).join('');
             galleryHTML = `<div class="dyn-thumbs">${thumbs}</div>`;
         }
 
@@ -171,9 +171,10 @@ function renderCatalog() {
         grid.innerHTML += `
             <article class="dyn-card">
                 <div class="dyn-card-gallery">
-                    <img src="${images[0]}" class="dyn-card-img" id="main-img-${p.id || Math.random().toString(36).slice(2)}" onclick="openLightbox(this.src)">
-                    ${galleryHTML}
-                </div>
+                      <img src="${images[0]}" class="dyn-card-img" id="main-img-${p.id || Math.random().toString(36).slice(2)}" onclick="window.handleImageClick(this.src, event)" ${images.length > 1 ? `ontouchstart="window.handleSwipeStart(event)" ontouchend="window.handleSwipeEnd(event, '${p.id}')"` : ''}>
+                      ${images.length > 1 ? `<button class="carousel-btn prev-btn" onclick="window.nextProductImage('${p.id}', -1, event)">&#10094;</button><button class="carousel-btn next-btn" onclick="window.nextProductImage('${p.id}', 1, event)">&#10095;</button>` : ''}
+                      ${galleryHTML}
+                  </div>
                 <div class="dyn-card-body">
                     <h3 class="dyn-card-title">${p.name}</h3>
                     <div class="dyn-card-meta">
@@ -213,52 +214,83 @@ window.setStockFilter = (filter) => {
 };
 
 // Thumbnail selector for multi-image cards
-window.selectThumb = (thumbEl, src) => {
-    const card = thumbEl.closest('.dyn-card');
-    if (!card) return;
-    card.querySelector('.dyn-card-img').src = src;
-    card.querySelectorAll('.dyn-thumb').forEach(t => t.classList.remove('active'));
-    thumbEl.classList.add('active');
+let isSwiping = false;
+window.handleSwipeStart = (e) => {
+    isSwiping = false;
+    e.target.dataset.startX = e.changedTouches[0].screenX;
 };
 
-// Función global para añadir al carrito
-window.addCatalogToCart = (name, price, id) => {
-    let finalName = name;
-    if (id) {
-        const styleSel = document.getElementById('style-' + id);
-        if (styleSel) {
-            if (!styleSel.value) {
-                alert('Por favor elige un estilo/diseño antes de añadir al carrito.');
-                return;
-            }
-            finalName += ' (' + styleSel.value + ')';
-        }
+window.handleSwipeEnd = (e, productId) => {
+    const startX = parseFloat(e.target.dataset.startX);
+    const endX = e.changedTouches[0].screenX;
+    if (isNaN(startX)) return;
+    
+    if (Math.abs(startX - endX) > 40) {
+        isSwiping = true;
+        if (startX - endX > 40) window.nextProductImage(productId, 1, e);
+        else if (endX - startX > 40) window.nextProductImage(productId, -1, e);
     }
-    cart.push({ name: finalName, price });
-    localStorage.setItem('shoppingCart', JSON.stringify(cart));
-    // Efecto de botón o recargar UI si está en script.js, pero para simplicidad mostramos alerta y forzamos updateCartUI
-    alert('¡Añadido al carrito con éxito!');
-    if(typeof updateCartUI === 'function') updateCartUI();
+};
+
+window.handleImageClick = (src, e) => {
+    if (isSwiping) {
+        isSwiping = false;
+        return;
+    }
+    openLightbox(src);
+};
+
+window.setProductImageIndex = (productId, index) => {
+    const p = allProducts.find(prod => prod.id === productId);
+    if (!p || !p.images || p.images.length <= index) return;
+    
+    const card = document.getElementById('style-' + productId)?.closest('.dyn-card') 
+                 || document.getElementById('main-img-' + productId)?.closest('.dyn-card');
+    if (!card) return;
+    
+    const mainImg = card.querySelector('.dyn-card-img');
+    if (mainImg) mainImg.src = p.images[index];
+    
+    const thumbs = card.querySelectorAll('.dyn-thumb');
+    if (thumbs.length > 0) {
+        thumbs.forEach(t => t.classList.remove('active'));
+        if (thumbs[index]) thumbs[index].classList.add('active');
+    }
+    
+    const selectEl = document.getElementById('style-' + productId);
+    if (selectEl && selectEl.options.length > index + 1) {
+        selectEl.selectedIndex = index + 1;
+    }
+};
+
+window.nextProductImage = (productId, direction, e) => {
+    e.stopPropagation();
+    const p = allProducts.find(prod => prod.id === productId);
+    if (!p || !p.images || p.images.length <= 1) return;
+    
+    const card = document.getElementById('main-img-' + productId).closest('.dyn-card');
+    if (!card) return;
+    
+    const thumbs = card.querySelectorAll('.dyn-thumb');
+    let activeIdx = 0;
+    thumbs.forEach((t, idx) => { if (t.classList.contains('active')) activeIdx = idx; });
+    
+    let nextIdx = activeIdx + direction;
+    if (nextIdx < 0) nextIdx = p.images.length - 1;
+    if (nextIdx >= p.images.length) nextIdx = 0;
+    
+    window.setProductImageIndex(productId, nextIdx);
+};
+
+window.selectThumb = (productId, index, e) => {
+    e.stopPropagation();
+    window.setProductImageIndex(productId, index);
 };
 
 window.updateProductImage = (selectEl, productId) => {
     const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    if (!selectedOpt) return;
     const idx = parseInt(selectedOpt.getAttribute('data-idx'), 10);
     if (isNaN(idx) || idx < 0) return;
-
-    const p = allProducts.find(prod => prod.id === productId);
-    if (p && p.images && p.images.length > idx) {
-        const card = selectEl.closest('.dyn-card');
-        if (card) {
-            const mainImg = card.querySelector('.dyn-card-img');
-            if (mainImg) {
-                mainImg.src = p.images[idx];
-            }
-            const thumbs = card.querySelectorAll('.dyn-thumb');
-            if (thumbs.length > 0 && thumbs.length > idx) {
-                thumbs.forEach(t => t.classList.remove('active'));
-                thumbs[idx].classList.add('active');
-            }
-        }
-    }
+    window.setProductImageIndex(productId, idx);
 };
