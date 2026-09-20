@@ -20,7 +20,7 @@
     },
     "grids": {
       ".read": true,
-      ".write": false
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin')"
     },
     "sales": {
       ".read": true,
