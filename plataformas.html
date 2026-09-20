@@ -212,7 +212,7 @@
         }
 
         .platforms-page .nav a { color: #fff !important; }
-        .platforms-page .menúu-toggle span { background: #fff !important; }
+        .platforms-page .menu-toggle span { background: #fff !important; }
         .platforms-page .dropdown-content { background: #151516; border: 1px solid #222; }
         .platforms-page .dropdown-content a:hover { background: #1a1a1b; }
 
@@ -248,11 +248,11 @@
         </a>
         <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
             <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
-            <button class="menúu-toggle" aria-label="Abrir menú�">
+            <button class="menu-toggle" aria-label="Abrir menú�">
                 <span></span><span></span><span></span>
             </button>
         </div>
-        <div class="links menúu">
+        <div class="links menu">
             <a href="index.html">Inicio</a>
             <div class="dropdown">
                 <a href="index.html#servicios">Servicios</a>
@@ -342,20 +342,20 @@
                 if (data.active === 'firebase') {
                     firebase.initializeApp(data.firebase);
                 } else if (data.active === 'supabase') {
-                    // Failover a Supabase (lógica a implemenútar en Fase 3/4)
+                    // Failover a Supabase (lógica a implementar en Fase 3/4)
                 }
 
                 for (let src of window.appScripts) {
                     await new Promise((resolve) => {
-                        const s = documenút.createElemenút('script');
+                        const s = document.createElement('script');
                         s.src = src;
                         s.onload = resolve;
-                        documenút.body.appendChild(s);
+                        document.body.appendChild(s);
                     });
                 }
                 
                 // Forzar el evento DOMContentLoaded
-                documenút.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
+                document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
             } catch(e) {
                 console.error("Error al iniciar el sistema seguro:", e);
                 alert("Error: " + (e.message || e)); console.error(e);

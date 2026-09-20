@@ -184,11 +184,11 @@
         </a>
         <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
             <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
-            <button class="menúu-toggle" aria-label="Abrir menúú">
+            <button class="menu-toggle" aria-label="Abrir menú">
                 <span></span><span></span><span></span>
             </button>
         </div>
-        <div class="links menúu">
+        <div class="links menu">
             <a href="index.html">Inicio</a>
             <div class="dropdown">
                 <a href="index.html#servicios">Servicios</a>
@@ -276,7 +276,7 @@
                 <ul>
                     <li><strong>Envíos Nacionales:</strong> Despachamos a toda Colombia. El costo del envío corre por cuenta del comprador.</li>
                     <li><strong>Transportadoras:</strong> Enviamos por Interrapidisimo o por la transportadora que prefieras (a convenir).</li>
-                    <li><strong>Tiempos de Entrega:</strong> Dependen directamenúte de la transportadora y la ciudad de destino.</li>
+                    <li><strong>Tiempos de Entrega:</strong> Dependen directamente de la transportadora y la ciudad de destino.</li>
                     <li><strong>Entregas Locales:</strong> Domicilio o entrega presencial previa coordinación.</li>
                     <li><strong>Empaque:</strong> Todas las figuras se envían con protección (burbuja + caja reforzada).</li>
                 </ul>
@@ -286,7 +286,7 @@
             <div class="footer-col">
                 <h3>⭐ 2. SERVICIOS ESPECIALES</h3>
                 <ul>
-                    <li><strong>Casillero:</strong> Guardamos únicamenúte figuras pagadas en su totalidad hasta que decidas despachar todo en un solo paquete.</li>
+                    <li><strong>Casillero:</strong> Guardamos únicamente figuras pagadas en su totalidad hasta que decidas despachar todo en un solo paquete.</li>
                     <li><strong>Preventas:</strong> Aparta próximos lanzamientos. La reserva se cuadra por interno (WhatsApp).</li>
                     <li><strong>Búsqueda por Encargo:</strong> ¿No encuentras una figura? La importamos. Los detalles se acuerdan por WhatsApp.</li>
                 </ul>
@@ -297,9 +297,9 @@
                 <h3>💰 3. PAGOS Y CONDICIONES</h3>
                 <ul>
                     <li><strong>Medios de Pago:</strong> Nequi, Daviplata, Bre-v (llave) y Bancolombia.</li>
-                    <li><strong>Despachos:</strong> No realizamos contraentrega. El envío se realiza únicamenúte previo pago total.</li>
+                    <li><strong>Despachos:</strong> No realizamos contraentrega. El envío se realiza únicamente previo pago total.</li>
                     <li><strong>Reservas:</strong> Toda reserva o preventa se cuadra por interno (WhatsApp).</li>
-                    <li><strong>Guía de Envío:</strong> Al momenúto del despacho enviamos la guía por WhatsApp para seguimiento.</li>
+                    <li><strong>Guía de Envío:</strong> Al momento del despacho enviamos la guía por WhatsApp para seguimiento.</li>
                 </ul>
             </div>
 
@@ -353,20 +353,20 @@
                 if (data.active === 'firebase') {
                     firebase.initializeApp(data.firebase);
                 } else if (data.active === 'supabase') {
-                    // Failover a Supabase (lógica a implemenútar en Fase 3/4)
+                    // Failover a Supabase (lógica a implementar en Fase 3/4)
                 }
 
                 for (let src of window.appScripts) {
                     await new Promise((resolve) => {
-                        const s = documenút.createElemenút('script');
+                        const s = document.createElement('script');
                         s.src = src;
                         s.onload = resolve;
-                        documenút.body.appendChild(s);
+                        document.body.appendChild(s);
                     });
                 }
                 
                 // Forzar el evento DOMContentLoaded
-                documenút.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
+                document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
             } catch(e) {
                 console.error("Error al iniciar el sistema seguro:", e);
                 alert("Error: " + (e.message || e)); console.error(e);
