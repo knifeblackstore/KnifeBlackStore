@@ -212,7 +212,7 @@
         }
 
         .platforms-page .nav a { color: #fff !important; }
-        .platforms-page .menu-toggle span { background: #fff !important; }
+        .platforms-page .menúu-toggle span { background: #fff !important; }
         .platforms-page .dropdown-content { background: #151516; border: 1px solid #222; }
         .platforms-page .dropdown-content a:hover { background: #1a1a1b; }
 
@@ -224,7 +224,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>??</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <link rel="apple-touch-icon" href="icon-192x192.png">
@@ -248,11 +248,11 @@
         </a>
         <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
             <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
-            <button class="menu-toggle" aria-label="Abrir men�">
+            <button class="menúu-toggle" aria-label="Abrir menú�">
                 <span></span><span></span><span></span>
             </button>
         </div>
-        <div class="links menu">
+        <div class="links menúu">
             <a href="index.html">Inicio</a>
             <div class="dropdown">
                 <a href="index.html#servicios">Servicios</a>
@@ -279,7 +279,7 @@
         <!-- Netflix -->
         <article class="platform-card card-netflix">
             <div class="tag-popular">M�s Vendida</div>
-            <div class="platform-icon">??</div>
+            <div class="platform-icon">🍿</div>
             <h2 class="platform-name">Netflix</h2>
             <p class="platform-desc">Calidad 4K Ultra HD + HDR. Acceso inmediato a todo el cat�logo.</p>
             <div class="platform-price">$12.000 <span>/ Mes</span></div>
@@ -288,7 +288,7 @@
 
         <!-- Disney Plus -->
         <article class="platform-card card-disney">
-            <div class="platform-icon">?</div>
+            <div class="platform-icon">✨</div>
             <h2 class="platform-name">Disney+</h2>
             <p class="platform-desc">Todo Marvel, Star Wars y los cl�sicos de Disney en un solo lugar.</p>
             <div class="platform-price">$10.000 <span>/ Mes</span></div>
@@ -297,7 +297,7 @@
 
         <!-- HBO Max -->
         <article class="platform-card card-hbo">
-            <div class="platform-icon">??</div>
+            <div class="platform-icon">💜</div>
             <h2 class="platform-name">HBO Max</h2>
             <p class="platform-desc">Las mejores series originales y estrenos de Warner Bros.</p>
             <div class="platform-price">$9.000 <span>/ Mes</span></div>
@@ -306,7 +306,7 @@
 
         <!-- Amazon Prime -->
         <article class="platform-card card-prime">
-            <div class="platform-icon">??</div>
+            <div class="platform-icon">📦</div>
             <h2 class="platform-name">Prime Video</h2>
             <p class="platform-desc">Series originales, pel�culas y env�os gratis en tus compras.</p>
             <div class="platform-price">$8.000 <span>/ Mes</span></div>
@@ -315,7 +315,7 @@
 
         <!-- Crunchyroll -->
         <article class="platform-card card-crunchy">
-            <div class="platform-icon">??</div>
+            <div class="platform-icon">🦊</div>
             <h2 class="platform-name">Crunchyroll</h2>
             <p class="platform-desc">La mayor biblioteca de anime del mundo, sin anuncios.</p>
             <div class="platform-price">$7.000 <span>/ Mes</span></div>
@@ -342,20 +342,20 @@
                 if (data.active === 'firebase') {
                     firebase.initializeApp(data.firebase);
                 } else if (data.active === 'supabase') {
-                    // Failover a Supabase (lógica a implementar en Fase 3/4)
+                    // Failover a Supabase (lógica a implemenútar en Fase 3/4)
                 }
 
                 for (let src of window.appScripts) {
                     await new Promise((resolve) => {
-                        const s = document.createElement('script');
+                        const s = documenút.createElemenút('script');
                         s.src = src;
                         s.onload = resolve;
-                        document.body.appendChild(s);
+                        documenút.body.appendChild(s);
                     });
                 }
                 
                 // Forzar el evento DOMContentLoaded
-                document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
+                documenút.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
             } catch(e) {
                 console.error("Error al iniciar el sistema seguro:", e);
                 alert("Error de conexión segura. Por favor recarga la página.");
