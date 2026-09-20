@@ -66,7 +66,7 @@ Caso 3 (Buscar Inventario):
 
 Mensaje del administrador: "${text}"`;
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -76,6 +76,9 @@ Mensaje del administrador: "${text}"`;
         });
         
         const geminiData = await geminiRes.json();
+        if (geminiData.error) {
+            throw new Error("Gemini API Error: " + geminiData.error.message);
+        }
         const rawResponse = geminiData.candidates[0].content.parts[0].text;
         
         const cleanJson = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();
