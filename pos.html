@@ -599,6 +599,15 @@
                         <button type="submit" class="sub-btn" id="btn-save-product" style="grid-column: 1/-1;">Guardar Producto</button>
                     </form>
                     
+                    <div class="search-container" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="inv-search" placeholder="Buscar producto por nombre..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; color: #fff; outline: none; min-width: 200px;">
+                        <select id="inv-filter-type" style="padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; color: #fff; outline: none;">
+                            <option value="all">Todos los tipos</option>
+                            <option value="figura">Figuras de Acción</option>
+                            <option value="pin">Pines Metálicos</option>
+                        </select>
+                    </div>
+
                     <div class="sub-table-container" style="margin-top: 20px;">
                         <table class="sub-table">
                             <thead>
