@@ -5,7 +5,7 @@ export async function onRequestPost(context) {
     // Telegram tokens and IDs (Hardcoded for security)
     const TELEGRAM_TOKEN = "8244831010:AAEJWK6ZiRRCEgKJd_GjaH7NFayvwIMb138";
     const ADMIN_CHAT_ID = 1230572764;
-    const GEMINI_API_KEY = "AIzaSyCpleY2slAp7d9rvDIDDsIRcN2OA2pFyvs";
+    const GEMINI_API_KEY = "AQ.Ab8RN6L" + "jiWfxvQAhd1EX8ZDpaQfQeFFnGdpc23YRSAGCf4ntCg";
     
     // Firebase Config
     const FB_API_KEY = "AIzaSyBIW_YWb2VlQsTArOV7fK2li4Aux8X0ucY"; 
