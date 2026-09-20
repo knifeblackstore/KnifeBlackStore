@@ -915,30 +915,61 @@ window.deleteProduct = (key) => {
     }
 };
 
-// Escuchar cambios en inventario
-db.ref('products').on('value', snap => {
+let allCatalogProducts = [];
+
+window.renderCatalogTable = () => {
     const tbody = document.getElementById('inv-table-body');
     if (!tbody) return;
     
+    const query = document.getElementById('inv-search')?.value.toLowerCase() || '';
+    const typeFilter = document.getElementById('inv-filter-type')?.value || 'all';
+    
     tbody.innerHTML = '';
-    snap.forEach(child => {
-        const p = child.val();
-        const imgTag = p.image ? `<img src="${p.image}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">` : '📷';
+    
+    const filtered = allCatalogProducts.filter(pObj => {
+        const p = pObj.val;
+        const matchesQuery = p.name.toLowerCase().includes(query) || (p.franchise || '').toLowerCase().includes(query);
+        const matchesType = typeFilter === 'all' || p.type === typeFilter;
+        return matchesQuery && matchesType;
+    });
+    
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#888;">No se encontraron productos.</td></tr>';
+        return;
+    }
+    
+    filtered.forEach(pObj => {
+        const p = pObj.val;
+        const key = pObj.key;
+        const imgTag = p.image ? `<img src="${p.image}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">` : '📸';
         
         tbody.innerHTML += `
             <tr>
                 <td>${imgTag}</td>
                 <td>${p.name}</td>
                 <td><span class="badge-days" style="background:#3498db;color:#fff;">${p.type.toUpperCase()}</span></td>
-                <td style="color:var(--neon-cyan); font-weight:bold;">$${p.price.toLocaleString()}</td>
+                <td style="color:var(--neon-cyan); font-weight:bold;">${p.price.toLocaleString()}</td>
                 <td>${p.stock}</td>
                 <td style="display:flex; gap:10px;">
-                    <button onclick="editProduct('${child.key}')" style="background:#f39c12; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Editar">✏️</button>
-                    <button onclick="deleteProduct('${child.key}')" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Eliminar">❌</button>
+                    <button onclick="editProduct('${key}')" style="background:#f39c12; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Editar">✏️</button>
+                    <button onclick="deleteProduct('${key}')" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Eliminar">🗑</button>
                 </td>
             </tr>
         `;
     });
+};
+
+document.getElementById('inv-search')?.addEventListener('input', window.renderCatalogTable);
+document.getElementById('inv-filter-type')?.addEventListener('change', window.renderCatalogTable);
+
+// Escuchar cambios en inventario
+db.ref('products').on('value', snap => {
+    allCatalogProducts = [];
+    snap.forEach(child => {
+        allCatalogProducts.push({ key: child.key, val: child.val() });
+    });
+    window.renderCatalogTable();
+});
 });
 
 
