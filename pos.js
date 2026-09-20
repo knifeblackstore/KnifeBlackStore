@@ -679,7 +679,9 @@ function compressImage(file, callback) {
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
-            callback(canvas.toDataURL('image/jpeg', 0.85));
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+            callback(canvas.toDataURL('image/webp', 0.85));
         };
         img.src = e.target.result;
     };
