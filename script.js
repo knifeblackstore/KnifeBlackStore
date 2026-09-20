@@ -1,37 +1,4 @@
 
-// FORZAR LIMPIEZA DE CACHE SI ESTA ROTA
-(function() {
-    setTimeout(() => {
-        if (document.body && (document.body.innerHTML.includes('AADIR PANTALLA') || document.body.innerHTML.includes('catlogo'))) {
-            console.warn('Detectado HTML corrupto en memoria. Borrando caches y forzando recarga...');
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for(let registration of registrations) {
-                        registration.unregister();
-                    }
-                });
-            }
-            if (window.caches) {
-                caches.keys().then(function(names) {
-                    for (let name of names) caches.delete(name);
-                });
-            }
-            // Borrar de Firebase si es admin (por si lo guardó por error)
-            if (window.db) {
-                const qs = window.location.search || '';
-                const grids = document.querySelectorAll('.grid, .platform-grid, .product-grid');
-                grids.forEach(grid => {
-                    const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + qs + '_' + grid.className;
-                    const safeKey = pageKey.replace(/\./g, '_').replace(/\s/g, '_').replace(/\?/g, '_').replace(/=/g, '_');
-                    db.ref('grids/' + safeKey).remove();
-                });
-            }
-            setTimeout(() => {
-                window.location.href = window.location.pathname + '?v=' + new Date().getTime();
-            }, 1000);
-        }
-    }, 1500); // Dar tiempo a que cargue la BD
-})();
 
 // Firebase Configuration
 // Firebase inicializado dinámicamente vía Cloudflare Worker
@@ -341,8 +308,8 @@ const initDynamicGrid = () => {
     if (grids.length === 0) return;
 
     grids.forEach(grid => {
-        let qs = window.location.search || '';
-        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + qs + '_' + grid.className;
+        // let qs removed
+        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + grid.className;
         const safeKey = pageKey.replace(/\./g, '_').replace(/\s/g, '_').replace(/\?/g, '_').replace(/=/g, '_');
 
         db.ref('grids/' + safeKey).once('value').then(snap => {
