@@ -710,7 +710,7 @@
         window.appScripts = ['pos.js?v=31'];
         async function bootApp() {
             try {
-                const res = await fetch('https://shy-cherry-ededknifeblackstore-api.knifeblackstore.workers.dev/');
+                const res = await fetch('/api');
                 const data = await res.json();
                 
                 if (data.active === 'firebase') {
