@@ -57,17 +57,18 @@ Caso 1 (Vender Streaming):
 {"intent": "ADD_SUB", "client": "Nombre", "phone": "Numero", "platform": "Nombre Plataforma", "days": numero_de_dias}
 (Si no dice dias, asume 30).
 
-Caso 2 (Subir Producto Fisico):
+Caso 2 (Subir un Producto NUEVO al catalogo):
 {"intent": "ADD_PRODUCT", "name": "Nombre Producto", "price": numero_precio, "type": "figura" o "pin", "stock": numero_stock}
-(Si no dice stock, asume 1).
 
 Caso 3 (Buscar Inventario Fisico):
 {"intent": "CHECK_STOCK", "query": "palabra_clave"}
-(Nota: Si pide 'inventario general', 'todo', o pregunta 'qué inventario hay' sin especificar, usa query: "todo").
 
 Caso 4 (Consultar Suscripciones / Streaming):
 {"intent": "CHECK_SUBS"}
-(Si pregunta por suscripciones, plataformas, o pantallas).
+
+Caso 5 (Actualizar precio o stock de algo EXISTENTE):
+{"intent": "UPDATE_PRODUCT", "name": "Nombre Producto", "price": nuevo_precio, "stock": nuevo_stock}
+(Usa este si dice "actualiza", "cambia el precio", "ponle stock a", etc.).
 
 Mensaje: "${text}"`;
 
@@ -115,7 +116,7 @@ Mensaje: "${text}"`;
                 name: parsed.name,
                 price: parsed.price,
                 type: parsed.type,
-                stock: parsed.stock,
+                stock: parsed.stock || 1,
                 createdAt: new Date().toISOString()
             };
 
@@ -124,8 +125,51 @@ Mensaje: "${text}"`;
                 body: JSON.stringify(prodData)
             });
 
-            await reply(`✅ ¡Producto subido al inventario!\n📦 Nombre: ${parsed.name}\n💰 Precio: $${parsed.price}\n🔢 Stock: ${parsed.stock}`);
+            await reply(`✅ ¡NUEVO Producto subido al inventario!\n📦 Nombre: ${parsed.name}\n💰 Precio: $${parsed.price}\n🔢 Stock: ${parsed.stock || 1}`);
             
+        } else if (parsed.intent === 'UPDATE_PRODUCT') {
+            const prodRes = await fetch(`${FB_URL}/products.json?auth=${idToken}`);
+            const products = await prodRes.json();
+            
+            let targetId = null;
+            let currentData = null;
+            let searchName = (parsed.name || "").toLowerCase().replace("pin metálico ", "").replace("figura de acción ", "").trim();
+            
+            // Buscar coincidencia exacta
+            for (let key in products) {
+                if (products[key] && products[key].name && products[key].name.toLowerCase() === searchName) {
+                    targetId = key;
+                    currentData = products[key];
+                    break;
+                }
+            }
+            
+            // Si no exacta, buscar coincidencia parcial
+            if (!targetId) {
+                for (let key in products) {
+                    if (products[key] && products[key].name && products[key].name.toLowerCase().includes(searchName)) {
+                        targetId = key;
+                        currentData = products[key];
+                        break;
+                    }
+                }
+            }
+
+            if (targetId) {
+                let updates = {};
+                if (parsed.price !== undefined && parsed.price !== null) updates.price = parsed.price;
+                if (parsed.stock !== undefined && parsed.stock !== null) updates.stock = parsed.stock;
+                
+                await fetch(`${FB_URL}/products/${targetId}.json?auth=${idToken}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(updates)
+                });
+                
+                await reply(`✅ ¡Producto ACTUALIZADO con éxito!\n📦 Nombre: ${currentData.name}\n💰 Nuevo Precio: $${updates.price || currentData.price}\n🔢 Nuevo Stock: ${updates.stock !== undefined ? updates.stock : currentData.stock}`);
+            } else {
+                await reply(`❌ No encontré un producto existente llamado "${parsed.name}" para actualizarlo.\n(Prueba buscando primero el nombre exacto con "¿Qué inventario hay de...?")`);
+            }
+
         } else if (parsed.intent === 'CHECK_STOCK') {
             const prodRes = await fetch(`${FB_URL}/products.json?auth=${idToken}`);
             const products = await prodRes.json();
