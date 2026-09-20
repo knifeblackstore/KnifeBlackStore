@@ -1,4 +1,4 @@
-const CACHE_NAME = 'knifeblack-v15';
+const CACHE_NAME = 'knifeblack-v16';
 const urlsToCache = [
   './',
   './index.html',

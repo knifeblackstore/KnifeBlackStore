@@ -308,12 +308,23 @@ const initDynamicGrid = () => {
     if (grids.length === 0) return;
 
     grids.forEach(grid => {
-        // let qs removed
-        const pageKey = 'gridHTML_' + (window.location.pathname.split('/').pop() || 'index.html') + '_' + grid.className;
-        const safeKey = pageKey.replace(/\./g, '_').replace(/\s/g, '_').replace(/\?/g, '_').replace(/=/g, '_');
+        let rawPage = (window.location.pathname.split('/').pop() || 'index.html').split('?')[0];
+        if (!rawPage) rawPage = 'index.html';
+        let pageWithHtml = rawPage.includes('.') ? rawPage : (rawPage + '.html');
+        let pageWithoutHtml = rawPage.replace(/\.html$/, '');
 
-        db.ref('grids/' + safeKey).once('value').then(snap => {
-            const savedGrid = snap.val();
+        let keyWithHtml = ('gridHTML_' + pageWithHtml + '_' + grid.className).replace(/[\.\s\?=]/g, '_');
+        let keyWithoutHtml = ('gridHTML_' + pageWithoutHtml + '_' + grid.className).replace(/[\.\s\?=]/g, '_');
+
+        // Buscar primero la versión que tenga datos en Firebase
+        Promise.all([
+            db.ref('grids/' + keyWithHtml).once('value'),
+            db.ref('grids/' + keyWithoutHtml).once('value')
+        ]).then(([snap1, snap2]) => {
+            let savedGrid = snap1.val() || snap2.val();
+            let activeKey = snap1.val() ? keyWithHtml : (snap2.val() ? keyWithoutHtml : keyWithHtml);
+            const safeKey = activeKey;
+
             if (savedGrid) {
                 grid.innerHTML = savedGrid;
                 // Limpiar elementos basura (stock-indicators sueltos, etc.)
@@ -329,7 +340,7 @@ const initDynamicGrid = () => {
             const user = JSON.parse(localStorage.getItem('currentUser'));
 
             // --- MODO ADMIN ---
-            if (user && user.role === 'admin') {
+            if (user && (user.role === 'admin' || user.email === 'knifeblackstore@gmail.com')) {
 
                 // Aplicar controles a TODAS las tarjetas del grid
                 Array.from(grid.children).forEach(item => {
@@ -339,7 +350,7 @@ const initDynamicGrid = () => {
                     // Excluir links de navegación del grid de servicios en index
                     const isNavLink = item.tagName === 'A' && grid.id === 'servicios';
                     if (isCard) {
-                        addAdminButtons(item, grid, safeKey, isNavLink);
+                        addAdminButtons(item, grid, activeKey, isNavLink);
                     }
                 });
 
@@ -428,12 +439,17 @@ const initDynamicGrid = () => {
                 grid.parentNode.insertBefore(addBtn, grid.nextSibling);
 
             } else {
-                // NO ADMIN: quitar cualquier atributo editable
+                // NO ADMIN: quitar cualquier atributo editable y asegurar indicadores de stock
                 grid.querySelectorAll('[contenteditable]').forEach(el => {
                     el.removeAttribute('contenteditable');
                     el.style.borderBottom = '';
                     el.style.cursor = '';
                     el.title = '';
+                });
+                Array.from(grid.children).forEach(item => {
+                    if (item.classList.contains('product-card') || item.classList.contains('platform-card')) {
+                        updateStockIndicator(item);
+                    }
                 });
             }
         });
