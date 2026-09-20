@@ -1322,7 +1322,11 @@ const getProductImages = (item) => {
 };
 
 const updateProductImageArea = (item, imageList) => {
-    let targetContainer = item.querySelector('.product-gallery-container') || item.querySelector('.product-img-container') || item.querySelector('.platform-icon') || item.querySelector('.editable-media');
+    let targetContainer = item.querySelector('.product-gallery-container') || 
+                          item.querySelector('.product-img-container') || 
+                          item.querySelector('.platform-icon') || 
+                          item.querySelector('.editable-media');
+    
     if (!targetContainer) {
         const legacyImg = item.querySelector('img');
         if(legacyImg && !legacyImg.closest('.admin-controls-wrapper')) targetContainer = legacyImg;
@@ -1334,48 +1338,54 @@ const updateProductImageArea = (item, imageList) => {
         item.prepend(targetContainer);
     }
 
+    const originalClasses = targetContainer.className;
+
     if (imageList.length === 0) {
         const placeholder = document.createElement('div');
-        placeholder.className = 'product-img-container platform-icon editable-media';
-        placeholder.innerHTML = '<span>✨</span>';
+        placeholder.className = originalClasses + ' editable-media';
+        if (!placeholder.className.includes('product-img-container')) placeholder.classList.add('product-img-container');
+        placeholder.innerHTML = '<span>🛒</span>';
         targetContainer.replaceWith(placeholder);
     } else if (imageList.length === 1) {
         const imgUrlOrEmoji = imageList[0];
         if (imgUrlOrEmoji.startsWith('http') || imgUrlOrEmoji.startsWith('data:image')) {
             const img = document.createElement('img');
             img.src = imgUrlOrEmoji;
-            img.className = 'editable-media';
-            img.style.cssText = 'width:60px; height:60px; object-fit:contain; border-radius:8px;';
+            img.className = originalClasses + ' editable-media';
+            img.style.cssText = 'width:120px; height:120px; object-fit:contain; border-radius:8px; margin: 0 auto 20px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));';
             targetContainer.replaceWith(img);
         } else {
-            const placeholder = document.createElement('div');
-            placeholder.className = 'product-img-container platform-icon editable-media';
-            placeholder.innerHTML = `<span>${imgUrlOrEmoji}</span>`;
-            targetContainer.replaceWith(placeholder);
+            const div = document.createElement('div');
+            div.className = originalClasses + ' editable-media';
+            if (!div.className.includes('product-img-container') && !div.className.includes('platform-icon')) div.classList.add('product-img-container');
+            div.innerHTML = `<span>${imgUrlOrEmoji}</span>`;
+            targetContainer.replaceWith(div);
         }
     } else {
         const gallery = document.createElement('div');
-        gallery.className = 'product-gallery-container editable-media';
-        imageList.forEach((url, index) => {
+        gallery.className = originalClasses + ' product-gallery-container';
+        gallery.style.cssText = 'position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:12px; margin-bottom:15px;';
+        
+        imageList.forEach((src, i) => {
             const img = document.createElement('img');
-            img.src = url;
-            img.className = 'product-gallery-image' + (index === 0 ? ' active' : '');
-            img.style.display = index === 0 ? 'block' : 'none';
+            img.src = src;
+            img.className = 'product-gallery-image' + (i===0 ? ' active' : '');
+            img.style.cssText = `position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity:${i===0?1:0}; transition:opacity 0.3s;`;
             gallery.appendChild(img);
         });
-
+        
         const nav = document.createElement('div');
-        nav.className = 'product-gallery-nav';
+        nav.className = 'gallery-nav';
         
         const prevBtn = document.createElement('button');
-        prevBtn.className = 'gallery-nav-btn';
-        prevBtn.innerHTML = '◀';
-        prevBtn.setAttribute('onclick', 'prevGalleryImage(event, this)');
+        prevBtn.className = 'gallery-nav-btn prev';
+        prevBtn.innerHTML = '❮';
+        prevBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); cycleGallery(gallery, -1); };
         
         const nextBtn = document.createElement('button');
-        nextBtn.className = 'gallery-nav-btn';
-        nextBtn.innerHTML = '▶';
-        nextBtn.setAttribute('onclick', 'nextGalleryImage(event, this)');
+        nextBtn.className = 'gallery-nav-btn next';
+        nextBtn.innerHTML = '❯';
+        nextBtn.onclick = (e) => { e.stopPropagation(); e.preventDefault(); cycleGallery(gallery, 1); };
         
         nav.appendChild(prevBtn);
         nav.appendChild(nextBtn);
