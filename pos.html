@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>ðŸ–¥ï¸</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖥️</text></svg>">
     <style>
         body { background: #050505; color: #fff; margin: 0; display: flex; height: 100vh; overflow: hidden; font-family: sans-serif; }
         .pos-container { display: flex; width: 100%; height: 100%; }
@@ -151,13 +151,13 @@
         .back-btn { display:none !important; }
 
     
-        /* Mobile Responsive â€” Tablet & Phone Overhaul */
+        /* Mobile Responsive — Tablet & Phone Overhaul */
         @media (max-width: 900px) {
             /* === LAYOUT BASE === */
             body { overflow-y: auto; height: auto; }
             .erp-layout { flex-direction: column; height: auto; display: flex; }
 
-            /* === SIDEBAR â†’ BOTTOM NAV BAR === */
+            /* === SIDEBAR → BOTTOM NAV BAR === */
             .erp-sidebar {
                 width: 100%;
                 flex-direction: row;
@@ -193,7 +193,7 @@
             .nav-btn.logout { margin-top: 0; border-top-color: transparent; }
             .nav-btn.logout:hover { border-top-color: var(--neon-pink); border-left-color: transparent; }
 
-            /* === MAIN CONTENT â€” account for bottom bar === */
+            /* === MAIN CONTENT — account for bottom bar === */
             .erp-main { padding-bottom: 70px; overflow: auto; }
             .tab-pane.active { display: block; }
 
@@ -236,7 +236,7 @@
                 padding: 15px; 
             }
 
-            /* === TABLAS â†’ TARJETAS EN MÃ“VIL === */
+            /* === TABLAS → TARJETAS EN MÓVIL === */
             .sub-table-container, .fin-table-container { 
                 overflow: visible; 
                 background: transparent; 
@@ -270,7 +270,7 @@
                 letter-spacing: 0.5px;
                 margin-bottom: 2px;
             }
-            /* AcciÃ³n siempre en fila completa al final */
+            /* Acción siempre en fila completa al final */
             .sub-table td:last-child, .fin-table td:last-child { 
                 grid-column: 1 / -1; 
                 flex-direction: row; 
@@ -278,7 +278,7 @@
                 flex-wrap: wrap;
             }
 
-            /* === INVENTARIO â€” tabla adaptada === */
+            /* === INVENTARIO — tabla adaptada === */
             .sub-table.inv-table tr { grid-template-columns: 80px 1fr; }
             .sub-table.inv-table td:first-child { grid-row: 1 / 3; }
 
@@ -321,13 +321,13 @@
     <div class="erp-layout">
         <aside class="erp-sidebar">
             <h2>KNIFEBLACK<br><span>ADMIN</span></h2>
-            <a href="#" class="nav-btn active" onclick="switchTab('pos')"><span class="nav-icon">ðŸ›’</span><span>POS</span></a>
-            <a href="#" class="nav-btn" onclick="switchTab('finanzas')"><span class="nav-icon">ðŸ’°</span><span>Finanzas</span></a>
-            <a href="#" class="nav-btn" onclick="switchTab('suscripciones')"><span class="nav-icon">ðŸ“º</span><span>Suscripc.</span></a>
-            <a href="#" class="nav-btn" onclick="switchTab('inventario')"><span class="nav-icon">ðŸ“¦</span><span>Inventario</span></a>
-            <a href="#" class="nav-btn" onclick="switchTab('tiendas')"><span class="nav-icon">ðŸ¤</span><span>Tiendas</span></a>\n            <a href="#" class="nav-btn" onclick="switchTab('usuarios')"><span class="nav-icon">ðŸ‘¥</span><span>Usuarios</span></a>
+            <a href="#" class="nav-btn active" onclick="switchTab('pos')"><span class="nav-icon">🛒</span><span>POS</span></a>
+            <a href="#" class="nav-btn" onclick="switchTab('finanzas')"><span class="nav-icon">💰</span><span>Finanzas</span></a>
+            <a href="#" class="nav-btn" onclick="switchTab('suscripciones')"><span class="nav-icon">📺</span><span>Suscripc.</span></a>
+            <a href="#" class="nav-btn" onclick="switchTab('inventario')"><span class="nav-icon">📦</span><span>Inventario</span></a>
+            <a href="#" class="nav-btn" onclick="switchTab('tiendas')"><span class="nav-icon">🤝</span><span>Tiendas</span></a>\n            <a href="#" class="nav-btn" onclick="switchTab('usuarios')"><span class="nav-icon">👥</span><span>Usuarios</span></a>
             <div style="flex:1;"></div>
-            <a href="index.html" class="nav-btn logout"><span class="nav-icon">â¬…</span><span>Tienda</span></a>
+            <a href="index.html" class="nav-btn logout"><span class="nav-icon">⬅</span><span>Tienda</span></a>
         </aside>
         
         <main class="erp-main">
@@ -337,11 +337,11 @@
     <div class="pos-container" id="app">
         <div class="catalog-section">
             <div class="header">
-                <a href="index.html" class="back-btn">â¬… Volver a Tienda</a>
-                <h1 style="margin:0; color:var(--neon-pink); text-transform:uppercase; letter-spacing:2px; font-size:1.5rem;">ðŸ–¥ï¸ Terminal POS</h1>
-                <button id="btn-open-dash" style="background:#00f0ff; color:black; border:none; padding:10px 20px; border-radius:8px; font-weight:900; cursor:pointer; text-transform:uppercase;">ðŸ“Š Dashboard</button>
+                <a href="index.html" class="back-btn">⬅ Volver a Tienda</a>
+                <h1 style="margin:0; color:var(--neon-pink); text-transform:uppercase; letter-spacing:2px; font-size:1.5rem;">🖥️ Terminal POS</h1>
+                <button id="btn-open-dash" style="background:#00f0ff; color:black; border:none; padding:10px 20px; border-radius:8px; font-weight:900; cursor:pointer; text-transform:uppercase;">📊 Dashboard</button>
             </div>
-            <input type="text" id="pos-search" class="search-bar" placeholder="BUSCAR POR NOMBRE O CATEGORÃA...">
+            <input type="text" id="pos-search" class="search-bar" placeholder="BUSCAR POR NOMBRE O CATEGORÍA...">
             <div class="products-grid" id="pos-grid">
                 <!-- Se cargan por JS -->
                 <p style="color:#888; width:100%; grid-column:1/-1;">Cargando inventario desde la base de datos...</p>
@@ -349,11 +349,11 @@
         </div>
         
         <div class="cart-section">
-            <h2 style="margin-top:0; color:var(--neon-cyan); text-transform:uppercase; border-bottom:1px solid #333; padding-bottom:15px; margin-bottom:20px;">ðŸ›’ Orden Actual</h2>
+            <h2 style="margin-top:0; color:var(--neon-cyan); text-transform:uppercase; border-bottom:1px solid #333; padding-bottom:15px; margin-bottom:20px;">🛒 Orden Actual</h2>
             
             <div class="cart-items" id="pos-cart-items">
                 <!-- Items del carrito POS -->
-                <p style="color:#888; text-align:center; margin-top:50px;">El carrito estÃ¡ vacÃ­o</p>
+                <p style="color:#888; text-align:center; margin-top:50px;">El carrito está vacío</p>
             </div>
             
             <div style="display:flex; gap:10px; margin-bottom:15px; width:100%; box-sizing:border-box;">
@@ -405,8 +405,8 @@
             </div>
             
             <div style="border-bottom:2px dashed #000; margin-top:15px; margin-bottom:15px;"></div>
-            <p style="font-size:0.8rem; margin:0;">MÃ©todo de Pago: <select id="payment-method" style="padding:2px; font-family:monospace; border:1px solid #ccc;"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia / Nequi</option><option value="Tarjeta">Tarjeta (Datafono)</option></select></p>
-            <p style="font-size:0.8rem; margin-top:10px;">Â¡Gracias por su compra!</p>
+            <p style="font-size:0.8rem; margin:0;">Método de Pago: <select id="payment-method" style="padding:2px; font-family:monospace; border:1px solid #ccc;"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia / Nequi</option><option value="Tarjeta">Tarjeta (Datafono)</option></select></p>
+            <p style="font-size:0.8rem; margin-top:10px;">¡Gracias por su compra!</p>
             
             <button class="btn-print" id="btn-confirm-sale">Procesar e Imprimir</button>
             <button class="btn-close-ticket" id="btn-cancel-sale">Cancelar</button>
@@ -417,7 +417,7 @@
     <div class="modal-overlay" id="dashboard-modal">
         <div class="dash-modal">
             <div class="dash-header">
-                <h2>ðŸ“Š Analytics & ExportaciÃ³n</h2>
+                <h2>📊 Analytics & Exportación</h2>
                 <button class="btn-close-dash" id="btn-close-dash">X Cerrar</button>
             </div>
             
@@ -431,18 +431,18 @@
                     <p class="value" id="kpi-orders">0</p>
                 </div>
                 <div class="kpi-card pink">
-                    <h3>ValorizaciÃ³n Inventario</h3>
+                    <h3>Valorización Inventario</h3>
                     <p class="value" id="kpi-inventory-value">$0</p>
                 </div>
             </div>
 
             <div class="export-btns">
-                <button class="btn-export sales" id="btn-export-sales">â¬‡ Exportar Ventas (CSV)</button>
-                <button class="btn-export inventory" id="btn-export-inv">â¬‡ Exportar Inventario (CSV)</button>
+                <button class="btn-export sales" id="btn-export-sales">⬇ Exportar Ventas (CSV)</button>
+                <button class="btn-export inventory" id="btn-export-inv">⬇ Exportar Inventario (CSV)</button>
             </div>
 
             <div>
-                <h3 style="color:var(--neon-cyan); border-bottom:1px solid #333; padding-bottom:10px;">Ãšltimas Transacciones</h3>
+                <h3 style="color:var(--neon-cyan); border-bottom:1px solid #333; padding-bottom:10px;">Últimas Transacciones</h3>
                 <table class="sales-table">
                     <thead>
                         <tr>
@@ -485,7 +485,7 @@
                     </div>
                     
                     <div class="fin-controls">
-                        <input type="text" id="fin-desc" class="fin-input" placeholder="DescripciÃ³n (ej. Pago Server)">
+                        <input type="text" id="fin-desc" class="fin-input" placeholder="Descripción (ej. Pago Server)">
                         <input type="number" id="fin-amount" class="fin-input" placeholder="Monto ($)">
                         <select id="fin-type" class="fin-input" style="flex:0.5;">
                             <option value="expense">Egreso (Gasto)</option>
@@ -499,7 +499,7 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
-                                    <th>DescripciÃ³n</th>
+                                    <th>Descripción</th>
                                     <th>Tipo</th>
                                     <th>Monto</th>
                                 </tr>
@@ -515,15 +515,15 @@
             <!-- TAB SUSCRIPCIONES -->
             <div id="tab-suscripciones" class="tab-pane">
                 <div class="sub-dashboard">
-                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">GestiÃ³n de Pantallas</h2>
+                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Gestión de Pantallas</h2>
                     
                     <form class="sub-form" onsubmit="event.preventDefault(); addSubscription();">
                         <input type="text" id="sub-client" class="fin-input" placeholder="Nombre del Cliente" required>
                         <input type="text" id="sub-phone" class="fin-input" placeholder="WhatsApp (ej. 57300...)" required>
                         <input type="text" id="sub-platform" class="fin-input" placeholder="Plataforma (ej. Netflix)" required>
-                        <input type="date" id="sub-start" class="fin-input" title="Fecha ActivaciÃ³n" required>
-                        <input type="date" id="sub-end" class="fin-input" title="Fecha Vencimiento (AutomÃ¡tica)" required readonly style="background:rgba(255,255,255,0.02); color:#888;">
-                        <button type="submit" class="sub-btn">Registrar SuscripciÃ³n</button>
+                        <input type="date" id="sub-start" class="fin-input" title="Fecha Activación" required>
+                        <input type="date" id="sub-end" class="fin-input" title="Fecha Vencimiento (Automática)" required readonly style="background:rgba(255,255,255,0.02); color:#888;">
+                        <button type="submit" class="sub-btn">Registrar Suscripción</button>
                     </form>
                     
                     <div class="sub-table-container">
@@ -533,10 +533,10 @@
                                     <th>Cliente</th>
                                     <th>WhatsApp</th>
                                     <th>Plataforma</th>
-                                    <th>ActivaciÃ³n</th>
+                                    <th>Activación</th>
                                     <th>Vencimiento</th>
                                     <th>Estado</th>
-                                    <th>AcciÃ³n</th>
+                                    <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="sub-table-body">
@@ -550,15 +550,15 @@
             <!-- TAB INVENTARIO -->
             <div id="tab-inventario" class="tab-pane">
                 <div class="sub-dashboard">
-                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">GestiÃ³n de CatÃ¡logo</h2>
+                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Gestión de Catálogo</h2>
                     
                     <form class="sub-form" onsubmit="event.preventDefault(); addProduct();" style="grid-template-columns: 1fr 1fr;">
                         <input type="text" id="inv-name" class="fin-input" placeholder="Nombre del Producto" required style="grid-column: 1/-1;">
                         
                         <select id="inv-type" class="fin-input" required>
                             <option value="">-- Seleccionar Tipo --</option>
-                            <option value="figura">Figura de AcciÃ³n</option>
-                            <option value="pin">Pin MetÃ¡lico</option>
+                            <option value="figura">Figura de Acción</option>
+                            <option value="pin">Pin Metálico</option>
                         </select>
                         <select id="inv-condition" class="fin-input" required>
                             <option value="Nuevo">Nuevo</option>
@@ -566,7 +566,7 @@
                             <option value="Preventa">Preventa</option>
                         </select>
                         
-                        <input type="text" id="inv-franchise" class="fin-input" placeholder="Franquicia (ej. PokÃ©mon, Marvel)">
+                        <input type="text" id="inv-franchise" class="fin-input" placeholder="Franquicia (ej. Pokémon, Marvel)">
                         <input type="text" id="inv-manufacturer" class="fin-input" placeholder="Fabricante (ej. Bandai)">
                         
                         <input type="number" id="inv-price" class="fin-input" placeholder="Precio (COP)" required>
@@ -577,12 +577,12 @@
 <div style="grid-column: 1/-1; background: rgba(0,240,255,0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-cyan); text-align: center;">
                             <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 15px;">
                                 <label for="inv-photo-cam" style="cursor: pointer; background: rgba(0,240,255,0.1); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; transition: 0.2s;">
-                                    <span style="font-size: 2.5rem;">ðŸ“·</span>
-                                    <span style="color: var(--neon-cyan); font-weight: bold;">Usar CÃ¡mara</span>
+                                    <span style="font-size: 2.5rem;">📷</span>
+                                    <span style="color: var(--neon-cyan); font-weight: bold;">Usar Cámara</span>
                                 </label>
                                 <label for="inv-photo-gal" style="cursor: pointer; background: rgba(241,196,15,0.1); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; transition: 0.2s;">
-                                    <span style="font-size: 2.5rem;">ðŸ“</span>
-                                    <span style="color: #f1c40f; font-weight: bold;">Subir GalerÃ­a</span>
+                                    <span style="font-size: 2.5rem;">📁</span>
+                                    <span style="color: #f1c40f; font-weight: bold;">Subir Galería</span>
                                 </label>
                             </div>
                             
@@ -593,7 +593,7 @@
                             <img id="inv-preview" style="max-width: 100%; max-height: 160px; margin: 0 auto; border-radius: 8px; display: none; object-fit: contain;">
                             <!-- Multi-image thumbnail strip -->
                             <div id="inv-preview-container" style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:10px;"></div>
-                            <p id="inv-photo-hint" style="color:#888; font-size:0.78rem; margin:6px 0 0;">Puedes seleccionar varias fotos desde la galerÃ­a</p>
+                            <p id="inv-photo-hint" style="color:#888; font-size:0.78rem; margin:6px 0 0;">Puedes seleccionar varias fotos desde la galería</p>
                         </div>
                         
                         <button type="submit" class="sub-btn" id="btn-save-product" style="grid-column: 1/-1;">Guardar Producto</button>
@@ -603,8 +603,8 @@
                         <input type="text" id="inv-search" placeholder="Buscar producto por nombre..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; color: #fff; outline: none; min-width: 200px;">
                         <select id="inv-filter-type" style="padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; color: #fff; outline: none;">
                             <option value="all">Todos los tipos</option>
-                            <option value="figura">Figuras de AcciÃ³n</option>
-                            <option value="pin">Pines MetÃ¡licos</option>
+                            <option value="figura">Figuras de Acción</option>
+                            <option value="pin">Pines Metálicos</option>
                         </select>
                     </div>
 
@@ -617,7 +617,7 @@
                                     <th>Tipo</th>
                                     <th>Precio</th>
                                     <th>Stock</th>
-                                    <th>AcciÃ³n</th>
+                                    <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="inv-table-body">
@@ -631,7 +631,7 @@
             <!-- TAB TIENDAS AMIGAS -->
             <div id="tab-tiendas" class="tab-pane">
                 <div class="sub-dashboard">
-                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">GestiÃ³n de Tiendas Amigas</h2>
+                    <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Gestión de Tiendas Amigas</h2>
                     
                     <form class="sub-form" onsubmit="event.preventDefault(); window.addPartnerStore();" style="grid-template-columns: 1fr 1fr;">
                         <input type="text" id="partner-name" class="fin-input" placeholder="Nombre de la Tienda" required>
@@ -639,7 +639,7 @@
                         
                         <div style="grid-column: 1/-1; background: rgba(0,240,255,0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-cyan); text-align: center;">
                             <label for="partner-photo" style="cursor: pointer; background: rgba(0,240,255,0.1); padding: 10px 20px; border-radius: 8px; display: inline-block; transition: 0.2s;">
-                                <span style="font-size: 1.5rem;">ðŸ“</span>
+                                <span style="font-size: 1.5rem;">📁</span>
                                 <span style="color: var(--neon-cyan); font-weight: bold; margin-left:10px;">Subir Logo de Tienda</span>
                             </label>
                             <input type="file" id="partner-photo" accept="image/*" style="display: none;" onchange="window.previewPartnerPhoto(event)">
@@ -656,7 +656,7 @@
                                     <th>Logo</th>
                                     <th>Nombre</th>
                                     <th>Enlace</th>
-                                    <th>AcciÃ³n</th>
+                                    <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="partner-table-body">
@@ -671,18 +671,18 @@
             <!-- TAB USUARIOS Y PERMISOS -->
             <div id="tab-usuarios" class="tab-pane">
                 <div class="fin-dashboard">
-                    <h1 style="color:white;">ðŸ‘¥ GestiÃ³n de Usuarios y Permisos</h1>
-<div style="margin-bottom: 15px;"><a href="login.html#register" target="_blank" class="fin-btn" style="text-decoration:none; display:inline-block; background:var(--neon-cyan); color:#000;">âž• Crear Nuevo Usuario</a></div>
+                    <h1 style="color:white;">👥 Gestión de Usuarios y Permisos</h1>
+<div style="margin-bottom: 15px;"><a href="login.html#register" target="_blank" class="fin-btn" style="text-decoration:none; display:inline-block; background:var(--neon-cyan); color:#000;">➕ Crear Nuevo Usuario</a></div>
                     <div class="fin-table-container">
                         <table class="fin-table" id="users-table">
                             <thead>
                                 <tr>
                                     <th>Usuario</th>
                                     <th>Rango</th>
-                                    <th>ðŸ“¦ Productos</th>
-                                    <th>ðŸ¤ Tiendas</th>
-                                    <th>ðŸŽŸï¸ Cupones</th>
-                                    <th>ðŸ’° Finanzas</th>
+                                    <th>📦 Productos</th>
+                                    <th>🤝 Tiendas</th>
+                                    <th>🎟️ Cupones</th>
+                                    <th>💰 Finanzas</th>
                                 </tr>
                             </thead>
                             <tbody id="users-tbody">
@@ -716,7 +716,7 @@
                 if (data.active === 'firebase') {
                     firebase.initializeApp(data.firebase);
                 } else if (data.active === 'supabase') {
-                    // Failover a Supabase (lÃ³gica a implementar en Fase 3/4)
+                    // Failover a Supabase (lógica a implementar en Fase 3/4)
                 }
 
                 for (let src of window.appScripts) {
@@ -739,8 +739,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
