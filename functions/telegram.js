@@ -1,4 +1,4 @@
-export async function onRequestPost(context) {
+﻿export async function onRequestPost(context) {
     const request = context.request;
     const body = await request.json();
     
@@ -25,7 +25,7 @@ export async function onRequestPost(context) {
     }
 
     const reply = async (msg) => {
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+        await fetch(\https://api.telegram.org/bot\/sendMessage\, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ chat_id: chatId, text: msg })
@@ -38,7 +38,7 @@ export async function onRequestPost(context) {
     }
 
     try {
-        const authRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FB_API_KEY}`, {
+        const authRes = await fetch(\https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=\\, {
             method: 'POST',
             body: JSON.stringify({ email: 'knifeblackstore@gmail.com', password: 'Cali2026+-*/', returnSecureToken: true })
         });
@@ -49,8 +49,8 @@ export async function onRequestPost(context) {
         }
         const idToken = authData.idToken;
 
-        const prompt = `Eres el asistente de una tienda. Un administrador te envia un mensaje.
-Analiza el mensaje y devuelve SOLO un objeto JSON valido, sin formato adicional (no uses \`\`\`json).
+        const prompt = \Eres el asistente de una tienda. Un administrador te envia un mensaje.
+Analiza el mensaje y devuelve SOLO un objeto JSON valido, sin formato adicional (no uses \\\\\\\\\json).
 El JSON debe tener este formato segun lo que pida:
 
 Caso 1 (Vender Streaming):
@@ -70,9 +70,9 @@ Caso 5 (Actualizar precio o stock de algo EXISTENTE):
 {"intent": "UPDATE_PRODUCT", "name": "Nombre Producto", "price": nuevo_precio, "stock": nuevo_stock}
 (Usa este si dice "actualiza", "cambia el precio", "ponle stock a", etc.).
 
-Mensaje: "${text}"`;
+Mensaje: "\"\;
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const geminiRes = await fetch(\https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=\\, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -87,7 +87,7 @@ Mensaje: "${text}"`;
         }
         const rawResponse = geminiData.candidates[0].content.parts[0].text;
         
-        const cleanJson = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+        const cleanJson = rawResponse.replace(/`json/g, '').replace(/`/g, '').trim();
         const parsed = JSON.parse(cleanJson);
 
         if (parsed.intent === 'ADD_SUB') {
@@ -104,12 +104,12 @@ Mensaje: "${text}"`;
                 status: 'Activa'
             };
 
-            await fetch(`${FB_URL}/subscriptions.json?auth=${idToken}`, {
+            await fetch(\\/subscriptions.json?auth=\\, {
                 method: 'POST',
                 body: JSON.stringify(subData)
             });
 
-            await reply(`✅ ¡Suscripción registrada con éxito!\n👤 Cliente: ${parsed.client}\n📺 Plataforma: ${parsed.platform}\n📅 Vence en: ${parsed.days} días`);
+            await reply(\✅ ¡Suscripción registrada con éxito!\\n👤 Cliente: \\\n📺 Plataforma: \\\n📅 Vence en: \ días\);
         
         } else if (parsed.intent === 'ADD_PRODUCT') {
             const prodData = {
@@ -120,15 +120,15 @@ Mensaje: "${text}"`;
                 createdAt: new Date().toISOString()
             };
 
-            await fetch(`${FB_URL}/products.json?auth=${idToken}`, {
+            await fetch(\\/products.json?auth=\\, {
                 method: 'POST',
                 body: JSON.stringify(prodData)
             });
 
-            await reply(`✅ ¡NUEVO Producto subido al inventario!\n📦 Nombre: ${parsed.name}\n💰 Precio: $${parsed.price}\n🔢 Stock: ${parsed.stock || 1}`);
+            await reply(\✅ ¡NUEVO Producto subido al inventario!\\n📦 Nombre: \\\n💰 Precio: $\\\n🔢 Stock: \\);
             
         } else if (parsed.intent === 'UPDATE_PRODUCT') {
-            const prodRes = await fetch(`${FB_URL}/products.json?auth=${idToken}`);
+            const prodRes = await fetch(\\/products.json?auth=\\);
             const products = await prodRes.json();
             
             let targetId = null;
@@ -160,18 +160,18 @@ Mensaje: "${text}"`;
                 if (parsed.price !== undefined && parsed.price !== null) updates.price = parsed.price;
                 if (parsed.stock !== undefined && parsed.stock !== null) updates.stock = parsed.stock;
                 
-                await fetch(`${FB_URL}/products/${targetId}.json?auth=${idToken}`, {
+                await fetch(\\/products/\.json?auth=\\, {
                     method: 'PATCH',
                     body: JSON.stringify(updates)
                 });
                 
-                await reply(`✅ ¡Producto ACTUALIZADO con éxito!\n📦 Nombre: ${currentData.name}\n💰 Nuevo Precio: $${updates.price || currentData.price}\n🔢 Nuevo Stock: ${updates.stock !== undefined ? updates.stock : currentData.stock}`);
+                await reply(\✅ ¡Producto ACTUALIZADO con éxito!\\n📦 Nombre: \\\n💰 Nuevo Precio: $\\\n🔢 Nuevo Stock: \\);
             } else {
-                await reply(`❌ No encontré un producto existente llamado "${parsed.name}" para actualizarlo.\n(Prueba buscando primero el nombre exacto con "¿Qué inventario hay de...?")`);
+                await reply(\❌ No encontré un producto existente llamado "\" para actualizarlo.\\n(Prueba buscando primero el nombre exacto con "¿Qué inventario hay de...?")\);
             }
 
         } else if (parsed.intent === 'CHECK_STOCK') {
-            const prodRes = await fetch(`${FB_URL}/products.json?auth=${idToken}`);
+            const prodRes = await fetch(\\/products.json?auth=\\);
             const products = await prodRes.json();
             
             let matches = [];
@@ -186,11 +186,11 @@ Mensaje: "${text}"`;
                 let nameLower = p.name.toLowerCase();
                 
                 if (isGeneral) {
-                    matches.push(`- ${p.name}: $${p.price} (Stock: ${p.stock})`);
+                    matches.push(\- \: $\ (Stock: \)\);
                 } else {
                     let matchesAll = keywords.every(kw => nameLower.includes(kw));
                     if (matchesAll) {
-                        matches.push(`- ${p.name}: $${p.price} (Stock: ${p.stock})`);
+                        matches.push(\- \: $\ (Stock: \)\);
                     }
                 }
             }
@@ -199,15 +199,15 @@ Mensaje: "${text}"`;
                 if (matches.length > 20) {
                     let total = matches.length;
                     matches = matches.slice(0, 20);
-                    matches.push(`\n...y ${total - 20} productos más. Escribe una palabra clave si buscas algo específico.`);
+                    matches.push(\\\n...y \ productos más. Escribe una palabra clave si buscas algo específico.\);
                 }
-                await reply(`🔍 Encontré esto en el inventario:\n${matches.join('\n')}`);
+                await reply(\🔍 Encontré esto en el inventario:\\n\\);
             } else {
-                await reply(`❌ No encontré ningún producto que coincida con "${parsed.query}".`);
+                await reply(\❌ No encontré ningún producto que coincida con "\".\);
             }
             
         } else if (parsed.intent === 'CHECK_SUBS') {
-            const subRes = await fetch(`${FB_URL}/subscriptions.json?auth=${idToken}`);
+            const subRes = await fetch(\\/subscriptions.json?auth=\\);
             const subs = await subRes.json();
             
             let matches = [];
@@ -218,19 +218,19 @@ Mensaje: "${text}"`;
                 
                 let endDate = new Date(s.end);
                 let diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-                let status = diffDays > 0 ? `🟢 Quedan ${diffDays} días` : `🔴 Vencida`;
+                let status = diffDays > 0 ? \🟢 Quedan \ días\ : \🔴 Vencida\;
                 
-                matches.push(`- ${s.platform} | ${s.client} | ${status}`);
+                matches.push(\- \ | \ | \\);
             }
 
             if (matches.length > 0) {
                 if (matches.length > 20) {
                     matches = matches.slice(0, 20);
-                    matches.push(`\n...(Mostrando las primeras 20)`);
+                    matches.push(\\\n...(Mostrando las primeras 20)\);
                 }
-                await reply(`📺 Suscripciones:\n${matches.join('\n')}`);
+                await reply(\📺 Suscripciones:\\n\\);
             } else {
-                await reply(`❌ No hay suscripciones registradas aún.`);
+                await reply(\❌ No hay suscripciones registradas aún.\);
             }
 
         } else {
@@ -238,7 +238,7 @@ Mensaje: "${text}"`;
         }
 
     } catch (error) {
-        await reply(`⚠️ Ocurrió un error procesando tu solicitud: ${error.message}`);
+        await reply(\⚠️ Ocurrió un error procesando tu solicitud: \\);
     }
 
     return new Response('OK');
