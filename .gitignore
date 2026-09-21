@@ -18,3 +18,7 @@ Thumbs.db
 *.pyc
 __pycache__/
 update_firebase.py
+
+node_modules
+.wrangler
+.wrangler/
