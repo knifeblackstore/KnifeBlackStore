@@ -17,7 +17,7 @@
     }
 
     try {
-        await fetch(\https://api.telegram.org/bot\/sendMessage\, {
+        await fetch("https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage", {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: msg, parse_mode: "Markdown" })
