@@ -761,6 +761,7 @@ window.checkoutCart = () => {
         status: 'Pendiente (WhatsApp)'
     };
     db.ref('sales').push(saleData);
+    if (window.notifyAdmin) notifyAdmin(saleData, 'WhatsApp');
 
     let message = "🚀 *NUEVO PEDIDO - KNIFEBLACKSTORE*\n\n";
     if (user) {
@@ -2044,3 +2045,24 @@ window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     console.log('PWA was installed');
 });
+
+
+window.notifyAdmin = (saleData, method) => {
+    let msg = "🚨 *NUEVA COMPRA EN LA PÁGINA* 🚨\n\n";
+    msg += "👤 *Cliente:* " + (saleData.customer || 'Invitado') + "\n";
+    msg += "💳 *Método:* " + method + "\n";
+    msg += "💰 *Total:* $" + saleData.total.toLocaleString() + "\n\n";
+    msg += "📦 *Productos:*\n";
+    saleData.items.forEach(i => {
+        msg += "- " + i.name + " ($" + i.price + ")\n";
+    });
+    
+    fetch('/api/alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            secret: 'KnifeBlackAlerts2026',
+            message: msg
+        })
+    }).catch(e => console.log('Error enviando alerta', e));
+};
