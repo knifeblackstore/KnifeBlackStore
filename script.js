@@ -826,6 +826,7 @@ window.checkoutWompi = () => {
         status: 'Pendiente (Wompi)'
     };
     db.ref('sales').push(saleData);
+    if (window.notifyAdmin) notifyAdmin(saleData, 'Wompi');
 
     if (window.currentDiscount) {
         db.ref('discountCodes/' + window.currentDiscount.code).remove();
