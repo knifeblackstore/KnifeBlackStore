@@ -1,4 +1,4 @@
-const CACHE_NAME = 'knifeblack-v16';
+﻿const CACHE_NAME = 'knifeblack-v17';
 const urlsToCache = [
   './',
   './index.html',
@@ -58,3 +58,4 @@ self.addEventListener('activate', event => {
   );
   event.waitUntil(self.clients.claim());
 });
+
