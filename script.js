@@ -620,6 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
 
 const updateCartUI = () => {
+    cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
     let widget = document.getElementById('cart-widget');
     if (!widget) {
         widget = document.createElement('div');
@@ -627,6 +628,7 @@ const updateCartUI = () => {
         widget.style.cssText = 'position:fixed; bottom:20px; right:20px; background:rgba(10,10,15,0.95); backdrop-filter:blur(20px); color:white; padding:25px; border-radius:24px; border:1px solid var(--neon-cyan); box-shadow:0 0 30px rgba(0,240,255,0.2); display:none; z-index:9999; min-width:300px;';
         document.body.appendChild(widget);
     }
+window.updateCartUI = updateCartUI;
 
     if (cart.length > 0) {
         widget.style.display = 'block';
@@ -710,6 +712,25 @@ window.addToCart = (btn) => {
         }, 1000);
         
         updateCartUI();
+    }
+};
+
+window.addCatalogToCart = (name, price, id) => {
+    cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
+    const numPrice = parseFloat(price) || 0;
+    cart.push({ name: name || 'Producto', price: numPrice, id: id || '' });
+    localStorage.setItem('shoppingCart', JSON.stringify(cart));
+    updateCartUI();
+    
+    if (window.event && window.event.target) {
+        const btn = window.event.target;
+        const origText = btn.innerText;
+        btn.innerText = '¡AÑADIDO! ✨';
+        btn.style.borderColor = 'var(--neon-green)';
+        setTimeout(() => {
+            btn.innerText = origText;
+            btn.style.borderColor = '';
+        }, 1000);
     }
 };
 
