@@ -88,11 +88,99 @@ function renderSpecialSelection() {
     });
 }
 
+let currentCatalogPage = 1;
+
+function getCatalogItemsPerPage() {
+    const grid = document.getElementById('catalog-grid');
+    if (!grid) return 20;
+    const comp = window.getComputedStyle(grid).gridTemplateColumns;
+    if (comp && comp !== 'none') {
+        const cols = comp.split(' ').filter(Boolean).length;
+        if (cols > 0) return cols * 5; // Exactamente 5 filas
+    }
+    return 20; // Fallback predeterminado
+}
+
+function renderPaginationControls(totalItems, itemsPerPage, currentPage) {
+    const topContainer = document.getElementById('catalog-pagination-top');
+    const bottomContainer = document.getElementById('catalog-pagination-bottom');
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    if (totalPages <= 1) {
+        if (topContainer) topContainer.innerHTML = '';
+        if (bottomContainer) bottomContainer.innerHTML = '';
+        return;
+    }
+
+    let buttonsHTML = '';
+    const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+    buttonsHTML += `<button class="pag-btn" ${prevDisabled} onclick="window.changeCatalogPage(-1)" aria-label="Página anterior">&lt;</button>`;
+
+    const maxVisible = 7;
+    let startPage = 1;
+    let endPage = totalPages;
+
+    if (totalPages > maxVisible) {
+        if (currentPage <= 4) {
+            startPage = 1;
+            endPage = 5;
+        } else if (currentPage + 3 >= totalPages) {
+            startPage = totalPages - 4;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - 2;
+            endPage = currentPage + 2;
+        }
+    }
+
+    if (startPage > 1) {
+        buttonsHTML += `<button class="pag-btn ${currentPage === 1 ? 'active' : ''}" onclick="window.goToCatalogPage(1)">1</button>`;
+        if (startPage > 2) {
+            buttonsHTML += `<span class="pag-ellipsis">...</span>`;
+        }
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
+        const isActive = p === currentPage ? 'active' : '';
+        buttonsHTML += `<button class="pag-btn ${isActive}" onclick="window.goToCatalogPage(${p})">${p}</button>`;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            buttonsHTML += `<span class="pag-ellipsis">...</span>`;
+        }
+        buttonsHTML += `<button class="pag-btn ${currentPage === totalPages ? 'active' : ''}" onclick="window.goToCatalogPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+    buttonsHTML += `<button class="pag-btn" ${nextDisabled} onclick="window.changeCatalogPage(1)" aria-label="Página siguiente">&gt;</button>`;
+
+    if (topContainer) topContainer.innerHTML = buttonsHTML;
+    if (bottomContainer) bottomContainer.innerHTML = buttonsHTML;
+}
+
+window.goToCatalogPage = (page) => {
+    currentCatalogPage = page;
+    renderCatalog(false);
+    const target = document.getElementById('catalog-info') || document.getElementById('catalog-grid');
+    if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+window.changeCatalogPage = (delta) => {
+    window.goToCatalogPage(currentCatalogPage + delta);
+};
+
 // Renderizado del Grid principal con filtros
-function renderCatalog() {
+function renderCatalog(resetPage = true) {
     const grid = document.getElementById('catalog-grid');
     const info = document.getElementById('catalog-info');
     if (!grid || !info) return;
+
+    if (resetPage) {
+        currentCatalogPage = 1;
+    }
 
     // Obtener valores de filtros
     const search = (document.getElementById('cat-search').value || '').toLowerCase();
@@ -124,16 +212,33 @@ function renderCatalog() {
     else if (sort === 'price_desc') filtered.sort((a,b) => b.price - a.price);
     else if (sort === 'name_asc') filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-    info.innerText = `Mostrando ${filtered.length} productos`;
-    
+    const itemsPerPage = getCatalogItemsPerPage();
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    if (currentCatalogPage > totalPages && totalPages > 0) {
+        currentCatalogPage = totalPages;
+    }
+
     grid.innerHTML = '';
     
     if (filtered.length === 0) {
+        info.innerText = `Mostrando 0 productos`;
         grid.innerHTML = '<p style="color:#888;">No se encontraron productos con estos filtros.</p>';
+        renderPaginationControls(0, itemsPerPage, 1);
         return;
     }
 
-    filtered.forEach(p => {
+    const startIndex = (currentCatalogPage - 1) * itemsPerPage;
+    const pageItems = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+    if (totalPages > 1) {
+        info.innerText = `Mostrando ${pageItems.length} de ${filtered.length} productos (Página ${currentCatalogPage} de ${totalPages})`;
+    } else {
+        info.innerText = `Mostrando ${filtered.length} productos`;
+    }
+
+    renderPaginationControls(filtered.length, itemsPerPage, currentCatalogPage);
+
+    pageItems.forEach(p => {
         const inStock = p.stock > 0;
         let stylesHTML = '';
         if (p.styles && Array.isArray(p.styles) && p.styles.length > 0) {
@@ -201,7 +306,7 @@ function renderCatalog() {
 // Event Listeners para filtros
 ['cat-search', 'cat-franchise', 'cat-sort', 'cat-max-price'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('input', renderCatalog);
+    if (el) el.addEventListener('input', () => renderCatalog(true));
 });
 
 // Stock filter buttons
@@ -210,8 +315,17 @@ window.setStockFilter = (filter) => {
     document.querySelectorAll('.stock-filter-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.filter === filter);
     });
-    renderCatalog();
+    renderCatalog(true);
 };
+
+// Re-render on window resize to recalculate 5 rows dynamically
+let catalogResizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(catalogResizeTimer);
+    catalogResizeTimer = setTimeout(() => {
+        renderCatalog(false);
+    }, 200);
+});
 
 // Thumbnail selector for multi-image cards
 let isSwiping = false;
