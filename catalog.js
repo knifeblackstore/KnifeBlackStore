@@ -431,3 +431,334 @@ window.addCatalogToCart = (name, price, id) => {
     }
 };
 
+/* ========================================================
+   LÓGICA DE PESTAÑAS Y SECCIÓN DE OFERTAS EXCLUSIVAS
+   ======================================================== */
+let allOffers = [];
+let isOffersInitialized = false;
+let selectedOfferBase64 = null;
+let currentOfferTab = 'catalog'; // 'catalog' | 'offers'
+
+function checkIsAdminUser() {
+    try {
+        const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        if (user && (user.role === 'admin' || (user.email && user.email.toLowerCase() === 'knifeblackstore@gmail.com'))) {
+            return true;
+        }
+        if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+            const authUser = firebase.auth().currentUser;
+            if (authUser.email && authUser.email.toLowerCase() === 'knifeblackstore@gmail.com') {
+                return true;
+            }
+        }
+    } catch(e) {}
+    return false;
+}
+
+window.switchCatalogTab = (tab) => {
+    currentOfferTab = tab;
+    const btnCatalog = document.getElementById('tab-btn-catalog');
+    const btnOffers = document.getElementById('tab-btn-offers');
+    const filtersBar = document.getElementById('catalog-filters-bar');
+    const catalogLayout = document.getElementById('catalog-main-layout');
+    const offersLayout = document.getElementById('offers-layout');
+    const heroStockFilter = document.querySelector('.stock-filter-bar');
+
+    if (tab === 'catalog') {
+        if (btnCatalog) btnCatalog.classList.add('active');
+        if (btnOffers) btnOffers.classList.remove('active');
+        if (filtersBar) filtersBar.style.display = 'flex';
+        if (catalogLayout) catalogLayout.style.display = 'block';
+        if (offersLayout) offersLayout.style.display = 'none';
+        if (heroStockFilter) heroStockFilter.style.display = 'flex';
+    } else {
+        if (btnCatalog) btnCatalog.classList.remove('active');
+        if (btnOffers) btnOffers.classList.add('active');
+        if (filtersBar) filtersBar.style.display = 'none';
+        if (catalogLayout) catalogLayout.style.display = 'none';
+        if (offersLayout) offersLayout.style.display = 'block';
+        if (heroStockFilter) heroStockFilter.style.display = 'none';
+
+        if (!isOffersInitialized) {
+            initOffersSection();
+        }
+    }
+};
+
+function initOffersSection() {
+    isOffersInitialized = true;
+    updateAdminOffersVisibility();
+
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().onAuthStateChanged(() => {
+            updateAdminOffersVisibility();
+        });
+    }
+
+    // Escuchar ofertas en tiempo real desde Firebase
+    db.ref('offers/' + currentFilterType).on('value', snap => {
+        const data = snap.val() || {};
+        allOffers = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key]
+        }));
+
+        // Ordenar más recientes primero
+        allOffers.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        renderOffers();
+        updateOffersCountBadge();
+
+        // Si la URL traía un parámetro de oferta directa, abrir lightbox
+        const urlParams = new URLSearchParams(window.location.search);
+        const directOfferId = urlParams.get('oferta');
+        if (directOfferId) {
+            const match = allOffers.find(o => o.id === directOfferId);
+            if (match && match.imageUrl) {
+                window.openLightbox(match.imageUrl);
+            }
+        }
+    });
+}
+
+function updateAdminOffersVisibility() {
+    const adminActions = document.getElementById('admin-offers-actions');
+    if (!adminActions) return;
+    if (checkIsAdminUser()) {
+        adminActions.style.display = 'block';
+    } else {
+        adminActions.style.display = 'none';
+    }
+}
+
+function updateOffersCountBadge() {
+    const badge = document.getElementById('offers-count-badge');
+    if (!badge) return;
+    const activeCount = allOffers.filter(o => !o.isSoldOut).length;
+    if (activeCount > 0) {
+        badge.innerText = activeCount;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function renderOffers() {
+    const grid = document.getElementById('offers-grid');
+    if (!grid) return;
+
+    if (allOffers.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: rgba(20,20,30,0.5); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
+                <span style="font-size: 3.5rem; display: block; margin-bottom: 12px;">🏷️</span>
+                <h3 style="color: #fff; margin-bottom: 8px;">No hay ofertas disponibles por ahora</h3>
+                <p style="color: #888; font-size: 0.95rem; max-width: 500px; margin: 0 auto;">Pronto publicaremos promociones y combos especiales aquí. ¡Mantente atento!</p>
+            </div>
+        `;
+        return;
+    }
+
+    const isAdmin = checkIsAdminUser();
+    const categoryName = currentFilterType === 'pin' ? 'Pin' : 'Figura';
+
+    grid.innerHTML = allOffers.map(offer => {
+        const isSoldOut = Boolean(offer.isSoldOut);
+        const pageUrl = window.location.origin + window.location.pathname;
+        const offerDirectUrl = `${pageUrl}?tab=ofertas&oferta=${offer.id}`;
+
+        let waMessage = '';
+        let waButtonHtml = '';
+
+        if (!isSoldOut) {
+            waMessage = `¡Hola Knifeblack! Me interesa esta oferta exclusiva de ${categoryName}: ${offerDirectUrl}`;
+            waButtonHtml = `
+                <a href="https://wa.me/573108014660?text=${encodeURIComponent(waMessage)}" target="_blank" class="btn-offer-wa">
+                    <span>📲</span> Pedir por WhatsApp
+                </a>
+            `;
+        } else {
+            waMessage = `¡Hola Knifeblack! Vi esta oferta exclusiva de ${categoryName} que está AGOTADA, pero quería saber si volverá a estar disponible: ${offerDirectUrl}`;
+            waButtonHtml = `
+                <a href="https://wa.me/573108014660?text=${encodeURIComponent(waMessage)}" target="_blank" class="btn-offer-wa is-soldout-btn">
+                    <span>❌</span> Oferta Agotada - Consultar
+                </a>
+            `;
+        }
+
+        let adminControlsHtml = '';
+        if (isAdmin) {
+            adminControlsHtml = `
+                <div class="offer-admin-controls">
+                    <button class="btn-offer-toggle-stock" onclick="toggleOfferSoldOut('${offer.id}', ${!isSoldOut})">
+                        ${isSoldOut ? '✅ Marcar Disponible' : '❌ Marcar Agotada'}
+                    </button>
+                    <button class="btn-offer-delete" onclick="deleteOffer('${offer.id}')">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="offer-card ${isSoldOut ? 'is-soldout' : ''}" id="offer-card-${offer.id}">
+                <div class="offer-img-wrapper" onclick="openLightbox('${offer.imageUrl}')" title="Clic para ampliar imagen">
+                    <img src="${offer.imageUrl}" class="offer-card-img" alt="Oferta Exclusiva ${categoryName}" loading="lazy">
+                    <span class="offer-zoom-hint">🔍 Ampliar</span>
+                    ${isSoldOut ? `
+                        <div class="offer-soldout-overlay">
+                            <div class="offer-soldout-badge">❌ AGOTADA</div>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="offer-card-body">
+                    ${waButtonHtml}
+                    ${adminControlsHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Modal Admin
+window.openAddOfferModal = () => {
+    selectedOfferBase64 = null;
+    const modal = document.getElementById('add-offer-modal');
+    const preview = document.getElementById('offer-preview-img');
+    const prompt = document.getElementById('offer-upload-prompt');
+    const check = document.getElementById('offer-is-soldout-check');
+    const fileInput = document.getElementById('offer-file-input');
+
+    if (preview) { preview.src = ''; preview.style.display = 'none'; }
+    if (prompt) prompt.style.display = 'block';
+    if (check) check.checked = false;
+    if (fileInput) fileInput.value = '';
+    if (modal) modal.style.display = 'flex';
+};
+
+window.closeAddOfferModal = () => {
+    const modal = document.getElementById('add-offer-modal');
+    if (modal) modal.style.display = 'none';
+    selectedOfferBase64 = null;
+};
+
+window.handleOfferFileSelect = (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 1000;
+
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            selectedOfferBase64 = canvas.toDataURL('image/webp', 0.82);
+
+            const preview = document.getElementById('offer-preview-img');
+            const prompt = document.getElementById('offer-upload-prompt');
+            if (preview) {
+                preview.src = selectedOfferBase64;
+                preview.style.display = 'block';
+            }
+            if (prompt) prompt.style.display = 'none';
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+};
+
+window.saveNewOffer = () => {
+    if (!selectedOfferBase64) {
+        alert('Por favor selecciona una imagen para la oferta.');
+        return;
+    }
+
+    const check = document.getElementById('offer-is-soldout-check');
+    const isSoldOut = check ? Boolean(check.checked) : false;
+    const btnSave = document.getElementById('btn-save-offer');
+
+    if (btnSave) {
+        btnSave.disabled = true;
+        btnSave.innerText = 'Publicando... ⏳';
+    }
+
+    const newOfferData = {
+        imageUrl: selectedOfferBase64,
+        isSoldOut: isSoldOut,
+        createdAt: Date.now()
+    };
+
+    db.ref('offers/' + currentFilterType).push(newOfferData)
+        .then(() => {
+            alert('¡Oferta exclusiva publicada exitosamente!');
+            window.closeAddOfferModal();
+        })
+        .catch(err => {
+            alert('Error al publicar la oferta: ' + err.message);
+        })
+        .finally(() => {
+            if (btnSave) {
+                btnSave.disabled = false;
+                btnSave.innerText = 'Publicar Oferta 🚀';
+            }
+        });
+};
+
+window.toggleOfferSoldOut = (offerId, newStatus) => {
+    db.ref('offers/' + currentFilterType + '/' + offerId + '/isSoldOut').set(newStatus)
+        .catch(err => {
+            alert('Error al actualizar estado: ' + err.message);
+        });
+};
+
+window.deleteOffer = (offerId) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta oferta exclusiva permanentemente?')) {
+        return;
+    }
+    db.ref('offers/' + currentFilterType + '/' + offerId).remove()
+        .catch(err => {
+            alert('Error al eliminar oferta: ' + err.message);
+        });
+};
+
+// Cargar estado inicial según URL
+function initCatalogOffersOnStart() {
+    if (typeof db === 'undefined') return;
+    db.ref('offers/' + currentFilterType).once('value').then(snap => {
+        const data = snap.val() || {};
+        allOffers = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key]
+        }));
+        updateOffersCountBadge();
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tab') === 'ofertas' || urlParams.has('oferta')) {
+        window.switchCatalogTab('offers');
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCatalogOffersOnStart);
+} else {
+    initCatalogOffersOnStart();
+}
+

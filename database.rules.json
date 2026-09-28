@@ -7,6 +7,10 @@
         ".validate": "newData.hasChildren(['name', 'price', 'type'])"
       }
     },
+    "offers": {
+      ".read": true,
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin' || root.child('usersDB').child(auth.uid).child('permissions').child('products').val() === true)"
+    },
     "reviews": {
       ".read": true,
       ".write": true,
