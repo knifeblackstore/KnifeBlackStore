@@ -684,7 +684,49 @@ window.handleOfferFileSelect = (event) => {
     reader.readAsDataURL(file);
 };
 
-window.saveNewOffer = () => {
+async function ensureFirebaseAdminAuth() {
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+        throw new Error('Firebase Auth no está disponible.');
+    }
+
+    // 1. Si ya hay usuario autenticado en Firebase
+    if (firebase.auth().currentUser) {
+        return firebase.auth().currentUser;
+    }
+
+    // 2. Esperar si la sesión persistente de Firebase se está restaurando desde el navegador
+    const restoredUser = await new Promise(resolve => {
+        let unsub;
+        const timer = setTimeout(() => {
+            if (unsub) unsub();
+            resolve(null);
+        }, 1200);
+        unsub = firebase.auth().onAuthStateChanged(user => {
+            clearTimeout(timer);
+            if (unsub) unsub();
+            resolve(user);
+        });
+    });
+
+    if (restoredUser) {
+        return restoredUser;
+    }
+
+    // 3. Si no hay sesión activa en Firebase, solicitar contraseña para reconectar
+    const userLocal = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const adminEmail = (userLocal && userLocal.email) ? userLocal.email : 'knifeblackstore@gmail.com';
+    const pass = prompt(`⚠️ Tu sesión de administrador en Firebase está inactiva o desconectada.\n\nIngresa la contraseña de ${adminEmail} para autenticarte y guardar la oferta:`);
+
+    if (!pass) {
+        throw new Error('Se requiere autenticación de administrador para guardar o modificar ofertas.');
+    }
+
+    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    const cred = await firebase.auth().signInWithEmailAndPassword(adminEmail, pass);
+    return cred.user;
+}
+
+window.saveNewOffer = async () => {
     if (!selectedOfferBase64) {
         alert('Por favor selecciona una imagen para la oferta.');
         return;
@@ -696,46 +738,57 @@ window.saveNewOffer = () => {
 
     if (btnSave) {
         btnSave.disabled = true;
-        btnSave.innerText = 'Publicando... ⏳';
+        btnSave.innerText = 'Verificando sesión... ⏳';
     }
 
-    const newOfferData = {
-        imageUrl: selectedOfferBase64,
-        isSoldOut: isSoldOut,
-        createdAt: Date.now()
-    };
+    try {
+        await ensureFirebaseAdminAuth();
 
-    db.ref('offers/' + currentFilterType).push(newOfferData)
-        .then(() => {
-            alert('¡Oferta exclusiva publicada exitosamente!');
-            window.closeAddOfferModal();
-        })
-        .catch(err => {
-            alert('Error al publicar la oferta: ' + err.message);
-        })
-        .finally(() => {
-            if (btnSave) {
-                btnSave.disabled = false;
-                btnSave.innerText = 'Publicar Oferta 🚀';
-            }
-        });
+        if (btnSave) {
+            btnSave.innerText = 'Publicando oferta... 🚀';
+        }
+
+        const newOfferData = {
+            imageUrl: selectedOfferBase64,
+            isSoldOut: isSoldOut,
+            createdAt: Date.now()
+        };
+
+        await db.ref('offers/' + currentFilterType).push(newOfferData);
+        alert('¡Oferta exclusiva publicada exitosamente! 🎉');
+        window.closeAddOfferModal();
+    } catch (err) {
+        console.error('Error al guardar oferta:', err);
+        alert('Error al publicar la oferta: ' + (err.message || err));
+    } finally {
+        if (btnSave) {
+            btnSave.disabled = false;
+            btnSave.innerText = 'Publicar Oferta 🚀';
+        }
+    }
 };
 
-window.toggleOfferSoldOut = (offerId, newStatus) => {
-    db.ref('offers/' + currentFilterType + '/' + offerId + '/isSoldOut').set(newStatus)
-        .catch(err => {
-            alert('Error al actualizar estado: ' + err.message);
-        });
+window.toggleOfferSoldOut = async (offerId, newStatus) => {
+    try {
+        await ensureFirebaseAdminAuth();
+        await db.ref('offers/' + currentFilterType + '/' + offerId + '/isSoldOut').set(newStatus);
+    } catch (err) {
+        console.error('Error al actualizar estado:', err);
+        alert('Error al actualizar estado: ' + (err.message || err));
+    }
 };
 
-window.deleteOffer = (offerId) => {
+window.deleteOffer = async (offerId) => {
     if (!confirm('¿Estás seguro de que deseas eliminar esta oferta exclusiva permanentemente?')) {
         return;
     }
-    db.ref('offers/' + currentFilterType + '/' + offerId).remove()
-        .catch(err => {
-            alert('Error al eliminar oferta: ' + err.message);
-        });
+    try {
+        await ensureFirebaseAdminAuth();
+        await db.ref('offers/' + currentFilterType + '/' + offerId).remove();
+    } catch (err) {
+        console.error('Error al eliminar oferta:', err);
+        alert('Error al eliminar oferta: ' + (err.message || err));
+    }
 };
 
 // Cargar estado inicial según URL
