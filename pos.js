@@ -518,98 +518,370 @@ window.addFinancialRecord = () => {
 // GESTOR DE SUSCRIPCIONES (PANTALLAS)
 // ============================================================================
 
-window.addSubscription = () => {
+window.handlePlatformChange = (selectEl) => {
+    const customInput = document.getElementById('sub-platform-custom');
+    if (!customInput) return;
+    if (selectEl.value === 'otro') {
+        customInput.style.display = 'block';
+        customInput.required = true;
+        customInput.focus();
+    } else {
+        customInput.style.display = 'none';
+        customInput.required = false;
+        customInput.value = '';
+    }
+};
+
+let currentSubFilter = 'all'; // 'all' | 'active' | 'warning' | 'expired' | 'norenew'
+let allSubRecords = [];
+
+window.setSubscriptionFilter = (filterType) => {
+    currentSubFilter = filterType;
+    document.querySelectorAll('.sub-filter-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById('sub-filter-' + filterType);
+    if (activeBtn) activeBtn.classList.add('active');
+    renderSubscriptionsTable();
+};
+
+window.addSubscription = async () => {
     const client = document.getElementById('sub-client').value.trim();
     const phone = document.getElementById('sub-phone').value.trim();
-    const platform = document.getElementById('sub-platform').value.trim();
+    const platformSelect = document.getElementById('sub-platform-select');
+    const platformCustom = document.getElementById('sub-platform-custom');
+    
+    let platform = platformSelect ? platformSelect.value.trim() : '';
+    if (platform === 'otro') {
+        platform = platformCustom ? platformCustom.value.trim() : '';
+    }
+
     const start = document.getElementById('sub-start').value;
     const end = document.getElementById('sub-end').value;
     
     if (!client || !phone || !platform || !start || !end) {
-        alert('Por favor, completa todos los campos.');
+        alert('Por favor, completa todos los campos requeridos (Cliente, WhatsApp, Plataforma, Fechas).');
         return;
     }
-    
-    firebase.auth().onAuthStateChanged((user) => {
-        if (!user) {
-            alert("Debug: Firebase Auth currentUser es null definitivo. Intentando sincronizar sesión...");
-            // Force re-auth if possible or alert user
+
+    // Asegurar autenticación de Firebase
+    if (!firebase.auth().currentUser) {
+        const pass = prompt("⚠️ Tu sesión de Firebase está desconectada. Ingresa tu contraseña de administrador para reconectar antes de registrar:");
+        if (pass) {
+            const userStore = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            try {
+                await firebase.auth().signInWithEmailAndPassword(userStore.email || 'knifeblackstore@gmail.com', pass);
+            } catch (e) {
+                alert("Contraseña incorrecta o error de autenticación: " + e.message);
+                return;
+            }
+        } else {
             return;
         }
+    }
+    
+    db.ref('subscriptions').push({
+        client,
+        phone,
+        platform,
+        start,
+        end,
+        status: 'active',
+        createdAt: new Date().toISOString()
+    }).then(() => {
+        document.getElementById('sub-client').value = '';
+        document.getElementById('sub-phone').value = '';
+        if (platformSelect) platformSelect.value = '';
+        if (platformCustom) {
+            platformCustom.value = '';
+            platformCustom.style.display = 'none';
+            platformCustom.required = false;
+        }
         
-        db.ref('subscriptions').push({
-            client, phone, platform, start, end,
-            createdAt: new Date().toISOString()
-        }).then(() => {
-            document.getElementById('sub-client').value = '';
-            document.getElementById('sub-phone').value = '';
-            document.getElementById('sub-platform').value = '';
-            document.getElementById('sub-start').value = '';
-            document.getElementById('sub-end').value = '';
-            alert('Suscripción registrada con éxito.');
-        }).catch(e => alert('Error al registrar suscripción: ' + e.message + ' | User: ' + user.email));
-    });
+        // Reset fechas
+        const subStart = document.getElementById('sub-start');
+        if (subStart) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            subStart.value = `${yyyy}-${mm}-${dd}`;
+            subStart.dispatchEvent(new Event('change'));
+        }
+        alert('Suscripción registrada con éxito. 🎉');
+    }).catch(e => alert('Error al registrar suscripción: ' + e.message));
 };
 
-db.ref('subscriptions').on('value', snap => {
+function renderSubscriptionsTable() {
     const tbody = document.getElementById('sub-table-body');
     if (!tbody) return;
-    
+
     tbody.innerHTML = '';
-    const records = [];
-    snap.forEach(child => {
-        records.push({ key: child.key, ...child.val() });
-    });
-    
-    // Ordenar por fecha de vencimiento más próxima
-    records.sort((a,b) => new Date(a.end) - new Date(b.end));
-    
     const today = new Date();
-    today.setHours(0,0,0,0);
-    
-    records.forEach(sub => {
+    today.setHours(0, 0, 0, 0);
+
+    let countAll = allSubRecords.length;
+    let countActive = 0;
+    let countWarning = 0;
+    let countExpired = 0;
+    let countNoRenew = 0;
+
+    // Calcular contadores
+    allSubRecords.forEach(sub => {
+        const isNoRenew = sub.status === 'no_renovado';
         const endDate = new Date(sub.end);
-        const diffTime = endDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+        const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+        if (isNoRenew) {
+            countNoRenew++;
+        } else if (diffDays < 0) {
+            countExpired++;
+        } else if (diffDays <= 3) {
+            countWarning++;
+            countActive++;
+        } else {
+            countActive++;
+        }
+    });
+
+    // Actualizar badges de conteo en la barra de filtros
+    const elAll = document.getElementById('sub-count-all');
+    const elActive = document.getElementById('sub-count-active');
+    const elWarning = document.getElementById('sub-count-warning');
+    const elExpired = document.getElementById('sub-count-expired');
+    const elNoRenew = document.getElementById('sub-count-norenew');
+    if (elAll) elAll.innerText = countAll;
+    if (elActive) elActive.innerText = countActive;
+    if (elWarning) elWarning.innerText = countWarning;
+    if (elExpired) elExpired.innerText = countExpired;
+    if (elNoRenew) elNoRenew.innerText = countNoRenew;
+
+    // Filtrar registros según filtro actual
+    const filtered = allSubRecords.filter(sub => {
+        const isNoRenew = sub.status === 'no_renovado';
+        const endDate = new Date(sub.end);
+        const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+        if (currentSubFilter === 'norenew') return isNoRenew;
+        if (currentSubFilter === 'expired') return !isNoRenew && diffDays < 0;
+        if (currentSubFilter === 'warning') return !isNoRenew && diffDays >= 0 && diffDays <= 3;
+        if (currentSubFilter === 'active') return !isNoRenew && diffDays >= 0;
+        return true; // 'all'
+    });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#888;">No hay suscripciones en esta categoría.</td></tr>`;
+        return;
+    }
+
+    filtered.forEach(sub => {
+        const isNoRenew = sub.status === 'no_renovado';
+        const endDate = new Date(sub.end);
+        const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
         let badgeClass = 'badge-days';
         let statusText = diffDays + ' días';
-        
-        if (diffDays < 0) {
+
+        if (isNoRenew) {
+            badgeClass = 'badge-days no-renew';
+            statusText = '🚫 No Renueva';
+        } else if (diffDays < 0) {
             badgeClass += ' expired';
-            statusText = 'Vencida';
+            statusText = `🔴 Vencida (${Math.abs(diffDays)}d)`;
         } else if (diffDays <= 3) {
             badgeClass += ' danger';
+            statusText = `⚠️ Vence en ${diffDays}d`;
         } else if (diffDays <= 7) {
             badgeClass += ' warning';
+            statusText = `⏳ ${diffDays} días`;
+        } else {
+            statusText = `🟢 ${diffDays} días`;
         }
-        
-        let waMessage = `Hola ${sub.client}, te recordamos que tu suscripción de ${sub.platform} vence en ${diffDays} días (${sub.end}). ¿Deseas renovarla? 💳 Puedes pagar aquí: https://checkout.nequi.wompi.co/l/VPOS_mXUiKY`;
-        if (diffDays < 0) {
+
+        // WhatsApp mensajes personalizados
+        let waMessage = '';
+        if (isNoRenew) {
+            waMessage = `Hola ${sub.client}, esperamos que estés muy bien. Vimos que tu pantalla de ${sub.platform} no se renovó. ¿Te gustaría reactivarla hoy o probar otra de nuestras plataformas de streaming? Avísanos y te ayudamos con gusto. 🎬`;
+        } else if (diffDays < 0) {
             waMessage = `Hola ${sub.client}, te informamos que tu suscripción de ${sub.platform} se encuentra VENCIDA desde el ${sub.end}. ¿Deseas reactivarla? 💳 Paga aquí: https://checkout.nequi.wompi.co/l/VPOS_mXUiKY`;
+        } else {
+            waMessage = `Hola ${sub.client}, te recordamos que tu suscripción de ${sub.platform} vence en ${diffDays} días (${sub.end}). ¿Deseas renovarla? 💳 Puedes pagar aquí: https://checkout.nequi.wompi.co/l/VPOS_mXUiKY`;
         }
-        
-        let waLink = `https://wa.me/${sub.phone.replace(/\D/g, '')}?text=${encodeURIComponent(waMessage)}`;
-        
+
+        const waLink = `https://wa.me/${(sub.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(waMessage)}`;
+
+        // Botones de acción dinámicos
+        let actionButtonsHtml = '';
+        if (isNoRenew) {
+            actionButtonsHtml = `
+                <button type="button" onclick="renewSubscription('${sub.key}')" class="btn-sub-renew" title="Reactivar y renovar suscripción por 30 días">🔄 Renovar</button>
+                <button type="button" onclick="reuseClientData('${sub.key}')" class="btn-sub-reuse" title="Cargar los datos de este cliente en el formulario de arriba">📋 Usar Datos</button>
+                <a href="${waLink}" target="_blank" class="btn-wa">📱 WhatsApp</a>
+                <button type="button" onclick="deleteSubscription('${sub.key}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;" title="Eliminar definitivamente">🗑️</button>
+            `;
+        } else {
+            actionButtonsHtml = `
+                <button type="button" onclick="renewSubscription('${sub.key}')" class="btn-sub-renew" title="Renovar +30 días">🔄 Renovar</button>
+                <button type="button" onclick="markNoRenewSubscription('${sub.key}')" class="btn-sub-norenew" title="Marcar como No Renueva (se tacha sin borrar sus datos)">❌ No Renovar</button>
+                <a href="${waLink}" target="_blank" class="btn-wa">📱 Notificar</a>
+                <button type="button" onclick="deleteSubscription('${sub.key}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;" title="Eliminar definitivamente">🗑️</button>
+            `;
+        }
+
         tbody.innerHTML += `
-            <tr>
+            <tr class="${isNoRenew ? 'sub-row-no-renew' : ''}" id="sub-row-${sub.key}">
                 <td data-label="Cliente"><strong>${sub.client}</strong></td>
                 <td data-label="WhatsApp">${sub.phone}</td>
                 <td data-label="Plataforma">${sub.platform}</td>
                 <td data-label="Activación">${sub.start}</td>
                 <td data-label="Vencimiento">${sub.end}</td>
                 <td data-label="Estado"><span class="${badgeClass}">${statusText}</span></td>
-                <td data-label="Acción" style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <a href="${waLink}" target="_blank" class="btn-wa">📱 Notificar</a>
-                    <button onclick="deleteSubscription('${sub.key}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;" title="Eliminar">🗑️</button>
+                <td data-label="Acción" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                    ${actionButtonsHtml}
                 </td>
             </tr>
         `;
     });
+}
+
+db.ref('subscriptions').on('value', snap => {
+    allSubRecords = [];
+    snap.forEach(child => {
+        allSubRecords.push({ key: child.key, ...child.val() });
+    });
+    
+    // Ordenar: primero las activas por vencimiento más próximo, y al final las no renovadas
+    allSubRecords.sort((a, b) => {
+        const aNoRenew = a.status === 'no_renovado';
+        const bNoRenew = b.status === 'no_renovado';
+        if (aNoRenew && !bNoRenew) return 1;
+        if (!aNoRenew && bNoRenew) return -1;
+        return new Date(a.end) - new Date(b.end);
+    });
+
+    renderSubscriptionsTable();
 });
 
+window.renewSubscription = async (key) => {
+    const sub = allSubRecords.find(s => s.key === key);
+    if (!sub) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(sub.end);
+
+    // Si ya venció o estaba no_renovado, inicia hoy; si aún está vigente, suma 30 días a la fecha actual de fin
+    let newBaseDate;
+    if (sub.status === 'no_renovado' || endDate < today) {
+        newBaseDate = new Date(today);
+    } else {
+        newBaseDate = new Date(endDate);
+    }
+
+    const calcNewEnd = new Date(newBaseDate);
+    calcNewEnd.setDate(calcNewEnd.getDate() + 30);
+
+    const formatDate = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
+    const newStartStr = formatDate(today);
+    const newEndStr = formatDate(calcNewEnd);
+
+    if (!confirm(`¿Renovar la suscripción de "${sub.client}" (${sub.platform}) por 30 días más?\n\nNuevo vencimiento: ${newEndStr}`)) {
+        return;
+    }
+
+    try {
+        await db.ref('subscriptions/' + key).update({
+            status: 'active',
+            start: newStartStr,
+            end: newEndStr,
+            lastRenewedAt: new Date().toISOString()
+        });
+        alert(`¡Suscripción de ${sub.client} renovada con éxito hasta el ${newEndStr}! 🎉`);
+    } catch (e) {
+        alert('Error al renovar suscripción: ' + e.message);
+    }
+};
+
+window.markNoRenewSubscription = async (key) => {
+    const sub = allSubRecords.find(s => s.key === key);
+    if (!sub) return;
+
+    if (!confirm(`¿Marcar la suscripción de "${sub.client}" (${sub.platform}) como NO RENOVADA?\n\nEl registro se tachará visualmente de la lista para no confundirte, pero sus datos se conservarán intactos para que puedas reutilizarlos cuando el cliente vuelva.`)) {
+        return;
+    }
+
+    try {
+        await db.ref('subscriptions/' + key).update({
+            status: 'no_renovado',
+            markedNoRenewAt: new Date().toISOString()
+        });
+        alert(`Suscripción tachada como "No Renovada". Los datos de ${sub.client} se mantienen guardados.`);
+    } catch (e) {
+        alert('Error al actualizar estado: ' + e.message);
+    }
+};
+
+window.reuseClientData = (key) => {
+    const sub = allSubRecords.find(s => s.key === key);
+    if (!sub) return;
+
+    document.getElementById('sub-client').value = sub.client || '';
+    document.getElementById('sub-phone').value = sub.phone || '';
+
+    const platformSelect = document.getElementById('sub-platform-select');
+    const platformCustom = document.getElementById('sub-platform-custom');
+
+    if (platformSelect) {
+        let found = false;
+        for (let i = 0; i < platformSelect.options.length; i++) {
+            if (platformSelect.options[i].value.toLowerCase() === (sub.platform || '').toLowerCase()) {
+                platformSelect.selectedIndex = i;
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            if (platformCustom) {
+                platformCustom.style.display = 'none';
+                platformCustom.value = '';
+                platformCustom.required = false;
+            }
+        } else {
+            platformSelect.value = 'otro';
+            if (platformCustom) {
+                platformCustom.style.display = 'block';
+                platformCustom.value = sub.platform || '';
+                platformCustom.required = true;
+            }
+        }
+    }
+
+    // Reiniciar fechas para iniciar hoy
+    const subStart = document.getElementById('sub-start');
+    if (subStart) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        subStart.value = `${yyyy}-${mm}-${dd}`;
+        subStart.dispatchEvent(new Event('change'));
+    }
+
+    // Desplazarse al formulario y resaltar
+    const form = document.getElementById('sub-registration-form');
+    if (form) {
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        form.style.boxShadow = '0 0 24px var(--neon-cyan)';
+        setTimeout(() => { form.style.boxShadow = ''; }, 1600);
+    }
+};
+
 window.deleteSubscription = (key) => {
-    if (confirm('¿Estás seguro de eliminar este registro de suscripción?')) {
+    if (confirm('¿Estás seguro de eliminar permanentemente este registro de suscripción?')) {
         db.ref('subscriptions/' + key).remove();
     }
 };

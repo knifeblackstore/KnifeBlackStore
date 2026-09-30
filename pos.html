@@ -143,7 +143,110 @@
         .badge-days.warning { background: #f1c40f; }
         .badge-days.danger { background: #e74c3c; color: #fff; }
         .badge-days.expired { background: #555; color: #fff; }
+        .badge-days.no-renew { background: #475569; color: #f1f5f9; text-decoration: none !important; }
         
+        /* Fila no renovada (tachada pero preservada) */
+        .sub-row-no-renew {
+            opacity: 0.58;
+            background: rgba(239, 68, 68, 0.04) !important;
+            border-left: 3px solid #ef4444;
+        }
+        .sub-row-no-renew td:not(:last-child) {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+        .sub-row-no-renew td:not(:last-child) strong {
+            color: #cbd5e1;
+        }
+
+        /* Botones de acción en suscripciones */
+        .btn-sub-renew {
+            background: #10b981;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn-sub-renew:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .btn-sub-norenew {
+            background: #dc2626;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn-sub-norenew:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .btn-sub-reuse {
+            background: #6366f1;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn-sub-reuse:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+        }
+
+        /* Filtros de la tabla de suscripciones */
+        .sub-filter-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin: 10px 0 15px 0;
+        }
+        .sub-filter-btn {
+            background: #181820;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sub-filter-btn:hover {
+            color: #fff;
+            background: #272738;
+        }
+        .sub-filter-btn.active {
+            background: var(--neon-cyan);
+            color: #000;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+        }
+
         .btn-wa { background: #25D366; color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
         .btn-wa:hover { filter: brightness(1.1); }
         
@@ -518,15 +621,85 @@
                 <div class="sub-dashboard">
                     <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Gestión de Pantallas</h2>
                     
-                    <form class="sub-form" onsubmit="event.preventDefault(); addSubscription();">
+                    <form class="sub-form" id="sub-registration-form" onsubmit="event.preventDefault(); addSubscription();">
                         <input type="text" id="sub-client" class="fin-input" placeholder="Nombre del Cliente" required>
                         <input type="text" id="sub-phone" class="fin-input" placeholder="WhatsApp (ej. 57300...)" required>
-                        <input type="text" id="sub-platform" class="fin-input" placeholder="Plataforma (ej. Netflix)" required>
+                        
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            <select id="sub-platform-select" class="fin-input" onchange="handlePlatformChange(this)" required>
+                                <option value="">-- Seleccionar Plataforma --</option>
+                                <optgroup label="🎬 Streaming Video / Cine & Series">
+                                    <option value="Netflix">Netflix</option>
+                                    <option value="Disney+">Disney+</option>
+                                    <option value="Max (HBO Max)">Max (HBO Max)</option>
+                                    <option value="Amazon Prime Video">Amazon Prime Video</option>
+                                    <option value="Paramount+">Paramount+</option>
+                                    <option value="Apple TV+">Apple TV+</option>
+                                    <option value="Star+">Star+</option>
+                                    <option value="Crunchyroll">Crunchyroll</option>
+                                    <option value="Vix Premium">Vix Premium</option>
+                                    <option value="Universal+">Universal+</option>
+                                    <option value="Rakuten Viki">Rakuten Viki</option>
+                                    <option value="Plex Pass">Plex Pass</option>
+                                    <option value="IPTV / Magis TV">IPTV / Magis TV</option>
+                                    <option value="AnimeBox">AnimeBox</option>
+                                    <option value="MUBI">MUBI</option>
+                                    <option value="Lionsgate+">Lionsgate+</option>
+                                </optgroup>
+                                <optgroup label="🎵 Música & Audio">
+                                    <option value="Spotify Premium">Spotify Premium</option>
+                                    <option value="YouTube Premium">YouTube Premium</option>
+                                    <option value="Apple Music">Apple Music</option>
+                                    <option value="Amazon Music">Amazon Music</option>
+                                    <option value="Deezer">Deezer</option>
+                                    <option value="Tidal">Tidal</option>
+                                </optgroup>
+                                <optgroup label="⚽ Deportes">
+                                    <option value="Win Sports Online">Win Sports Online</option>
+                                    <option value="DAZN">DAZN</option>
+                                    <option value="F1 TV Pro">F1 TV Pro</option>
+                                    <option value="NBA League Pass">NBA League Pass</option>
+                                    <option value="NFL Game Pass">NFL Game Pass</option>
+                                    <option value="WWE Network">WWE Network</option>
+                                </optgroup>
+                                <optgroup label="🤖 IA, Diseño & Productividad">
+                                    <option value="Canva Pro">Canva Pro</option>
+                                    <option value="ChatGPT Plus (OpenAI)">ChatGPT Plus (OpenAI)</option>
+                                    <option value="Claude Pro">Claude Pro</option>
+                                    <option value="Midjourney">Midjourney</option>
+                                    <option value="CapCut Pro">CapCut Pro</option>
+                                    <option value="Duolingo Plus / Super">Duolingo Plus / Super</option>
+                                    <option value="Microsoft 365">Microsoft 365</option>
+                                    <option value="Google One">Google One</option>
+                                    <option value="Freepik Premium">Freepik Premium</option>
+                                </optgroup>
+                                <optgroup label="🎮 Gaming">
+                                    <option value="Xbox Game Pass">Xbox Game Pass</option>
+                                    <option value="PlayStation Plus">PlayStation Plus</option>
+                                    <option value="Nintendo Switch Online">Nintendo Switch Online</option>
+                                    <option value="Discord Nitro">Discord Nitro</option>
+                                </optgroup>
+                                <optgroup label="➕ Otras Plataformas">
+                                    <option value="otro">Otros... (Escribir plataforma)</option>
+                                </optgroup>
+                            </select>
+                            <input type="text" id="sub-platform-custom" class="fin-input" placeholder="Escribe el nombre de la plataforma..." style="display:none;">
+                        </div>
+
                         <input type="date" id="sub-start" class="fin-input" title="Fecha Activación" required>
                         <input type="date" id="sub-end" class="fin-input" title="Fecha Vencimiento (Automática)" required readonly style="background:rgba(255,255,255,0.02); color:#888;">
-                        <button type="submit" class="sub-btn">Registrar Suscripción</button>
+                        <button type="submit" class="sub-btn" id="btn-save-sub">Registrar Suscripción</button>
                     </form>
                     
+                    <!-- Filtros rápidos de suscripciones -->
+                    <div class="sub-filter-bar">
+                        <button type="button" class="sub-filter-btn active" id="sub-filter-all" onclick="setSubscriptionFilter('all')">🔘 Todas (<span id="sub-count-all">0</span>)</button>
+                        <button type="button" class="sub-filter-btn" id="sub-filter-active" onclick="setSubscriptionFilter('active')">🟢 Activas (<span id="sub-count-active">0</span>)</button>
+                        <button type="button" class="sub-filter-btn" id="sub-filter-warning" onclick="setSubscriptionFilter('warning')">⚠️ Por Vencer (≤3d) (<span id="sub-count-warning">0</span>)</button>
+                        <button type="button" class="sub-filter-btn" id="sub-filter-expired" onclick="setSubscriptionFilter('expired')">🔴 Vencidas (<span id="sub-count-expired">0</span>)</button>
+                        <button type="button" class="sub-filter-btn" id="sub-filter-norenew" onclick="setSubscriptionFilter('norenew')">🚫 No Renovadas (<span id="sub-count-norenew">0</span>)</button>
+                    </div>
+
                     <div class="sub-table-container">
                         <table class="sub-table">
                             <thead>
@@ -708,7 +881,7 @@
 
     <!-- BOOTLOADER SEGURO CLOUDFLARE -->
     <script>
-        window.appScripts = ['pos.js?v=31'];
+        window.appScripts = ['pos.js?v=32'];
         async function bootApp() {
             try {
                 const res = await fetch('/api');
