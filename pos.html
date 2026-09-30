@@ -117,7 +117,26 @@
         .fin-card.balance .val { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0,240,255,0.3); }
         
         .fin-controls { display:flex; gap:15px; background:#111; padding:20px; border-radius:12px; border:1px solid #333; align-items:center; flex-wrap:wrap;}
-        .fin-input { flex:1; min-width:150px; background:rgba(255,255,255,0.05); border:1px solid #444; color:#fff; padding:12px; border-radius:8px; outline:none; }
+        .fin-input { flex:1; min-width:150px; background:rgba(255,255,255,0.05); border:1px solid #444; color:#fff; padding:12px; border-radius:8px; outline:none; color-scheme: dark; }
+        
+        /* Asegurar contraste y fondo oscuro en menús desplegables (select, option, optgroup) */
+        select.fin-input, select {
+            color-scheme: dark !important;
+            background-color: #14141e !important;
+            color: #ffffff !important;
+        }
+        select.fin-input option, select option {
+            background-color: #181824 !important;
+            color: #ffffff !important;
+            padding: 8px 12px !important;
+        }
+        select.fin-input optgroup, select optgroup {
+            background-color: #0c0c14 !important;
+            color: var(--neon-cyan) !important;
+            font-weight: 800 !important;
+            font-style: normal !important;
+            padding: 8px 10px !important;
+        }
         .fin-btn { background:var(--neon-pink); color:#fff; border:none; padding:12px 25px; border-radius:8px; font-weight:bold; cursor:pointer; text-transform:uppercase; transition:0.3s;}
         .fin-btn:hover { filter:brightness(1.2); }
 
@@ -407,6 +426,7 @@
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
+    <meta name="color-scheme" content="dark">
     <link rel="apple-touch-icon" href="icon-192x192.png">
     <script>
         if ('serviceWorker' in navigator) {
@@ -881,7 +901,7 @@
 
     <!-- BOOTLOADER SEGURO CLOUDFLARE -->
     <script>
-        window.appScripts = ['pos.js?v=32'];
+        window.appScripts = ['pos.js?v=33'];
         async function bootApp() {
             try {
                 const res = await fetch('/api');
