@@ -117,25 +117,24 @@
         .fin-card.balance .val { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0,240,255,0.3); }
         
         .fin-controls { display:flex; gap:15px; background:#111; padding:20px; border-radius:12px; border:1px solid #333; align-items:center; flex-wrap:wrap;}
-        .fin-input { flex:1; min-width:150px; background:rgba(255,255,255,0.05); border:1px solid #444; color:#fff; padding:12px; border-radius:8px; outline:none; color-scheme: dark; }
+        .fin-input { flex:1; min-width:150px; background:rgba(255,255,255,0.05); border:1px solid #444; color:#fff; padding:12px; border-radius:8px; outline:none; }
         
-        /* Asegurar contraste y fondo oscuro en menús desplegables (select, option, optgroup) */
+        /* Asegurar contraste absoluto en opciones del menú desplegable */
         select.fin-input, select {
-            color-scheme: dark !important;
             background-color: #14141e !important;
             color: #ffffff !important;
         }
-        select.fin-input option, select option {
-            background-color: #181824 !important;
-            color: #ffffff !important;
+        select.fin-input option, select option, #sub-platform-select option {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            font-size: 0.95rem !important;
+            font-weight: 600 !important;
             padding: 8px 12px !important;
         }
-        select.fin-input optgroup, select optgroup {
-            background-color: #0c0c14 !important;
-            color: var(--neon-cyan) !important;
-            font-weight: 800 !important;
-            font-style: normal !important;
-            padding: 8px 10px !important;
+        select.fin-input option:disabled, select option:disabled, #sub-platform-select option:disabled {
+            background-color: #e2e8f0 !important;
+            color: #0369a1 !important;
+            font-weight: 900 !important;
         }
         .fin-btn { background:var(--neon-pink); color:#fff; border:none; padding:12px 25px; border-radius:8px; font-weight:bold; cursor:pointer; text-transform:uppercase; transition:0.3s;}
         .fin-btn:hover { filter:brightness(1.2); }
@@ -648,60 +647,59 @@
                         <div style="display:flex; flex-direction:column; gap:6px;">
                             <select id="sub-platform-select" class="fin-input" onchange="handlePlatformChange(this)" required>
                                 <option value="">-- Seleccionar Plataforma --</option>
-                                <optgroup label="🎬 Streaming Video / Cine & Series">
-                                    <option value="Netflix">Netflix</option>
-                                    <option value="Disney+">Disney+</option>
-                                    <option value="Max (HBO Max)">Max (HBO Max)</option>
-                                    <option value="Amazon Prime Video">Amazon Prime Video</option>
-                                    <option value="Paramount+">Paramount+</option>
-                                    <option value="Apple TV+">Apple TV+</option>
-                                    <option value="Star+">Star+</option>
-                                    <option value="Crunchyroll">Crunchyroll</option>
-                                    <option value="Vix Premium">Vix Premium</option>
-                                    <option value="Universal+">Universal+</option>
-                                    <option value="Rakuten Viki">Rakuten Viki</option>
-                                    <option value="Plex Pass">Plex Pass</option>
-                                    <option value="IPTV / Magis TV">IPTV / Magis TV</option>
-                                    <option value="AnimeBox">AnimeBox</option>
-                                    <option value="MUBI">MUBI</option>
-                                    <option value="Lionsgate+">Lionsgate+</option>
-                                </optgroup>
-                                <optgroup label="🎵 Música & Audio">
-                                    <option value="Spotify Premium">Spotify Premium</option>
-                                    <option value="YouTube Premium">YouTube Premium</option>
-                                    <option value="Apple Music">Apple Music</option>
-                                    <option value="Amazon Music">Amazon Music</option>
-                                    <option value="Deezer">Deezer</option>
-                                    <option value="Tidal">Tidal</option>
-                                </optgroup>
-                                <optgroup label="⚽ Deportes">
-                                    <option value="Win Sports Online">Win Sports Online</option>
-                                    <option value="DAZN">DAZN</option>
-                                    <option value="F1 TV Pro">F1 TV Pro</option>
-                                    <option value="NBA League Pass">NBA League Pass</option>
-                                    <option value="NFL Game Pass">NFL Game Pass</option>
-                                    <option value="WWE Network">WWE Network</option>
-                                </optgroup>
-                                <optgroup label="🤖 IA, Diseño & Productividad">
-                                    <option value="Canva Pro">Canva Pro</option>
-                                    <option value="ChatGPT Plus (OpenAI)">ChatGPT Plus (OpenAI)</option>
-                                    <option value="Claude Pro">Claude Pro</option>
-                                    <option value="Midjourney">Midjourney</option>
-                                    <option value="CapCut Pro">CapCut Pro</option>
-                                    <option value="Duolingo Plus / Super">Duolingo Plus / Super</option>
-                                    <option value="Microsoft 365">Microsoft 365</option>
-                                    <option value="Google One">Google One</option>
-                                    <option value="Freepik Premium">Freepik Premium</option>
-                                </optgroup>
-                                <optgroup label="🎮 Gaming">
-                                    <option value="Xbox Game Pass">Xbox Game Pass</option>
-                                    <option value="PlayStation Plus">PlayStation Plus</option>
-                                    <option value="Nintendo Switch Online">Nintendo Switch Online</option>
-                                    <option value="Discord Nitro">Discord Nitro</option>
-                                </optgroup>
-                                <optgroup label="➕ Otras Plataformas">
-                                    <option value="otro">Otros... (Escribir plataforma)</option>
-                                </optgroup>
+                                <option disabled>── 🎬 STREAMING CINE & SERIES ──</option>
+                                <option value="Netflix">Netflix</option>
+                                <option value="Disney+">Disney+</option>
+                                <option value="Max (HBO Max)">Max (HBO Max)</option>
+                                <option value="Amazon Prime Video">Amazon Prime Video</option>
+                                <option value="Paramount+">Paramount+</option>
+                                <option value="Apple TV+">Apple TV+</option>
+                                <option value="Star+">Star+</option>
+                                <option value="Crunchyroll">Crunchyroll</option>
+                                <option value="Vix Premium">Vix Premium</option>
+                                <option value="Universal+">Universal+</option>
+                                <option value="Rakuten Viki">Rakuten Viki</option>
+                                <option value="Plex Pass">Plex Pass</option>
+                                <option value="IPTV / Magis TV">IPTV / Magis TV</option>
+                                <option value="AnimeBox">AnimeBox</option>
+                                <option value="MUBI">MUBI</option>
+                                <option value="Lionsgate+">Lionsgate+</option>
+
+                                <option disabled>── 🎵 MÚSICA & AUDIO ──</option>
+                                <option value="Spotify Premium">Spotify Premium</option>
+                                <option value="YouTube Premium">YouTube Premium</option>
+                                <option value="Apple Music">Apple Music</option>
+                                <option value="Amazon Music">Amazon Music</option>
+                                <option value="Deezer">Deezer</option>
+                                <option value="Tidal">Tidal</option>
+
+                                <option disabled>── ⚽ DEPORTES ──</option>
+                                <option value="Win Sports Online">Win Sports Online</option>
+                                <option value="DAZN">DAZN</option>
+                                <option value="F1 TV Pro">F1 TV Pro</option>
+                                <option value="NBA League Pass">NBA League Pass</option>
+                                <option value="NFL Game Pass">NFL Game Pass</option>
+                                <option value="WWE Network">WWE Network</option>
+
+                                <option disabled>── 🤖 IA & PRODUCTIVIDAD ──</option>
+                                <option value="Canva Pro">Canva Pro</option>
+                                <option value="ChatGPT Plus (OpenAI)">ChatGPT Plus (OpenAI)</option>
+                                <option value="Claude Pro">Claude Pro</option>
+                                <option value="Midjourney">Midjourney</option>
+                                <option value="CapCut Pro">CapCut Pro</option>
+                                <option value="Duolingo Plus / Super">Duolingo Plus / Super</option>
+                                <option value="Microsoft 365">Microsoft 365</option>
+                                <option value="Google One">Google One</option>
+                                <option value="Freepik Premium">Freepik Premium</option>
+
+                                <option disabled>── 🎮 GAMING ──</option>
+                                <option value="Xbox Game Pass">Xbox Game Pass</option>
+                                <option value="PlayStation Plus">PlayStation Plus</option>
+                                <option value="Nintendo Switch Online">Nintendo Switch Online</option>
+                                <option value="Discord Nitro">Discord Nitro</option>
+
+                                <option disabled>── ➕ OTRAS PLATAFORMAS ──</option>
+                                <option value="otro">Otros... (Escribir plataforma)</option>
                             </select>
                             <input type="text" id="sub-platform-custom" class="fin-input" placeholder="Escribe el nombre de la plataforma..." style="display:none;">
                         </div>
@@ -901,7 +899,7 @@
 
     <!-- BOOTLOADER SEGURO CLOUDFLARE -->
     <script>
-        window.appScripts = ['pos.js?v=33'];
+        window.appScripts = ['pos.js?v=34'];
         async function bootApp() {
             try {
                 const res = await fetch('/api');
