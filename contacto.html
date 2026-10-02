@@ -467,18 +467,42 @@
 
     
 
-    <!-- BOOTLOADER SEGURO CLOUDFLARE -->
+    <!-- BOOTLOADER SEGURO Y RESILIENTE (CLOUDFLARE + FIREBASE) -->
     <script>
         window.appScripts = ['script.js?v=43'];
+        const FALLBACK_CONFIG = {
+            active: "firebase",
+            firebase: {
+                apiKey: "AIzaSyBIW_YWb2VlQsTArOV7fK2li4Aux8X0ucY",
+                authDomain: "knifeblackstore-1791.firebaseapp.com",
+                databaseURL: "https://knifeblackstore-1791-default-rtdb.firebaseio.com",
+                projectId: "knifeblackstore-1791",
+                storageBucket: "knifeblackstore-1791.firebasestorage.app",
+                messagingSenderId: "395101425109",
+                appId: "1:395101425109:web:905bb04ffadc1f7e38815c"
+            }
+        };
+
         async function bootApp() {
+            let data = null;
             try {
-                const res = await fetch('https://shy-cherry-ededknifeblackstore-api.knifeblackstore.workers.dev/');
-                const data = await res.json();
-                
-                if (data.active === 'firebase') {
-                    firebase.initializeApp(data.firebase);
-                } else if (data.active === 'supabase') {
-                    // Failover a Supabase (lógica a implementar en Fase 3/4)
+                const res = await fetch('/api');
+                if (res.ok) {
+                    data = await res.json();
+                }
+            } catch (err) {
+                console.warn("No se pudo obtener /api, usando configuración directa:", err);
+            }
+
+            if (!data || !data.firebase) {
+                data = FALLBACK_CONFIG;
+            }
+
+            try {
+                if (data.active === 'firebase' || data.firebase) {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(data.firebase);
+                    }
                 }
 
                 for (let src of window.appScripts) {
@@ -493,8 +517,7 @@
                 // Forzar el evento DOMContentLoaded
                 document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
             } catch(e) {
-                console.error("Error al iniciar el sistema seguro:", e);
-                alert("Error de conexión segura. Por favor recarga la página.");
+                console.error("Error al iniciar el sistema:", e);
             }
         }
         bootApp();

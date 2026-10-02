@@ -8,7 +8,30 @@
       "estilos.css",
       "update_firebase.py"
     ],
+    "rewrites": [
+      {
+        "source": "/api",
+        "destination": "/api.json"
+      }
+    ],
     "headers": [
+      {
+        "source": "api*",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
       {
         "source": "**/*.css",
         "headers": [
