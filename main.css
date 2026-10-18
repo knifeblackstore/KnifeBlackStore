@@ -907,7 +907,6 @@ footer {
     .stock-filter-bar { gap: 8px; }
     .stock-filter-btn { padding: 8px 16px; font-size: 0.85rem; }
 }
-or: #e74c3c; border: 1px solid #e74c3c; }
 
 /* Botón Añadir a Carrito en dyn-card */
 .btn-dyn-add {
@@ -1919,55 +1918,62 @@ button.pag-btn:disabled, .pag-btn:disabled {
 }
 
 /* ========================================================
-   4. CHIPS DE FILTRO POR FRANQUICIAS
+   4. CHIPS DE FILTRO POR FRANQUICIAS (ACOPLADOS Y RESPONSIVOS)
    ======================================================== */
 .franchise-chips-wrapper {
     max-width: 1200px;
-    margin: 0 auto 18px;
-    padding: 0 5%;
+    margin: 15px auto 20px auto;
+    padding: 0 15px;
+    display: flex;
+    justify-content: center;
 }
 .franchise-chips-scroll {
     display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--neon-cyan) transparent;
-}
-.franchise-chips-scroll::-webkit-scrollbar {
-    height: 4px;
-}
-.franchise-chips-scroll::-webkit-scrollbar-thumb {
-    background: var(--neon-cyan);
-    border-radius: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px 10px;
+    width: 100%;
+    max-width: 1100px;
 }
 .franchise-chip {
-    flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    width: auto !important;
+    max-width: fit-content !important;
+    flex: 0 0 auto !important;
+    padding: 7px 16px !important;
+    margin: 0 !important;
+    letter-spacing: 0.3px !important;
+    text-transform: none !important;
+    font-size: 0.85rem !important;
+    line-height: 1.2 !important;
+    height: auto !important;
+    border-radius: 50px !important;
+    cursor: pointer !important;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     color: #ccc;
-    padding: 8px 18px;
-    border-radius: 50px;
-    font-size: 0.88rem;
     font-weight: 700;
-    cursor: pointer;
-    transition: all 0.25s ease;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     white-space: nowrap;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 .franchise-chip:hover {
-    background: rgba(0, 240, 255, 0.1);
+    background: rgba(0, 240, 255, 0.12);
     border-color: var(--neon-cyan);
     color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 240, 255, 0.25);
 }
 .franchise-chip.active {
-    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
-    border-color: var(--neon-cyan);
-    color: #000;
-    font-weight: 900;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.45);
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)) !important;
+    border-color: var(--neon-cyan) !important;
+    color: #000 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 0 16px rgba(0, 240, 255, 0.5) !important;
+    transform: scale(1.05);
 }
 
 /* ========================================================
