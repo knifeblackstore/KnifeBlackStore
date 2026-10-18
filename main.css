@@ -1504,3 +1504,748 @@ button.pag-btn:disabled, .pag-btn:disabled {
     background: rgba(0, 243, 255, 0.07);
 }
 
+/* ========================================================
+   1. DRAWER CART (CARRITO LATERAL DESLIZABLE)
+   ======================================================== */
+.drawer-cart-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 99998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.drawer-cart-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.drawer-cart {
+    position: fixed;
+    top: 0; right: -420px;
+    width: 100%;
+    max-width: 400px;
+    height: 100vh;
+    height: 100dvh;
+    background: #0b0c10;
+    border-left: 1px solid var(--neon-cyan);
+    box-shadow: -10px 0 35px rgba(0, 240, 255, 0.25);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.drawer-cart.open {
+    right: 0;
+}
+
+.drawer-cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(20, 20, 28, 0.6);
+}
+.drawer-cart-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(to right, var(--neon-cyan), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.drawer-close-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    transition: color 0.2s, transform 0.2s;
+}
+.drawer-close-btn:hover {
+    color: #fff;
+    transform: rotate(90deg);
+}
+
+.drawer-cart-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+}
+.drawer-cart-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #777;
+}
+.drawer-cart-empty span {
+    font-size: 3.5rem;
+    display: block;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 10px rgba(0,240,255,0.3));
+}
+.drawer-cart-empty p {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.drawer-cart-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+}
+.drawer-cart-item:hover {
+    border-color: rgba(0, 240, 255, 0.4);
+}
+.drawer-item-info {
+    flex: 1;
+}
+.drawer-item-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #fff;
+    margin-bottom: 4px;
+}
+.drawer-item-price {
+    font-weight: 900;
+    color: var(--neon-cyan);
+    font-size: 0.9rem;
+}
+.drawer-item-del {
+    background: rgba(255, 0, 127, 0.1);
+    border: 1px solid rgba(255, 0, 127, 0.3);
+    color: var(--neon-pink);
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 900;
+    transition: 0.2s;
+}
+.drawer-item-del:hover {
+    background: var(--neon-pink);
+    color: #fff;
+}
+
+.drawer-cart-footer {
+    padding: 18px 22px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(14, 14, 20, 0.9);
+}
+.drawer-coupon-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.drawer-coupon-box input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    outline: none;
+}
+.drawer-coupon-box input:focus {
+    border-color: var(--neon-cyan);
+}
+.drawer-coupon-box button {
+    background: var(--neon-cyan);
+    color: #000;
+    border: none;
+    font-weight: 900;
+    padding: 0 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+.drawer-totals {
+    margin-bottom: 16px;
+}
+.drawer-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 6px;
+}
+.drawer-total-row.final {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #fff;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15);
+    padding-top: 10px;
+    margin-top: 10px;
+}
+.drawer-total-row.final span:last-child {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
+}
+.btn-drawer-wa {
+    width: 100%;
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 900;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(37, 211, 102, 0.35);
+    transition: 0.25s;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-drawer-wa:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(37, 211, 102, 0.55);
+}
+.btn-drawer-clear {
+    width: 100%;
+    background: transparent;
+    color: #777;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-drawer-clear:hover {
+    color: var(--neon-pink);
+    border-color: var(--neon-pink);
+}
+
+/* ========================================================
+   2. BOTTOM NAVIGATION BAR (MÓVILES)
+   ======================================================== */
+.bottom-nav-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 65px;
+    background: rgba(10, 10, 16, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0, 240, 255, 0.25);
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 99990;
+    padding: 0 6px;
+}
+@media (max-width: 768px) {
+    .bottom-nav-bar {
+        display: flex;
+    }
+    body {
+        padding-bottom: 75px;
+    }
+}
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 10px;
+    transition: color 0.2s, transform 0.15s;
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+.bottom-nav-item span.icon {
+    font-size: 1.35rem;
+    margin-bottom: 2px;
+}
+.bottom-nav-item.active,
+.bottom-nav-item:hover {
+    color: var(--neon-cyan);
+    transform: translateY(-2px);
+}
+.bottom-nav-cart-badge {
+    position: absolute;
+    top: 2px;
+    right: 8px;
+    background: #ff007f;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 900;
+    border-radius: 12px;
+    padding: 1px 6px;
+    box-shadow: 0 0 10px #ff007f;
+}
+
+/* ========================================================
+   3. BOTÓN FLOTANTE WHATSAPP MULTICANAL
+   ======================================================== */
+.floating-wa-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 6px 25px rgba(37, 211, 102, 0.45);
+    z-index: 99980;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.2);
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+.floating-wa-btn:hover {
+    transform: scale(1.08) rotate(5deg);
+    box-shadow: 0 8px 35px rgba(37, 211, 102, 0.7);
+}
+@media (max-width: 768px) {
+    .floating-wa-btn {
+        bottom: 80px;
+        right: 18px;
+        width: 54px;
+        height: 54px;
+        font-size: 28px;
+    }
+}
+.wa-multichannel-modal {
+    position: fixed;
+    bottom: 95px;
+    right: 25px;
+    width: 320px;
+    background: #0f1016;
+    border: 1px solid var(--neon-green);
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(57, 255, 20, 0.2);
+    padding: 20px;
+    z-index: 99985;
+    display: none;
+    animation: fadeInModal 0.25s ease-out;
+}
+@media (max-width: 768px) {
+    .wa-multichannel-modal {
+        bottom: 145px;
+        right: 18px;
+        width: calc(100vw - 36px);
+        max-width: 320px;
+    }
+}
+@keyframes fadeInModal {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.wa-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 10px;
+}
+.wa-modal-header h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+.wa-modal-close {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+.wa-channel-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #fff;
+    margin-bottom: 10px;
+    transition: 0.2s;
+}
+.wa-channel-item:hover {
+    background: rgba(37, 211, 102, 0.12);
+    border-color: #25D366;
+    transform: translateX(4px);
+}
+.wa-channel-icon {
+    font-size: 1.6rem;
+}
+.wa-channel-text h5 {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+}
+.wa-channel-text p {
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* ========================================================
+   4. CHIPS DE FILTRO POR FRANQUICIAS
+   ======================================================== */
+.franchise-chips-wrapper {
+    max-width: 1200px;
+    margin: 0 auto 18px;
+    padding: 0 5%;
+}
+.franchise-chips-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--neon-cyan) transparent;
+}
+.franchise-chips-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+.franchise-chips-scroll::-webkit-scrollbar-thumb {
+    background: var(--neon-cyan);
+    border-radius: 4px;
+}
+.franchise-chip {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ccc;
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+.franchise-chip:hover {
+    background: rgba(0, 240, 255, 0.1);
+    border-color: var(--neon-cyan);
+    color: #fff;
+}
+.franchise-chip.active {
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+    border-color: var(--neon-cyan);
+    color: #000;
+    font-weight: 900;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.45);
+}
+
+/* ========================================================
+   5. TARJETAS CON EFECTO 3D & INSIGNIAS DINÁMICAS
+   ======================================================== */
+.dyn-card {
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.dyn-card:hover {
+    transform: translateY(-8px) scale(1.015);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 240, 255, 0.22);
+    border-color: rgba(0, 240, 255, 0.45);
+}
+.dyn-badge-urgency {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #ff0055;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    box-shadow: 0 0 12px rgba(255, 0, 85, 0.8);
+    z-index: 5;
+    animation: pulseBadge 1.8s infinite;
+}
+@keyframes pulseBadge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+.btn-quick-view {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(10, 10, 16, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 6;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.btn-quick-view:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    border-color: var(--neon-cyan);
+}
+
+/* ========================================================
+   6. QUICK VIEW MODAL
+   ======================================================== */
+.quickview-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 99995;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.quickview-card {
+    background: #0f1016;
+    border: 1px solid var(--neon-cyan);
+    border-radius: 24px;
+    max-width: 780px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.25);
+    animation: fadeInModal 0.25s ease-out;
+}
+@media (max-width: 650px) {
+    .quickview-card {
+        grid-template-columns: 1fr;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+.quickview-img-wrap {
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #050508;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.quickview-img-wrap img {
+    max-width: 100%;
+    max-height: 380px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+.quickview-img-wrap:hover img {
+    transform: scale(1.12);
+}
+.quickview-details h2 {
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin: 0 0 10px;
+    color: #fff;
+}
+.quickview-price {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--neon-cyan);
+    margin-bottom: 15px;
+}
+.quickview-meta {
+    font-size: 0.9rem;
+    color: #aaa;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 12px;
+}
+.quickview-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ========================================================
+   7. PASO A PASO DE COMPRA (INDEX)
+   ======================================================== */
+.trust-steps-section {
+    max-width: 1200px;
+    margin: 50px auto 30px;
+    padding: 0 5%;
+}
+.trust-steps-title {
+    text-align: center;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 35px;
+    background: linear-gradient(to right, var(--neon-cyan), var(--neon-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.trust-steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+.trust-step-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 24px;
+    text-align: center;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    position: relative;
+}
+.trust-step-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 10px 30px rgba(0, 240, 255, 0.15);
+}
+.trust-step-num {
+    position: absolute;
+    top: 12px; left: 16px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.15);
+    font-size: 1.8rem;
+}
+.trust-step-icon {
+    font-size: 2.6rem;
+    margin-bottom: 12px;
+    display: block;
+}
+.trust-step-card h4 {
+    font-size: 1.1rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+    color: #fff;
+}
+.trust-step-card p {
+    font-size: 0.88rem;
+    color: #999;
+    line-height: 1.5;
+}
+
+/* ========================================================
+   8. PANEL Y BOTÓN EDITAR NOSOTROS (ADMIN)
+   ======================================================== */
+.btn-admin-edit-nosotros {
+    position: fixed;
+    top: 90px;
+    right: 25px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-weight: 900;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(243, 156, 18, 0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.25s;
+}
+.btn-admin-edit-nosotros:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(243, 156, 18, 0.6);
+}
+.admin-nosotros-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.admin-nosotros-card {
+    background: #0f1016;
+    border: 1px solid #f39c12;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+    position: relative;
+}
+.admin-nosotros-card h3 {
+    color: #f39c12;
+    margin: 0 0 20px;
+    font-size: 1.3rem;
+}
+.admin-nosotros-field {
+    margin-bottom: 16px;
+}
+.admin-nosotros-field label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #aaa;
+    margin-bottom: 6px;
+}
+.admin-nosotros-field input,
+.admin-nosotros-field textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    outline: none;
+    box-sizing: border-box;
+}
+.admin-nosotros-field input:focus,
+.admin-nosotros-field textarea:focus {
+    border-color: #f39c12;
+}
+
+

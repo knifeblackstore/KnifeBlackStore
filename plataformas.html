@@ -246,7 +246,10 @@
             <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
             knifeblackstore
         </a>
-        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+        <div style="display:flex; align-items:center; gap:12px; margin-left:auto;">
+            <button onclick="window.openDrawerCart()" style="background:transparent; border:1px solid var(--neon-cyan); color:#fff; padding:6px 14px; border-radius:20px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.85rem;" aria-label="Abrir Carrito">
+                🛒 Carrito <span class="nav-cart-badge" style="display:none; background:#ff007f; color:#fff; border-radius:10px; padding:1px 6px; font-size:0.75rem;">0</span>
+            </button>
             <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
             <button class="menu-toggle" aria-label="Abrir menú">
                 <span></span><span></span><span></span>
@@ -329,8 +332,107 @@
         </div>
     </footer>
 
-    
+    <!-- DRAWER CART (CARRITO LATERAL DESLIZABLE) -->
+    <div id="drawer-cart-overlay" class="drawer-cart-overlay" onclick="window.closeDrawerCart()"></div>
+    <aside id="drawer-cart" class="drawer-cart" aria-label="Carrito de compras">
+        <div class="drawer-cart-header">
+            <h3>🛒 Carrito Gamer</h3>
+            <button class="drawer-close-btn" onclick="window.closeDrawerCart()" aria-label="Cerrar carrito">✕</button>
+        </div>
+        <div class="drawer-cart-body">
+            <div id="drawer-cart-empty" class="drawer-cart-empty">
+                <span>📦</span>
+                <p>Tu carrito está vacío.<br>¡Explora nuestras figuras, pines y pantallas de streaming!</p>
+            </div>
+            <div id="drawer-cart-items"></div>
+        </div>
+        <div class="drawer-cart-footer">
+            <div class="drawer-coupon-box">
+                <input type="text" id="cart-discount-code" placeholder="CÓDIGO DE CUPÓN...">
+                <button onclick="applyDiscountCode()">Aplicar</button>
+            </div>
+            <div class="drawer-totals">
+                <div class="drawer-total-row">
+                    <span>Subtotal:</span>
+                    <span id="drawer-subtotal">$0</span>
+                </div>
+                <div class="drawer-total-row" id="drawer-discount-row" style="display:none; color:var(--neon-green);">
+                    <span>Descuento:</span>
+                    <span id="drawer-discount">-$0</span>
+                </div>
+                <div class="drawer-total-row final">
+                    <span>TOTAL:</span>
+                    <span id="drawer-total">$0</span>
+                </div>
+            </div>
+            <button id="drawer-checkout-btn" class="btn-drawer-wa" onclick="checkoutCart()">
+                📲 Pedir por WhatsApp
+            </button>
+            <button onclick="checkoutWompi()" style="width:100%; background:linear-gradient(45deg, #150080, #E6007E); color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:900; text-transform:uppercase; font-size:0.85rem; margin-bottom:8px;">
+                💳 Pago Seguro Nequi/Wompi
+            </button>
+            <button class="btn-drawer-clear" onclick="clearCart()">
+                Vaciar Carrito
+            </button>
+        </div>
+    </aside>
 
+    <!-- BARRA DE NAVEGACIÓN INFERIOR PARA MÓVILES -->
+    <nav class="bottom-nav-bar" aria-label="Navegación móvil">
+        <a href="index.html" class="bottom-nav-item">
+            <span class="icon">🏠</span>
+            <span>Inicio</span>
+        </a>
+        <a href="figuras.html" class="bottom-nav-item">
+            <span class="icon">🎎</span>
+            <span>Figuras</span>
+        </a>
+        <a href="productos.html" class="bottom-nav-item">
+            <span class="icon">📌</span>
+            <span>Pines</span>
+        </a>
+        <a href="plataformas.html" class="bottom-nav-item active">
+            <span class="icon">📺</span>
+            <span>Streaming</span>
+        </a>
+        <button class="bottom-nav-item" onclick="window.toggleDrawerCart()" aria-label="Ver carrito">
+            <span class="icon">🛒</span>
+            <span>Carrito</span>
+            <span class="bottom-nav-cart-badge" style="display:none;">0</span>
+        </button>
+    </nav>
+
+    <!-- BOTÓN Y MENÚ FLOTANTE WHATSAPP MULTICANAL -->
+    <div class="floating-wa-btn" onclick="window.toggleWhatsAppMenu()" title="Atención por WhatsApp">
+        💬
+    </div>
+    <div id="wa-multichannel-modal" class="wa-multichannel-modal">
+        <div class="wa-modal-header">
+            <h4>💬 Atención Knifeblack</h4>
+            <button class="wa-modal-close" onclick="window.closeWhatsAppMenu()">✕</button>
+        </div>
+        <a href="https://wa.me/573108014660?text=Hola%2C%20quisiera%20consultar%20por%20figuras%20o%20pines%20coleccionables." target="_blank" class="wa-channel-item" onclick="window.closeWhatsAppMenu()">
+            <span class="wa-channel-icon">🎎</span>
+            <div class="wa-channel-text">
+                <h5>Figuras & Pines</h5>
+                <p>Consultar disponibilidad o reservas</p>
+            </div>
+        </a>
+        <a href="https://wa.me/573108014660?text=Hola%2C%20quisiera%20comprar%20o%20renovar%20una%20pantalla%20de%20streaming." target="_blank" class="wa-channel-item" onclick="window.closeWhatsAppMenu()">
+            <span class="wa-channel-icon">📺</span>
+            <div class="wa-channel-text">
+                <h5>Streaming</h5>
+                <p>Comprar o renovar suscripción</p>
+            </div>
+        </a>
+        <a href="https://wa.me/573108014660?text=Hola%2C%20quisiera%20consultar%20el%20estado%20de%20mi%20casillero%20o%20un%20env%C3%ADo." target="_blank" class="wa-channel-item" onclick="window.closeWhatsAppMenu()">
+            <span class="wa-channel-icon">📦</span>
+            <div class="wa-channel-text">
+                <h5>Casillero & Envíos</h5>
+                <p>Estado de compras acumuladas o despacho</p>
+            </div>
+        </a>
+    </div>
     <!-- BOOTLOADER SEGURO Y RESILIENTE (CLOUDFLARE + FIREBASE) -->
     <script>
         window.appScripts = ['script.js?v=43'];

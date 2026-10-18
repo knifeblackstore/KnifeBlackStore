@@ -26,6 +26,10 @@
       ".read": true,
       ".write": true
     },
+    "siteEdits": {
+      ".read": true,
+      ".write": "auth != null && (auth.token.email === 'knifeblackstore@gmail.com' || root.child('usersDB').child(auth.uid).child('role').val() === 'admin' || root.child('usersDB').child(auth.uid).child('permissions').child('content').val() === true)"
+    },
     "sales": {
       ".read": true,
       ".write": true

@@ -257,6 +257,7 @@ const updateNav = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     updateNav();
+    initEditableContent();
     
     // Auto-redirect if already logged in and visiting login page (except for Admin creating users)
     const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -277,28 +278,99 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- SISTEMA DE EDICIÓN EN VIVO (SOLO ADMIN) ---
 const initEditableContent = () => {
-    const user = JSON.parse(localStorage.getItem('currentUser'));
+    const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const authUser = (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) ? firebase.auth().currentUser : null;
+    const isAdmin = (user && (user.role === 'admin' || (user.email && user.email.toLowerCase() === 'knifeblackstore@gmail.com'))) ||
+                    (authUser && authUser.email && authUser.email.toLowerCase() === 'knifeblackstore@gmail.com');
+    
     const editableElements = document.querySelectorAll('.editable-content');
     
-    db.ref('siteEdits').once('value').then(snap => {
-        const savedEdits = snap.val() || {};
-        editableElements.forEach(el => {
-            if (savedEdits[el.id]) {
-                el.innerText = savedEdits[el.id];
-            }
-            
-            if (user && user.role === 'admin') {
-                el.setAttribute('contenteditable', 'true');
-                el.style.borderBottom = '1px dashed #3498db';
-                el.title = 'Puedes hacer clic para editar este texto (Admin)';
-                el.addEventListener('blur', (e) => {
-                    db.ref('siteEdits/' + e.target.id).set(e.target.innerText);
-                    const prevBg = e.target.style.backgroundColor;
-                    e.target.style.backgroundColor = '#dff9fb';
-                    setTimeout(() => e.target.style.backgroundColor = prevBg, 400);
-                });
+    if (typeof db !== 'undefined') {
+        db.ref('siteEdits').on('value', snap => {
+            const savedEdits = snap.val() || {};
+            editableElements.forEach(el => {
+                if (savedEdits[el.id] !== undefined) {
+                    el.innerText = savedEdits[el.id];
+                }
+                
+                if (isAdmin) {
+                    el.setAttribute('contenteditable', 'true');
+                    el.style.borderBottom = '2px dashed #f39c12';
+                    el.title = 'Clic para editar este texto (Admin)';
+                    el.onblur = (e) => {
+                        db.ref('siteEdits/' + e.target.id).set(e.target.innerText.trim()).then(() => {
+                            const prevBg = e.target.style.backgroundColor;
+                            e.target.style.backgroundColor = 'rgba(57, 255, 20, 0.25)';
+                            setTimeout(() => e.target.style.backgroundColor = prevBg, 500);
+                        });
+                    };
+                }
+            });
+
+            const adminBtn = document.getElementById('btn-admin-edit-nosotros');
+            if (adminBtn) {
+                adminBtn.style.display = isAdmin ? 'flex' : 'none';
             }
         });
+    }
+};
+
+window.openAdminNosotrosModal = () => {
+    const modal = document.getElementById('admin-nosotros-modal');
+    if (!modal) return;
+    
+    if (typeof db !== 'undefined') {
+        db.ref('siteEdits').once('value').then(snap => {
+            const data = snap.val() || {};
+            const setVal = (id, fallbackElId) => {
+                const input = document.getElementById('edit-' + id);
+                if (input) {
+                    input.value = data[id] || document.getElementById(fallbackElId)?.innerText?.trim() || '';
+                }
+            };
+            setVal('nosotros-inicio-title', 'nosotros-inicio-title');
+            setVal('nosotros-inicio-text', 'nosotros-inicio-text');
+            setVal('nosotros-evolucion-title', 'nosotros-evolucion-title');
+            setVal('nosotros-evolucion-text', 'nosotros-evolucion-text');
+            setVal('nosotros-quote', 'nosotros-quote');
+            setVal('nosotros-futuro-title', 'nosotros-futuro-title');
+            setVal('nosotros-futuro-text', 'nosotros-futuro-text');
+            modal.style.display = 'flex';
+        });
+    } else {
+        modal.style.display = 'flex';
+    }
+};
+
+window.closeAdminNosotrosModal = () => {
+    const modal = document.getElementById('admin-nosotros-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.saveAdminNosotros = () => {
+    if (typeof db === 'undefined') return;
+    const btn = document.getElementById('btn-save-nosotros');
+    if (btn) btn.innerText = 'Guardando...';
+
+    const updates = {
+        'nosotros-inicio-title': document.getElementById('edit-nosotros-inicio-title')?.value?.trim() || '',
+        'nosotros-inicio-text': document.getElementById('edit-nosotros-inicio-text')?.value?.trim() || '',
+        'nosotros-evolucion-title': document.getElementById('edit-nosotros-evolucion-title')?.value?.trim() || '',
+        'nosotros-evolucion-text': document.getElementById('edit-nosotros-evolucion-text')?.value?.trim() || '',
+        'nosotros-quote': document.getElementById('edit-nosotros-quote')?.value?.trim() || '',
+        'nosotros-futuro-title': document.getElementById('edit-nosotros-futuro-title')?.value?.trim() || '',
+        'nosotros-futuro-text': document.getElementById('edit-nosotros-futuro-text')?.value?.trim() || ''
+    };
+
+    db.ref('siteEdits').update(updates).then(() => {
+        if (btn) btn.innerText = '¡Guardado! ✅';
+        setTimeout(() => {
+            if (btn) btn.innerText = '💾 Guardar Cambios en Nosotros';
+            window.closeAdminNosotrosModal();
+        }, 1000);
+    }).catch(err => {
+        alert('Error al guardar: ' + err.message);
+        if (btn) btn.innerText = '💾 Guardar Cambios en Nosotros';
     });
 };
 
@@ -616,81 +688,116 @@ document.addEventListener('DOMContentLoaded', () => {
     // initInventoryPanel(); // Disabled in favor of pos.html
 });
 
-// --- SISTEMA DE CARRITO GAMER ---
+// --- SISTEMA DE CARRITO GAMER (DRAWER MODERNO + COMPATIBILIDAD) ---
 let cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
+
+window.openDrawerCart = () => {
+    const drawer = document.getElementById('drawer-cart');
+    const overlay = document.getElementById('drawer-cart-overlay');
+    if (drawer) drawer.classList.add('open');
+    if (overlay) overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeDrawerCart = () => {
+    const drawer = document.getElementById('drawer-cart');
+    const overlay = document.getElementById('drawer-cart-overlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+};
+
+window.toggleDrawerCart = () => {
+    const drawer = document.getElementById('drawer-cart');
+    if (drawer && drawer.classList.contains('open')) {
+        window.closeDrawerCart();
+    } else {
+        window.openDrawerCart();
+    }
+};
+
+window.toggleWhatsAppMenu = () => {
+    const menu = document.getElementById('wa-multichannel-modal');
+    if (!menu) return;
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+};
+
+window.closeWhatsAppMenu = () => {
+    const menu = document.getElementById('wa-multichannel-modal');
+    if (menu) menu.style.display = 'none';
+};
 
 const updateCartUI = () => {
     cart = JSON.parse(localStorage.getItem('shoppingCart')) || [];
-    let widget = document.getElementById('cart-widget');
-    if (!widget) {
-        widget = document.createElement('div');
-        widget.id = 'cart-widget';
-        widget.style.cssText = 'position:fixed; bottom:20px; right:20px; background:rgba(10,10,15,0.95); backdrop-filter:blur(20px); color:white; padding:25px; border-radius:24px; border:1px solid var(--neon-cyan); box-shadow:0 0 30px rgba(0,240,255,0.2); display:none; z-index:9999; min-width:300px;';
-        document.body.appendChild(widget);
-    }
-window.updateCartUI = updateCartUI;
+    
+    // 1. Actualizar badges de conteo en la barra de navegación y barra inferior
+    const count = cart.length;
+    document.querySelectorAll('.bottom-nav-cart-badge, .nav-cart-badge').forEach(badge => {
+        badge.innerText = count;
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
+    });
 
-    if (cart.length > 0) {
-        widget.style.display = 'block';
-        let itemsHTML = cart.map((it, idx) => `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:5px;">
-                <span style="font-size:0.9rem;">${it.name}</span>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span style="color:var(--neon-cyan); font-weight:900;">$${it.price.toLocaleString()}</span>
-                    <button onclick="removeFromCart(${idx})" style="background:none; border:none; color:var(--neon-pink); cursor:pointer; font-weight:900;">X</button>
-                </div>
-            </div>
-        `).join('');
+    // 2. Actualizar Drawer Cart si está presente en el DOM
+    const drawerItems = document.getElementById('drawer-cart-items');
+    const drawerEmpty = document.getElementById('drawer-cart-empty');
+    const drawerSubtotal = document.getElementById('drawer-subtotal');
+    const drawerDiscountRow = document.getElementById('drawer-discount-row');
+    const drawerDiscount = document.getElementById('drawer-discount');
+    const drawerTotal = document.getElementById('drawer-total');
+    const drawerCheckoutBtn = document.getElementById('drawer-checkout-btn');
 
-        let total = cart.reduce((sum, it) => sum + it.price, 0);
-        let subtotalHTML = '';
-        
-        if (window.currentDiscount) {
-            let descAmount = window.currentDiscount.type === 'percentage' 
-                ? total * (window.currentDiscount.amount / 100) 
-                : window.currentDiscount.amount;
-            
-            if (descAmount > total) descAmount = total;
-            
-            subtotalHTML = `
-                <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:5px; color:#aaa;">
-                    <span>Subtotal:</span>
-                    <span>$${total.toLocaleString()}</span>
+    if (drawerItems) {
+        if (count === 0) {
+            drawerItems.innerHTML = '';
+            if (drawerEmpty) drawerEmpty.style.display = 'block';
+            if (drawerSubtotal) drawerSubtotal.innerText = '$0';
+            if (drawerDiscountRow) drawerDiscountRow.style.display = 'none';
+            if (drawerTotal) drawerTotal.innerText = '$0';
+            if (drawerCheckoutBtn) {
+                drawerCheckoutBtn.disabled = true;
+                drawerCheckoutBtn.style.opacity = '0.5';
+                drawerCheckoutBtn.style.cursor = 'not-allowed';
+            }
+        } else {
+            if (drawerEmpty) drawerEmpty.style.display = 'none';
+            if (drawerCheckoutBtn) {
+                drawerCheckoutBtn.disabled = false;
+                drawerCheckoutBtn.style.opacity = '1';
+                drawerCheckoutBtn.style.cursor = 'pointer';
+            }
+
+            let subtotal = cart.reduce((sum, it) => sum + (it.price || 0), 0);
+            let total = subtotal;
+            let descAmount = 0;
+
+            if (window.currentDiscount) {
+                descAmount = window.currentDiscount.type === 'percentage' 
+                    ? total * (window.currentDiscount.amount / 100) 
+                    : window.currentDiscount.amount;
+                if (descAmount > total) descAmount = total;
+                total -= descAmount;
+                if (drawerDiscountRow) drawerDiscountRow.style.display = 'flex';
+                if (drawerDiscount) drawerDiscount.innerText = `-$${descAmount.toLocaleString()}`;
+            } else {
+                if (drawerDiscountRow) drawerDiscountRow.style.display = 'none';
+            }
+
+            if (drawerSubtotal) drawerSubtotal.innerText = `$${subtotal.toLocaleString()}`;
+            if (drawerTotal) drawerTotal.innerText = `$${total.toLocaleString()}`;
+
+            drawerItems.innerHTML = cart.map((it, idx) => `
+                <div class="drawer-cart-item">
+                    <div class="drawer-item-info">
+                        <div class="drawer-item-name">${it.name}</div>
+                        <div class="drawer-item-price">$${(it.price || 0).toLocaleString()}</div>
+                    </div>
+                    <button class="drawer-item-del" onclick="removeFromCart(${idx})" title="Eliminar del carrito">✕</button>
                 </div>
-                <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:10px; color:#39ff14;">
-                    <span>Cupón (${window.currentDiscount.code}):</span>
-                    <span>-$${descAmount.toLocaleString()}</span>
-                </div>
-            `;
-            total -= descAmount;
+            `).join('');
         }
-
-        let discountSection = `
-            <div style="display:flex; gap:10px; margin-bottom:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px; align-items:center; width:100%; box-sizing:border-box;">
-                <input type="text" id="cart-discount-code" placeholder="CÓDIGO DE CUPÓN..." style="flex:1; width:100%; min-width:120px; padding:12px; border-radius:8px; border:1px solid var(--neon-cyan); background:rgba(0,240,255,0.05); color:#fff; text-transform:uppercase; font-weight:bold; font-size:0.9rem; outline:none; box-sizing:border-box;">
-                <button onclick="applyDiscountCode()" style="background:var(--neon-cyan); color:black; border:none; padding:12px 20px; border-radius:8px; font-weight:900; cursor:pointer; flex-shrink:0; width:auto; max-width:120px; text-transform:uppercase; font-size:0.9rem;">Aplicar</button>
-            </div>
-            ${window.currentDiscount ? `<button onclick="removeDiscountCode()" style="background:none; border:none; color:var(--neon-pink); text-decoration:underline; cursor:pointer; font-size:0.8rem; margin-top:-10px; margin-bottom:15px; display:block; width:100%; text-align:right;">Quitar cupón</button>` : ''}
-        `;
-
-        widget.innerHTML = `
-            <h3 style="margin-bottom:20px; text-transform:uppercase; letter-spacing:2px; font-weight:900; background:linear-gradient(to right, var(--neon-cyan), var(--neon-pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">🛒 Carrito Gamer</h3>
-            <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; padding-right:5px;">${itemsHTML}</div>
-            ${discountSection}
-            ${subtotalHTML}
-            <div style="display:flex; justify-content:space-between; font-weight:900; font-size:1.2rem; margin-bottom:20px; border-top:1px solid var(--neon-cyan); padding-top:15px;">
-                <span>TOTAL:</span>
-                <span style="color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">$${total.toLocaleString()}</span>
-            </div>
-            <button onclick="checkoutCart()" style="background:linear-gradient(45deg, #25D366, #128C7E); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">📲 Pedir por WhatsApp</button>
-            <button onclick="checkoutWompi()" style="background:linear-gradient(45deg, #150080, #E6007E); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">💳 Pago Seguro Nequi/Wompi</button>
-            <button onclick="clearCart()" style="background:rgba(255,0,127,0.1); color:var(--neon-pink); border:1px solid var(--neon-pink); padding:10px; border-radius:12px; width:100%; cursor:pointer; font-size:0.8rem; font-weight:900;">Vaciar Carrito</button>
-        `;
-    } else {
-        widget.style.display = 'none';
-        window.currentDiscount = null; // Quitar descuento si se vacía
     }
 };
+window.updateCartUI = updateCartUI;
 
 window.addToCart = (btn) => {
     const card = btn.closest('.item, .platform-card, .product-card');
@@ -702,16 +809,8 @@ window.addToCart = (btn) => {
         cart.push({ name, price });
         localStorage.setItem('shoppingCart', JSON.stringify(cart));
         
-        // Efecto visual de agregado
-        const originalText = btn.innerText;
-        btn.innerText = '¡AÑADIDO! ✨';
-        btn.style.borderColor = 'var(--neon-green)';
-        setTimeout(() => {
-            btn.innerText = originalText;
-            btn.style.borderColor = '';
-        }, 1000);
-        
         updateCartUI();
+        window.openDrawerCart();
     }
 };
 
@@ -721,17 +820,7 @@ window.addCatalogToCart = (name, price, id) => {
     cart.push({ name: name || 'Producto', price: numPrice, id: id || '' });
     localStorage.setItem('shoppingCart', JSON.stringify(cart));
     updateCartUI();
-    
-    if (window.event && window.event.target) {
-        const btn = window.event.target;
-        const origText = btn.innerText;
-        btn.innerText = '¡AÑADIDO! ✨';
-        btn.style.borderColor = 'var(--neon-green)';
-        setTimeout(() => {
-            btn.innerText = origText;
-            btn.style.borderColor = '';
-        }, 1000);
-    }
+    window.openDrawerCart();
 };
 
 window.removeFromCart = (i) => {
@@ -744,6 +833,7 @@ window.clearCart = () => {
     if(confirm('¿Deseas vaciar el carrito?')) {
         cart = [];
         localStorage.removeItem('shoppingCart');
+        window.currentDiscount = null;
         updateCartUI();
     }
 };
@@ -753,7 +843,6 @@ window.checkoutCart = () => {
     
     // VERIFICACIÓN DE SESIÓN
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    
     
     let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
     let total = subtotal;

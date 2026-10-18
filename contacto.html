@@ -225,9 +225,12 @@
             <img src="logo.png" alt="Logo Knifeblack Store" style="height:40px;">
             knifeblackstore
         </a>
-        <div style="display:flex; align-items:center; gap:15px; margin-left:auto;">
+        <div style="display:flex; align-items:center; gap:12px; margin-left:auto;">
+            <button onclick="window.openDrawerCart()" style="background:transparent; border:1px solid var(--neon-cyan); color:#fff; padding:6px 14px; border-radius:20px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.85rem;" aria-label="Abrir Carrito">
+                🛒 Carrito <span class="nav-cart-badge" style="display:none; background:#ff007f; color:#fff; border-radius:10px; padding:1px 6px; font-size:0.75rem;">0</span>
+            </button>
             <a href="login.html" style="background:#e74c3c; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin:0;">Acceder</a>
-            <button class="menu-toggle" aria-label="Abrir men�">
+            <button class="menu-toggle" aria-label="Abrir menú">
                 <span></span><span></span><span></span>
             </button>
         </div>
@@ -236,19 +239,19 @@
             <div class="dropdown">
                 <a href="index.html#servicios">Servicios</a>
                 <div class="dropdown-content">
-                    <a href="productos.html">Pines Met�licos</a>
-                    <a href="figuras.html">Figuras de Acci�n</a>
+                    <a href="productos.html">Pines Metálicos</a>
+                    <a href="figuras.html">Figuras de Acción</a>
                     <a href="plataformas.html">Plataformas de Streaming</a>
                     <a href="nosotros.html">Sobre Knifeblackstore</a>
                 </div>
             </div>
-            <a href="contacto.html">Cont�ctanos</a>
+            <a href="contacto.html">Contáctanos</a>
         </div>
     </nav>
 
     <header class="contact-hero">
         <h1 style="font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">Ponte en Contacto</h1>
-        <p style="color: #888; font-size: 1.1rem; margin-top: 10px;">Estamos aqu� para ayudarte a llevar tus ideas al siguiente nivel.</p>
+        <p style="color: #888; font-size: 1.1rem; margin-top: 10px;">Estamos aquí para ayudarte a llevar tus ideas al siguiente nivel.</p>
     </header>
 
     <main class="contact-container">
@@ -276,7 +279,7 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 </span>
                 <div class="info-text">
-                    <h3 class="editable-content" id="contact-loc-title">Ubicaci�n</h3>
+                    <h3 class="editable-content" id="contact-loc-title">Ubicación</h3>
                     <p class="editable-content" id="contact-loc-text">Pereira, Risaralda</p>
                 </div>
             </div>
@@ -297,12 +300,12 @@
                     <input type="text" id="nombre" placeholder="Tu Nombre Completo" required>
                 </div>
                 <div class="form-group">
-                    <input type="email" id="email" placeholder="Tu Correo Electr�nico" required>
+                    <input type="email" id="email" placeholder="Tu Correo Electrónico" required>
                 </div>
                 <div class="form-group">
-                    <textarea id="mensaje" placeholder="�En qu� podemos ayudarte?" rows="6"></textarea>
+                    <textarea id="mensaje" placeholder="¿En qué podemos ayudarte?" rows="6"></textarea>
                 </div>
-                <button type="submit">Enviar Mensaje Ne�n</button>
+                <button type="submit">Enviar Mensaje Neón</button>
             </form>
         </section>
     </main>
@@ -337,7 +340,7 @@
 
             list.innerHTML = '';
             if (ids.length === 0) {
-                list.innerHTML = '<div id="msg-empty">No hay mensajes a�n. 📨</div>';
+                list.innerHTML = '<div id="msg-empty">No hay mensajes aún. 📨</div>';
                 badge.style.display = 'none';
                 return;
             }
@@ -349,7 +352,7 @@
                 if (isNew) unread++;
 
                 const initial   = (m.name  || 'A')[0].toUpperCase();
-                const name      = m.name   || 'An�nimo';
+                const name      = m.name   || 'Anónimo';
                 const email     = m.email  || 'Sin correo';
                 const preview   = (m.message || '').replace(/\n/g, ' ').substring(0, 60) + ((m.message||'').length > 60 ? '...' : '');
                 const dateStr   = new Date(m.date).toLocaleString('es-CO', {
@@ -386,7 +389,7 @@
                         </div>
                         <div class="reply-box" id="reply-${id}">
                             <label>Respuesta para ${name} (${email})</label>
-                            <textarea id="reply-text-${id}" placeholder="Escribe tu respuesta aqu�...">${m.reply || ''}</textarea>
+                            <textarea id="reply-text-${id}" placeholder="Escribe tu respuesta aquí...">${m.reply || ''}</textarea>
                             <button class="reply-send-btn" id="reply-btn-${id}" onclick="sendReply('${id}', '${email}', '${name}')">📤 Enviar Respuesta</button>
                         </div>
                     </div>
@@ -445,14 +448,14 @@
                 })
                 .catch(err => {
                     console.error('EmailJS error:', err);
-                    alert('❌ Error al enviar. Revisa la configuraci�n de EmailJS.');
+                    alert('❌ Error al enviar. Revisa la configuración de EmailJS.');
                     btn.disabled = false;
                     btn.textContent = '📤 Enviar Respuesta';
                 });
         };
 
         window.deleteMsg = (id) => {
-            if (confirm('�Eliminar este mensaje permanentemente?')) {
+            if (confirm('¿Eliminar este mensaje permanentemente?')) {
                 firebase.database().ref('contact_messages/' + id).remove();
             }
         };
@@ -462,11 +465,109 @@
     <footer style="background: #000; padding: 40px 5%; border-top: 1px solid var(--glass-border);">
         <p style="text-align:center; font-size:14px; color:#444;">
             Creado por Mauricio Valencia
-        </p>
     </footer>
 
-    
+    <!-- DRAWER CART (CARRITO LATERAL DESLIZABLE) -->
+    <div id="drawer-cart-overlay" class="drawer-cart-overlay" onclick="window.closeDrawerCart()"></div>
+    <aside id="drawer-cart" class="drawer-cart" aria-label="Carrito de compras">
+        <div class="drawer-cart-header">
+            <h3>🛒 Carrito Gamer</h3>
+            <button class="drawer-close-btn" onclick="window.closeDrawerCart()" aria-label="Cerrar carrito">✕</button>
+        </div>
+        <div class="drawer-cart-body">
+            <div id="drawer-cart-empty" class="drawer-cart-empty">
+                <span>📦</span>
+                <p>Tu carrito está vacío.<br>¡Explora nuestras figuras, pines y pantallas de streaming!</p>
+            </div>
+            <div id="drawer-cart-items"></div>
+        </div>
+        <div class="drawer-cart-footer">
+            <div class="drawer-coupon-box">
+                <input type="text" id="cart-discount-code" placeholder="CÓDIGO DE CUPÓN...">
+                <button onclick="applyDiscountCode()">Aplicar</button>
+            </div>
+            <div class="drawer-totals">
+                <div class="drawer-total-row">
+                    <span>Subtotal:</span>
+                    <span id="drawer-subtotal">$0</span>
+                </div>
+                <div class="drawer-total-row" id="drawer-discount-row" style="display:none; color:var(--neon-green);">
+                    <span>Descuento:</span>
+                    <span id="drawer-discount">-$0</span>
+                </div>
+                <div class="drawer-total-row final">
+                    <span>TOTAL:</span>
+                    <span id="drawer-total">$0</span>
+                </div>
+            </div>
+            <button id="drawer-checkout-btn" class="btn-drawer-wa" onclick="checkoutCart()">
+                📲 Pedir por WhatsApp
+            </button>
+            <button onclick="checkoutWompi()" style="width:100%; background:linear-gradient(45deg, #150080, #E6007E); color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:900; text-transform:uppercase; font-size:0.85rem; margin-bottom:8px;">
+                💳 Pago Seguro Nequi/Wompi
+            </button>
+            <button class="btn-drawer-clear" onclick="clearCart()">
+                Vaciar Carrito
+            </button>
+        </div>
+    </aside>
 
+    <!-- BARRA DE NAVEGACIÓN INFERIOR PARA MÓVILES -->
+    <nav class="bottom-nav-bar" aria-label="Navegación móvil">
+        <a href="index.html" class="bottom-nav-item">
+            <span class="icon">🏠</span>
+            <span>Inicio</span>
+        </a>
+        <a href="figuras.html" class="bottom-nav-item">
+            <span class="icon">🎎</span>
+            <span>Figuras</span>
+        </a>
+        <a href="productos.html" class="bottom-nav-item">
+            <span class="icon">📌</span>
+            <span>Pines</span>
+        </a>
+        <a href="plataformas.html" class="bottom-nav-item">
+            <span class="icon">📺</span>
+            <span>Streaming</span>
+        </a>
+        <button class="bottom-nav-item" onclick="window.toggleDrawerCart()" aria-label="Ver carrito">
+            <span class="icon">🛒</span>
+            <span>Carrito</span>
+            <span class="bottom-nav-cart-badge" style="display:none;">0</span>
+        </button>
+    </nav>
+
+    <!-- BOTÓN Y MENÚ FLOTANTE WHATSAPP MULTICANAL -->
+    <div class="floating-wa-btn" onclick="window.toggleWhatsAppMenu()" title="Atención por WhatsApp">
+        💬
+    </div>
+    <div id="wa-multichannel-modal" class="wa-multichannel-modal">
+        <div class="wa-modal-header">
+            <h4>💬 Atención Knifeblack</h4>
+            <button class="wa-modal-close" onclick="window.closeWhatsAppMenu()">✕</button>
+        </div>
+        <a href="https://wa.me/573108014660?text=Hola%2C%20quisiera%20consultar%20por%20figuras%20o%20pines%20coleccionables." target="_blank" class="wa-channel-item" onclick="window.closeWhatsAppMenu()">
+            <span class="wa-channel-icon">🎎</span>
+            <div class="wa-channel-text">
+                <h5>Figuras & Pines</h5>
+                <p>Consultar disponibilidad o reservas</p>
+            </div>
+        </a>
+        <a href="https://wa.me/573108014660?text=Hola%2C%20quisiera%20comprar%20o%20renovar%20una%20pantalla%20de%20streaming." target="_blank" class="wa-channel-item" onclick="window.closeWhatsAppMenu()">
+            <span class="wa-channel-icon">📺</span>
+            <div class="wa-channel-text">
+                <h5>Streaming</h5>
+                <p>Comprar o renovar suscripción</p>
+            </div>
+        </a>
+        <a href="https://wa.me/573108014660?text=Hola%2C%20quisiera%20consultar%20el%20estado%20de%20mi%20casillero%20o%20un%20env%C3%ADo." target="_blank" class="wa-channel-item" onclick="window.closeWhatsAppMenu()">
+            <span class="wa-channel-icon">📦</span>
+            <div class="wa-channel-text">
+                <h5>Casillero & Envíos</h5>
+                <p>Estado de compras acumuladas o despacho</p>
+            </div>
+        </a>
+    </div>
     <!-- BOOTLOADER SEGURO Y RESILIENTE (CLOUDFLARE + FIREBASE) -->
     <script>
         window.appScripts = ['script.js?v=43'];

@@ -269,12 +269,22 @@ function renderCatalog(resetPage = true) {
             galleryHTML = `<div class="dyn-thumbs">${thumbs}</div>`;
         }
 
+        const urgencyBadge = (inStock && p.stock === 1) 
+            ? `<span class="dyn-badge-urgency">🔥 ¡Última unidad!</span>` 
+            : (inStock && p.condition && p.condition.toLowerCase() === 'nuevo' 
+                ? `<span class="dyn-badge-urgency" style="background:#00f0ff; color:#000; box-shadow:0 0 10px #00f0ff;">✨ NUEVO</span>` 
+                : '');
+
+        const quickViewBtn = `<button class="btn-quick-view" onclick="window.openQuickView('${p.id}', event)">👁️ Vista Rápida</button>`;
+
         const waMsg = encodeURIComponent(`Hola! Quiero consultar disponibilidad de: ${p.name}`);
         const waLink = `https://wa.me/573108014660?text=${waMsg}`;
         const outOfStockAction = `<a href="${waLink}" target="_blank" class="btn-wa-stock">📲 Consultar por WhatsApp</a>`;
 
         grid.innerHTML += `
             <article class="dyn-card">
+                ${urgencyBadge}
+                ${quickViewBtn}
                 <div class="dyn-card-gallery">
                       <img src="${images[0]}" class="dyn-card-img" id="main-img-${p.id || Math.random().toString(36).slice(2)}" onclick="window.handleImageClick(this.src, event)" ${images.length > 1 ? `ontouchstart="window.handleSwipeStart(event)" ontouchend="window.handleSwipeEnd(event, '${p.id}')"` : ''}>
                       ${images.length > 1 ? `<button class="carousel-btn prev-btn" onclick="window.nextProductImage('${p.id}', -1, event)">&#10094;</button><button class="carousel-btn next-btn" onclick="window.nextProductImage('${p.id}', 1, event)">&#10095;</button>` : ''}
@@ -302,6 +312,57 @@ function renderCatalog(resetPage = true) {
         `;
     });
 }
+
+// Quick View Modal
+window.openQuickView = (productId, event) => {
+    if (event) event.stopPropagation();
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+    
+    const modal = document.getElementById('quickview-modal');
+    if (!modal) return;
+    
+    const img = product.image || (Array.isArray(product.images) && product.images[0]) || 'https://via.placeholder.com/300?text=Sin+Foto';
+    const typeText = product.type === 'figura' ? 'Figura de Acción' : 'Pin Metálico';
+    
+    document.getElementById('qv-img').src = img;
+    document.getElementById('qv-title').innerText = product.name;
+    document.getElementById('qv-price').innerText = `$${(product.price || 0).toLocaleString()}`;
+    document.getElementById('qv-type').innerText = typeText;
+    document.getElementById('qv-franchise').innerText = product.franchise || 'General';
+    document.getElementById('qv-manufacturer').innerText = product.manufacturer || 'Estándar';
+    document.getElementById('qv-condition').innerText = product.condition || 'Excelente';
+    document.getElementById('qv-stock').innerText = product.stock > 0 ? `${product.stock} disponibles` : 'Agotado';
+    
+    const actions = document.getElementById('qv-actions');
+    if (actions) {
+        const waMsg = encodeURIComponent(`Hola! Me interesa la ${typeText}: ${product.name} ($${(product.price || 0).toLocaleString()})`);
+        actions.innerHTML = `
+            ${product.stock > 0 
+                ? `<button class="btn-dyn-add" style="width:100%; padding:14px; font-size:1rem;" onclick="window.addCatalogToCart('${product.name}', ${product.price}, '${product.id}'); window.closeQuickView();">🛒 Añadir al Carrito</button>` 
+                : ''
+            }
+            <a href="https://wa.me/573108014660?text=${waMsg}" target="_blank" class="btn-drawer-wa" style="text-decoration:none;">📲 Consultar por WhatsApp</a>
+        `;
+    }
+    modal.style.display = 'flex';
+};
+
+window.closeQuickView = () => {
+    const modal = document.getElementById('quickview-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+// Chips de Franquicias
+window.filterByFranchiseChip = (franchiseName, btn) => {
+    document.querySelectorAll('.franchise-chip').forEach(c => c.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const franchiseSelect = document.getElementById('cat-franchise');
+    if (franchiseSelect) {
+        franchiseSelect.value = franchiseName === 'all' ? '' : franchiseName;
+        renderCatalog(true);
+    }
+};
 
 // Event Listeners para filtros
 ['cat-search', 'cat-franchise', 'cat-sort', 'cat-max-price'].forEach(id => {
