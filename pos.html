@@ -641,7 +641,19 @@
                     <h2 style="color:var(--neon-cyan); margin:0; text-transform:uppercase; letter-spacing:2px; font-size:1.8rem;">Gestión de Pantallas</h2>
                     
                     <form class="sub-form" id="sub-registration-form" onsubmit="event.preventDefault(); addSubscription();">
-                        <input type="text" id="sub-client" class="fin-input" placeholder="Nombre del Cliente" required>
+                        <!-- Selector de Historial de Clientes para Reutilización Rápida -->
+                        <div style="grid-column: 1/-1; display:flex; gap:10px; align-items:center; background: rgba(0,240,255,0.06); padding:10px 16px; border-radius:10px; border:1px solid rgba(0,240,255,0.25);">
+                            <span style="font-size:1.2rem;">👥</span>
+                            <label for="sub-client-history-select" style="color:var(--neon-cyan); font-weight:bold; font-size:0.85rem; white-space:nowrap;">Cliente Frecuente / Historial:</label>
+                            <select id="sub-client-history-select" class="fin-input" style="flex:1; margin:0;" onchange="window.selectHistoricalClient(this.value)">
+                                <option value="">-- Seleccionar cliente del historial para no llenar datos de nuevo --</option>
+                            </select>
+                        </div>
+
+                        <div style="position:relative;">
+                            <input type="text" id="sub-client" class="fin-input" placeholder="Nombre del Cliente" list="sub-client-datalist" autocomplete="off" required oninput="window.handleClientInput(this.value)">
+                            <datalist id="sub-client-datalist"></datalist>
+                        </div>
                         <input type="text" id="sub-phone" class="fin-input" placeholder="WhatsApp (ej. 57300...)" required>
                         
                         <div style="display:flex; flex-direction:column; gap:6px;">
@@ -704,7 +716,17 @@
                             <input type="text" id="sub-platform-custom" class="fin-input" placeholder="Escribe el nombre de la plataforma..." style="display:none;">
                         </div>
 
-                        <input type="date" id="sub-start" class="fin-input" title="Fecha Activación" required>
+                        <!-- Selector de Duración (1 Mes vs 1 Año) -->
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <select id="sub-duration" class="fin-input" onchange="window.updateSubscriptionDates()" title="Seleccionar periodo">
+                                <option value="1m">📅 1 Mes (30 días)</option>
+                                <option value="1y">🌟 1 Año de Suscripción (365 días)</option>
+                                <option value="3m">📅 3 Meses (90 días)</option>
+                                <option value="6m">📅 6 Meses (180 días)</option>
+                            </select>
+                        </div>
+
+                        <input type="date" id="sub-start" class="fin-input" title="Fecha Activación" required onchange="window.updateSubscriptionDates()">
                         <input type="date" id="sub-end" class="fin-input" title="Fecha Vencimiento (Automática)" required readonly style="background:rgba(255,255,255,0.02); color:#888;">
                         <button type="submit" class="sub-btn" id="btn-save-sub">Registrar Suscripción</button>
                     </form>
@@ -725,6 +747,7 @@
                                     <th>Cliente</th>
                                     <th>WhatsApp</th>
                                     <th>Plataforma</th>
+                                    <th>Duración</th>
                                     <th>Activación</th>
                                     <th>Vencimiento</th>
                                     <th>Estado</th>
@@ -751,6 +774,10 @@
                             <option value="">-- Seleccionar Tipo --</option>
                             <option value="figura">Figura de Acción</option>
                             <option value="pin">Pin Metálico</option>
+                            <option value="pulsera">Pulsera de Anime</option>
+                            <option value="manilla">Manilla de Anime</option>
+                            <option value="esclava">Esclava de Anime</option>
+                            <option value="accesorio">Accesorio General</option>
                         </select>
                         <select id="inv-condition" class="fin-input" required>
                             <option value="Nuevo">Nuevo</option>
@@ -793,10 +820,15 @@
                     
                     <div class="search-container" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
                         <input type="text" id="inv-search" placeholder="Buscar producto por nombre..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; color: #fff; outline: none; min-width: 200px;">
-                        <select id="inv-filter-type" style="padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; color: #fff; outline: none;">
+                        <select id="inv-filter-type" onchange="renderCatalogTable()" style="padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: #111; color: #fff; outline: none;">
                             <option value="all">Todos los tipos</option>
                             <option value="figura">Figuras de Acción</option>
-                            <option value="pin">Pines Metálicos</option>
+                            <option value="pin_all">📌 Pines Metálicos y Accesorios (Todos)</option>
+                            <option value="pin">Solo Pines Metálicos</option>
+                            <option value="pulsera">Pulseras de Anime</option>
+                            <option value="manilla">Manillas de Anime</option>
+                            <option value="esclava">Esclavas de Anime</option>
+                            <option value="accesorio">Otros Accesorios</option>
                         </select>
                     </div>
 

@@ -541,6 +541,144 @@ window.setSubscriptionFilter = (filterType) => {
     const activeBtn = document.getElementById('sub-filter-' + filterType);
     if (activeBtn) activeBtn.classList.add('active');
     renderSubscriptionsTable();
+    populateClientHistory();
+};
+
+
+// ============================================================================
+// FUNCIONES DE HISTORIAL DE CLIENTES Y DURACIÓN (1 AÑO / 1 MES)
+// ============================================================================
+
+window.updateSubscriptionDates = () => {
+    const subStart = document.getElementById('sub-start');
+    const subEnd = document.getElementById('sub-end');
+    const durationSelect = document.getElementById('sub-duration');
+    if (!subStart || !subEnd) return;
+    if (!subStart.value) return;
+
+    const parts = subStart.value.split('-');
+    if (parts.length !== 3) return;
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+
+    const dur = durationSelect ? durationSelect.value : '1m';
+    if (dur === '1y') {
+        // 1 Año completo
+        d.setFullYear(d.getFullYear() + 1);
+    } else if (dur === '6m') {
+        d.setMonth(d.getMonth() + 6);
+    } else if (dur === '3m') {
+        d.setMonth(d.getMonth() + 3);
+    } else {
+        // 1m default: 30 días
+        d.setDate(d.getDate() + 30);
+    }
+
+    const ey = d.getFullYear();
+    const em = String(d.getMonth() + 1).padStart(2, '0');
+    const ed = String(d.getDate()).padStart(2, '0');
+    subEnd.value = `${ey}-${em}-${ed}`;
+};
+
+function populateClientHistory() {
+    const select = document.getElementById('sub-client-history-select');
+    const datalist = document.getElementById('sub-client-datalist');
+    if (!select && !datalist) return;
+
+    // Extraer pares únicos de cliente y teléfono (conservando el más reciente)
+    const clientMap = new Map();
+    allSubRecords.forEach(s => {
+        const clientName = (s.client || '').trim();
+        const phone = (s.phone || '').trim();
+        if (clientName) {
+            const keyLower = clientName.toLowerCase();
+            if (!clientMap.has(keyLower)) {
+                clientMap.set(keyLower, {
+                    client: clientName,
+                    phone: phone,
+                    platform: s.platform || '',
+                    duration: s.duration || '1m'
+                });
+            }
+        }
+    });
+
+    if (select) {
+        select.innerHTML = '<option value="">-- Seleccionar cliente del historial para no llenar datos de nuevo --</option>';
+        clientMap.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.client;
+            opt.textContent = `${item.client} (${item.phone || 'Sin WhatsApp'}) - ${item.platform || 'Streaming'}`;
+            select.appendChild(opt);
+        });
+    }
+
+    if (datalist) {
+        datalist.innerHTML = '';
+        clientMap.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.client;
+            opt.label = item.phone ? `WhatsApp: ${item.phone}` : '';
+            datalist.appendChild(opt);
+        });
+    }
+}
+
+window.selectHistoricalClient = (clientName) => {
+    if (!clientName) return;
+    const found = allSubRecords.find(s => (s.client || '').trim().toLowerCase() === clientName.trim().toLowerCase());
+    if (found) {
+        document.getElementById('sub-client').value = found.client || '';
+        document.getElementById('sub-phone').value = found.phone || '';
+        
+        if (found.duration && document.getElementById('sub-duration')) {
+            document.getElementById('sub-duration').value = found.duration;
+            window.updateSubscriptionDates();
+        }
+
+        const platformSelect = document.getElementById('sub-platform-select');
+        const platformCustom = document.getElementById('sub-platform-custom');
+        if (platformSelect && found.platform) {
+            let pFound = false;
+            for (let i = 0; i < platformSelect.options.length; i++) {
+                if (platformSelect.options[i].value.toLowerCase() === found.platform.toLowerCase()) {
+                    platformSelect.selectedIndex = i;
+                    pFound = true;
+                    break;
+                }
+            }
+            if (pFound && platformCustom) {
+                platformCustom.style.display = 'none';
+                platformCustom.value = '';
+                platformCustom.required = false;
+            } else if (!pFound && platformCustom) {
+                platformSelect.value = 'otro';
+                platformCustom.style.display = 'block';
+                platformCustom.value = found.platform;
+                platformCustom.required = true;
+            }
+        }
+    }
+};
+
+window.handleClientInput = (val) => {
+    if (!val) return;
+    const trimmed = val.trim().toLowerCase();
+    const found = allSubRecords.find(s => (s.client || '').trim().toLowerCase() === trimmed);
+    if (found) {
+        const phoneInput = document.getElementById('sub-phone');
+        if (phoneInput && !phoneInput.value) {
+            phoneInput.value = found.phone || '';
+        }
+        const histSelect = document.getElementById('sub-client-history-select');
+        if (histSelect) {
+            for (let i = 0; i < histSelect.options.length; i++) {
+                if (histSelect.options[i].value.toLowerCase() === trimmed) {
+                    histSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
 };
 
 window.addSubscription = async () => {
@@ -554,6 +692,8 @@ window.addSubscription = async () => {
         platform = platformCustom ? platformCustom.value.trim() : '';
     }
 
+    const durationSelect = document.getElementById('sub-duration');
+    const duration = durationSelect ? durationSelect.value : '1m';
     const start = document.getElementById('sub-start').value;
     const end = document.getElementById('sub-end').value;
     
@@ -582,6 +722,7 @@ window.addSubscription = async () => {
         client,
         phone,
         platform,
+        duration,
         start,
         end,
         status: 'active',
@@ -605,6 +746,14 @@ window.addSubscription = async () => {
             const dd = String(today.getDate()).padStart(2, '0');
             subStart.value = `${yyyy}-${mm}-${dd}`;
             subStart.dispatchEvent(new Event('change'));
+        if (document.getElementById('sub-duration')) {
+            document.getElementById('sub-duration').value = '1m';
+        }
+        if (typeof window.updateSubscriptionDates === 'function') {
+            window.updateSubscriptionDates();
+        }
+        const histSelect = document.getElementById('sub-client-history-select');
+        if (histSelect) histSelect.value = '';
         }
         alert('Suscripción registrada con éxito. 🎉');
     }).catch(e => alert('Error al registrar suscripción: ' + e.message));
@@ -668,7 +817,7 @@ function renderSubscriptionsTable() {
     });
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#888;">No hay suscripciones en esta categoría.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#888;">No hay suscripciones en esta categoría.</td></tr>`;
         return;
     }
 
@@ -731,6 +880,13 @@ function renderSubscriptionsTable() {
                 <td data-label="Cliente"><strong>${sub.client}</strong></td>
                 <td data-label="WhatsApp">${sub.phone}</td>
                 <td data-label="Plataforma">${sub.platform}</td>
+                <td data-label="Duración">${
+                    sub.duration === '1y' 
+                        ? '<span style="background:linear-gradient(135deg, #f1c40f, #e67e22); color:#000; font-weight:bold; padding:4px 9px; border-radius:12px; font-size:0.75rem; display:inline-block; box-shadow:0 0 10px rgba(241,196,15,0.4);">🌟 1 AÑO</span>' 
+                        : (sub.duration === '6m' ? '<span style="background:#8e44ad; color:#fff; padding:3px 7px; border-radius:10px; font-size:0.75rem;">6 Meses</span>'
+                        : (sub.duration === '3m' ? '<span style="background:#2980b9; color:#fff; padding:3px 7px; border-radius:10px; font-size:0.75rem;">3 Meses</span>'
+                        : '<span style="color:#aaa; font-size:0.8rem;">1 Mes</span>'))
+                }</td>
                 <td data-label="Activación">${sub.start}</td>
                 <td data-label="Vencimiento">${sub.end}</td>
                 <td data-label="Estado"><span class="${badgeClass}">${statusText}</span></td>
@@ -776,8 +932,17 @@ window.renewSubscription = async (key) => {
         newBaseDate = new Date(endDate);
     }
 
+    const isOneYear = sub.duration === '1y';
     const calcNewEnd = new Date(newBaseDate);
-    calcNewEnd.setDate(calcNewEnd.getDate() + 30);
+    if (isOneYear) {
+        calcNewEnd.setFullYear(calcNewEnd.getFullYear() + 1);
+    } else if (sub.duration === '6m') {
+        calcNewEnd.setMonth(calcNewEnd.getMonth() + 6);
+    } else if (sub.duration === '3m') {
+        calcNewEnd.setMonth(calcNewEnd.getMonth() + 3);
+    } else {
+        calcNewEnd.setDate(calcNewEnd.getDate() + 30);
+    }
 
     const formatDate = (d) => {
         const y = d.getFullYear();
@@ -789,7 +954,7 @@ window.renewSubscription = async (key) => {
     const newStartStr = formatDate(today);
     const newEndStr = formatDate(calcNewEnd);
 
-    if (!confirm(`¿Renovar la suscripción de "${sub.client}" (${sub.platform}) por 30 días más?\n\nNuevo vencimiento: ${newEndStr}`)) {
+    if (!confirm(`¿Renovar la suscripción de "${sub.client}" (${sub.platform}) por ${isOneYear ? '1 AÑO COMPLETO (365 días)' : '30 días'} más?\n\nNuevo vencimiento: ${newEndStr}`)) {
         return;
     }
 
@@ -831,6 +996,10 @@ window.reuseClientData = (key) => {
 
     document.getElementById('sub-client').value = sub.client || '';
     document.getElementById('sub-phone').value = sub.phone || '';
+    if (sub.duration && document.getElementById('sub-duration')) {
+        document.getElementById('sub-duration').value = sub.duration;
+        window.updateSubscriptionDates();
+    }
 
     const platformSelect = document.getElementById('sub-platform-select');
     const platformCustom = document.getElementById('sub-platform-custom');
@@ -899,21 +1068,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const dd = String(today.getDate()).padStart(2, '0');
         subStart.value = `${yyyy}-${mm}-${dd}`;
         
-        const updateEnd = () => {
-            if(!subStart.value) return;
-            // Parse local date strictly avoiding timezone shifts
-            const parts = subStart.value.split('-');
-            const d = new Date(parts[0], parts[1] - 1, parts[2]);
-            d.setDate(d.getDate() + 30); // 30 days of subscription
-            
-            const ey = d.getFullYear();
-            const em = String(d.getMonth() + 1).padStart(2, '0');
-            const ed = String(d.getDate()).padStart(2, '0');
-            subEnd.value = `${ey}-${em}-${ed}`;
-        };
-        
-        updateEnd();
-        subStart.addEventListener('change', updateEnd);
+        if (typeof window.updateSubscriptionDates === 'function') {
+            window.updateSubscriptionDates();
+        }
+        subStart.addEventListener('change', () => {
+            if (typeof window.updateSubscriptionDates === 'function') {
+                window.updateSubscriptionDates();
+            }
+        });
     }
 });
 
@@ -1201,7 +1363,14 @@ window.renderCatalogTable = () => {
     const filtered = allCatalogProducts.filter(pObj => {
         const p = pObj.val;
         const matchesQuery = p.name.toLowerCase().includes(query) || (p.franchise || '').toLowerCase().includes(query);
-        const matchesType = typeFilter === 'all' || p.type === typeFilter;
+        let matchesType = true;
+        if (typeFilter === 'all') {
+            matchesType = true;
+        } else if (typeFilter === 'pin_all') {
+            matchesType = ['pin', 'pulsera', 'manilla', 'esclava', 'accesorio'].includes(p.type);
+        } else {
+            matchesType = p.type === typeFilter;
+        }
         return matchesQuery && matchesType;
     });
     
@@ -1219,7 +1388,16 @@ window.renderCatalogTable = () => {
             <tr>
                 <td>${imgTag}</td>
                 <td>${p.name}</td>
-                <td><span class="badge-days" style="background:#3498db;color:#fff;">${p.type.toUpperCase()}</span></td>
+                <td><span class="badge-days" style="background:${
+        {
+            figura: '#3498db',
+            pin: '#9b59b6',
+            pulsera: '#e91e63',
+            manilla: '#ff9800',
+            esclava: '#00bcd4',
+            accesorio: '#4caf50'
+        }[p.type] || '#3498db'
+    };color:#fff;">${(p.type || '').toUpperCase()}</span></td>
                 <td style="color:var(--neon-cyan); font-weight:bold;">${p.price.toLocaleString()}</td>
                 <td>${p.stock}</td>
                 <td style="display:flex; gap:10px;">

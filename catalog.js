@@ -2,7 +2,31 @@
 
 let allProducts = [];
 let currentFilterType = document.body.getAttribute('data-catalog-type') || 'pin';
-let currentStockFilter = 'all'; // 'all' | 'in_stock' | 'out_stock'
+let currentStockFilter = 'all';
+
+// Helpers para categorización y tipos de productos
+function matchesCatalogType(productType, catalogType) {
+    if (catalogType === 'figura') {
+        return productType === 'figura';
+    }
+    if (catalogType === 'pin') {
+        return ['pin', 'pulsera', 'manilla', 'esclava', 'accesorio'].includes(productType);
+    }
+    return productType === catalogType;
+}
+
+function getProductTypeLabel(type) {
+    const labels = {
+        figura: 'Figura de Acción',
+        pin: 'Pin Metálico',
+        pulsera: 'Pulsera de Anime',
+        manilla: 'Manilla de Anime',
+        esclava: 'Esclava de Anime',
+        accesorio: 'Accesorio de Anime'
+    };
+    return labels[type] || (type === 'figura' ? 'Figura de Acción' : 'Pin Metálico');
+}
+ // 'all' | 'in_stock' | 'out_stock'
 
 // Lightbox Logic
 window.openLightbox = (src) => {
@@ -66,7 +90,7 @@ function renderSpecialSelection() {
     const container = document.getElementById('special-selection');
     if (!container) return;
     
-    let filtered = allProducts.filter(p => p.type === currentFilterType);
+    let filtered = allProducts.filter(p => matchesCatalogType(p.type, currentFilterType));
     // Shuffle
     filtered = filtered.sort(() => 0.5 - Math.random()).slice(0, 2);
     
@@ -189,7 +213,7 @@ function renderCatalog(resetPage = true) {
     const maxPrice = parseFloat(document.getElementById('cat-max-price').value);
 
     // Filtrar
-    let filtered = allProducts.filter(p => p.type === currentFilterType);
+    let filtered = allProducts.filter(p => matchesCatalogType(p.type, currentFilterType));
     
     if (search) {
         filtered = filtered.filter(p => 
@@ -254,7 +278,7 @@ function renderCatalog(resetPage = true) {
             ? `<span class="dyn-badge-stock badge-in-stock">EN STOCK (${p.stock})</span>` 
             : `<span class="dyn-badge-stock badge-out-stock">AGOTADO</span>`;
         
-        const typeText = p.type === 'figura' ? 'Figura de Acción' : 'Pin Metálico';
+        const typeText = getProductTypeLabel(p.type);
 
         // Build image gallery (support multiple images)
         const images = Array.isArray(p.images) && p.images.length > 0
@@ -323,7 +347,7 @@ window.openQuickView = (productId, event) => {
     if (!modal) return;
     
     const img = product.image || (Array.isArray(product.images) && product.images[0]) || 'https://via.placeholder.com/300?text=Sin+Foto';
-    const typeText = product.type === 'figura' ? 'Figura de Acción' : 'Pin Metálico';
+    const typeText = getProductTypeLabel(product.type);
     
     document.getElementById('qv-img').src = img;
     document.getElementById('qv-title').innerText = product.name;
@@ -620,7 +644,7 @@ function renderOffers() {
     }
 
     const isAdmin = checkIsAdminUser();
-    const categoryName = currentFilterType === 'pin' ? 'Pin' : 'Figura';
+    const categoryName = currentFilterType === 'pin' ? 'Pin / Accesorio' : 'Figura';
 
     grid.innerHTML = allOffers.map(offer => {
         const isSoldOut = Boolean(offer.isSoldOut);
