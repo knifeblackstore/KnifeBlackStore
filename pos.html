@@ -645,7 +645,7 @@
                         <div style="grid-column: 1/-1; display:flex; gap:10px; align-items:center; background: rgba(0,240,255,0.06); padding:10px 16px; border-radius:10px; border:1px solid rgba(0,240,255,0.25);">
                             <span style="font-size:1.2rem;">👥</span>
                             <label for="sub-client-history-select" style="color:var(--neon-cyan); font-weight:bold; font-size:0.85rem; white-space:nowrap;">Cliente Frecuente / Historial:</label>
-                            <select id="sub-client-history-select" class="fin-input" style="flex:1; margin:0;" onchange="window.selectHistoricalClient(this.value)">
+                            <select id="sub-client-history-select" class="fin-input" style="flex:1; margin:0;" onfocus="window.populateClientHistory()" onclick="window.populateClientHistory()" onchange="window.selectHistoricalClient(this.value)">
                                 <option value="">-- Seleccionar cliente del historial para no llenar datos de nuevo --</option>
                             </select>
                         </div>
@@ -931,7 +931,7 @@
 
     <!-- BOOTLOADER SEGURO Y RESILIENTE (CLOUDFLARE + FIREBASE) -->
     <script>
-        window.appScripts = ['pos.js?v=34'];
+        window.appScripts = ['pos.js?v=35'];
         const FALLBACK_CONFIG = {
             active: "firebase",
             firebase: {

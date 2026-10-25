@@ -541,6 +541,7 @@ window.setSubscriptionFilter = (filterType) => {
     const activeBtn = document.getElementById('sub-filter-' + filterType);
     if (activeBtn) activeBtn.classList.add('active');
     renderSubscriptionsTable();
+    window.populateClientHistory();
     populateClientHistory();
 };
 
@@ -562,7 +563,7 @@ window.updateSubscriptionDates = () => {
 
     const dur = durationSelect ? durationSelect.value : '1m';
     if (dur === '1y') {
-        // 1 Año completo
+        // 1 Año completo (365 días)
         d.setFullYear(d.getFullYear() + 1);
     } else if (dur === '6m') {
         d.setMonth(d.getMonth() + 6);
@@ -579,68 +580,112 @@ window.updateSubscriptionDates = () => {
     subEnd.value = `${ey}-${em}-${ed}`;
 };
 
-function populateClientHistory() {
+window.populateClientHistory = () => {
     const select = document.getElementById('sub-client-history-select');
     const datalist = document.getElementById('sub-client-datalist');
     if (!select && !datalist) return;
 
-    // Extraer pares únicos de cliente y teléfono (conservando el más reciente)
     const clientMap = new Map();
-    allSubRecords.forEach(s => {
-        const clientName = (s.client || '').trim();
-        const phone = (s.phone || '').trim();
-        if (clientName) {
-            const keyLower = clientName.toLowerCase();
-            if (!clientMap.has(keyLower)) {
-                clientMap.set(keyLower, {
-                    client: clientName,
-                    phone: phone,
-                    platform: s.platform || '',
-                    duration: s.duration || '1m'
-                });
+
+    // 1. Extraer de todas las suscripciones en Firebase
+    if (Array.isArray(allSubRecords)) {
+        allSubRecords.forEach(s => {
+            const clientName = (s.client || s.customer || s.nombre || s.name || '').trim();
+            const phone = (s.phone || s.telefono || s.tel || s.whatsapp || '').trim();
+            if (clientName) {
+                const keyLower = clientName.toLowerCase();
+                if (!clientMap.has(keyLower)) {
+                    clientMap.set(keyLower, {
+                        client: clientName,
+                        phone: phone,
+                        platform: s.platform || '',
+                        duration: s.duration || '1m'
+                    });
+                }
             }
+        });
+    }
+
+    // 2. Extraer de caché persistente en localStorage
+    try {
+        const cached = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+        if (Array.isArray(cached)) {
+            cached.forEach(c => {
+                const name = (c.client || '').trim();
+                if (name && !clientMap.has(name.toLowerCase())) {
+                    clientMap.set(name.toLowerCase(), c);
+                }
+            });
         }
-    });
+    } catch (e) {
+        console.warn('Error leyendo knifeblack_client_history:', e);
+    }
+
+    // Guardar en localStorage
+    try {
+        const toSave = Array.from(clientMap.values());
+        localStorage.setItem('knifeblack_client_history', JSON.stringify(toSave));
+    } catch (e) {}
+
+    // Ordenar alfabéticamente
+    const sortedClients = Array.from(clientMap.values()).sort((a, b) => a.client.localeCompare(b.client));
 
     if (select) {
+        const curVal = select.value;
         select.innerHTML = '<option value="">-- Seleccionar cliente del historial para no llenar datos de nuevo --</option>';
-        clientMap.forEach(item => {
+        sortedClients.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.client;
             opt.textContent = `${item.client} (${item.phone || 'Sin WhatsApp'}) - ${item.platform || 'Streaming'}`;
             select.appendChild(opt);
         });
+        if (curVal) select.value = curVal;
     }
 
     if (datalist) {
         datalist.innerHTML = '';
-        clientMap.forEach(item => {
+        sortedClients.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.client;
             opt.label = item.phone ? `WhatsApp: ${item.phone}` : '';
             datalist.appendChild(opt);
         });
     }
-}
+};
 
 window.selectHistoricalClient = (clientName) => {
     if (!clientName) return;
-    const found = allSubRecords.find(s => (s.client || '').trim().toLowerCase() === clientName.trim().toLowerCase());
+    const nameLower = clientName.trim().toLowerCase();
+
+    let found = allSubRecords.find(s => ((s.client || s.customer || s.nombre || s.name || '').trim().toLowerCase()) === nameLower);
+    
+    if (!found) {
+        try {
+            const cached = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+            found = cached.find(c => ((c.client || '').trim().toLowerCase()) === nameLower);
+        } catch (e) {}
+    }
+
     if (found) {
-        document.getElementById('sub-client').value = found.client || '';
-        document.getElementById('sub-phone').value = found.phone || '';
-        
-        if (found.duration && document.getElementById('sub-duration')) {
-            document.getElementById('sub-duration').value = found.duration;
+        const clientInput = document.getElementById('sub-client');
+        const phoneInput = document.getElementById('sub-phone');
+        const durationSelect = document.getElementById('sub-duration');
+        const platformSelect = document.getElementById('sub-platform-select');
+        const platformCustom = document.getElementById('sub-platform-custom');
+
+        if (clientInput) clientInput.value = found.client || found.customer || found.name || clientName;
+        if (phoneInput) phoneInput.value = found.phone || found.telefono || found.tel || found.whatsapp || '';
+
+        if (found.duration && durationSelect) {
+            durationSelect.value = found.duration;
             window.updateSubscriptionDates();
         }
 
-        const platformSelect = document.getElementById('sub-platform-select');
-        const platformCustom = document.getElementById('sub-platform-custom');
-        if (platformSelect && found.platform) {
+        const targetPlatform = found.platform || '';
+        if (platformSelect && targetPlatform) {
             let pFound = false;
             for (let i = 0; i < platformSelect.options.length; i++) {
-                if (platformSelect.options[i].value.toLowerCase() === found.platform.toLowerCase()) {
+                if (platformSelect.options[i].value.toLowerCase() === targetPlatform.toLowerCase()) {
                     platformSelect.selectedIndex = i;
                     pFound = true;
                     break;
@@ -653,7 +698,7 @@ window.selectHistoricalClient = (clientName) => {
             } else if (!pFound && platformCustom) {
                 platformSelect.value = 'otro';
                 platformCustom.style.display = 'block';
-                platformCustom.value = found.platform;
+                platformCustom.value = targetPlatform;
                 platformCustom.required = true;
             }
         }
@@ -663,11 +708,18 @@ window.selectHistoricalClient = (clientName) => {
 window.handleClientInput = (val) => {
     if (!val) return;
     const trimmed = val.trim().toLowerCase();
-    const found = allSubRecords.find(s => (s.client || '').trim().toLowerCase() === trimmed);
+    let found = allSubRecords.find(s => ((s.client || s.customer || s.nombre || s.name || '').trim().toLowerCase()) === trimmed);
+    if (!found) {
+        try {
+            const cached = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+            found = cached.find(c => ((c.client || '').trim().toLowerCase()) === trimmed);
+        } catch (e) {}
+    }
+
     if (found) {
         const phoneInput = document.getElementById('sub-phone');
         if (phoneInput && !phoneInput.value) {
-            phoneInput.value = found.phone || '';
+            phoneInput.value = found.phone || found.telefono || found.tel || found.whatsapp || '';
         }
         const histSelect = document.getElementById('sub-client-history-select');
         if (histSelect) {
@@ -914,6 +966,7 @@ db.ref('subscriptions').on('value', snap => {
     });
 
     renderSubscriptionsTable();
+    window.populateClientHistory();
 });
 
 window.renewSubscription = async (key) => {
@@ -1601,3 +1654,9 @@ window.updateUnavailableStylesUI = () => {
     });
     container.innerHTML = html;
 };
+
+
+// Initial population of client history
+if (typeof window.populateClientHistory === 'function') {
+    window.populateClientHistory(); // Initial run
+}
