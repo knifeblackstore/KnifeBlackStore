@@ -1072,37 +1072,58 @@ window.toggleReadMore = (btn) => {
 document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('formulario');
     if (contactForm) {
-        contactForm.onsubmit = (e) => {
+        contactForm.onsubmit = async (e) => {
             e.preventDefault();
-            const name = document.getElementById('nombre').value;
-            const email = document.getElementById('email').value;
-            const message = document.getElementById('mensaje').value;
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn ? submitBtn.innerText : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Enviando...';
+            }
+
+            const name = document.getElementById('nombre').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('mensaje').value.trim();
 
             const msgData = {
                 name,
                 email,
                 message,
-                read: false, // Marcar como no leído inicialmente
+                read: false,
                 date: new Date().toISOString()
             };
 
-            // 1. Guardar en Firebase (Panel de Administración)
-            db.ref('contact_messages').push(msgData).then(() => {
-                // 2. Enviar Correo vía EmailJS
-                const templateParams = {
-                    from_name: name,
-                    from_email: email,
-                    message: message
-                };
+            try {
+                // 1. Guardar de forma primordial en Firebase (garantiza que NUNCA se pierda el mensaje)
+                await db.ref('contact_messages').push(msgData);
 
-                return emailjs.send("service_5hy8csv", "template_lirlr2z", templateParams);
-            }).then(() => {
-                alert('🚀 ¡Mensaje enviado con éxito! También se ha enviado una notificación por correo.');
+                // 2. Intentar notificación por correo vía EmailJS de forma no bloqueante
+                try {
+                    if (typeof emailjs !== 'undefined') {
+                        const templateParams = {
+                            from_name: name,
+                            from_email: email,
+                            message: message,
+                            to_email: 'knifeblackstore@gmail.com',
+                            to_name: 'KnifeBlack Store'
+                        };
+                        await emailjs.send("service_5hy8csv", "template_lirlr2z", templateParams);
+                    }
+                } catch (emailErr) {
+                    console.warn('Aviso: Notificación EmailJS no completada (la cuenta de correo requiere reconexión), pero el mensaje quedó guardado en tu panel de administración:', emailErr);
+                }
+
+                alert('🎉 ¡Mensaje recibido con éxito! Nos pondremos en contacto contigo pronto.');
                 contactForm.reset();
-            }).catch(err => {
-                alert('❌ Error al procesar el mensaje. Por favor intenta de nuevo.');
-                console.error('Error en Contacto:', err);
-            });
+            } catch (err) {
+                console.error('Error al guardar mensaje en base de datos:', err);
+                alert('❌ No se pudo registrar el mensaje. Por favor intenta de nuevo o escríbenos directamente a WhatsApp.');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalBtnText;
+                }
+            }
         };
     }
 });
