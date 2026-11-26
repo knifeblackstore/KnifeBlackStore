@@ -2484,3 +2484,246 @@ button.pag-btn:disabled, .pag-btn:disabled {
     box-shadow: 0 0 30px rgba(46, 204, 113, 0.8);
     background: linear-gradient(135deg, #2ecc71, #a8ff78);
 }
+
+
+/* ==========================================================================
+   DISEÑO MODERNO TIPO APP (AMPLIO, ESPACIOSO Y NATURAL EN CELULARES)
+   ========================================================================== */
+
+/* Contenedor principal del catálogo más amplio y ventilado */
+.catalog-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 10px 24px 60px 24px;
+}
+
+/* Grid de Productos moderno tipo App de e-commerce */
+.dyn-product-grid {
+    flex: 1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 10px 0;
+}
+
+/* Tarjeta de Producto estilo Dark Luxury App */
+.dyn-card {
+    background: #101018 !important;
+    border: 1.5px solid rgba(0, 240, 255, 0.2) !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.05) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease !important;
+    position: relative !important;
+}
+
+.dyn-card:hover {
+    transform: translateY(-6px) scale(1.02) !important;
+    border-color: var(--neon-cyan) !important;
+    box-shadow: 0 15px 40px rgba(0, 240, 255, 0.4) !important;
+}
+
+/* Galería de imágenes cuadrada y de proporciones naturales */
+.dyn-card-gallery {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #08080c;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dyn-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.dyn-card:hover .dyn-card-img {
+    transform: scale(1.06);
+}
+
+/* Cuerpo de la tarjeta con espaciado respirable */
+.dyn-card-body {
+    padding: 18px !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+.dyn-card-title {
+    margin: 0 !important;
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    line-height: 1.35 !important;
+    letter-spacing: 0.3px !important;
+}
+
+.dyn-card-meta {
+    font-size: 0.85rem !important;
+    color: #aaaaaa !important;
+    line-height: 1.6 !important;
+    margin-bottom: 6px !important;
+}
+
+.dyn-card-meta span {
+    color: var(--neon-cyan) !important;
+    font-weight: 600 !important;
+}
+
+.dyn-card-price {
+    font-size: 1.45rem !important;
+    font-weight: 900 !important;
+    color: var(--neon-cyan) !important;
+    text-shadow: 0 0 12px rgba(0, 240, 255, 0.5) !important;
+}
+
+/* Botón de Añadir al carrito amplio y cómodo para el pulgar */
+.btn-dyn-add {
+    width: 100% !important;
+    padding: 13px 20px !important;
+    min-height: 48px !important;
+    background: linear-gradient(135deg, var(--neon-cyan) 0%, #0077ff 100%) !important;
+    color: #000000 !important;
+    border: none !important;
+    border-radius: 50px !important;
+    font-weight: 900 !important;
+    font-size: 0.98rem !important;
+    letter-spacing: 0.5px !important;
+    margin-top: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.35) !important;
+}
+
+.btn-dyn-add:hover {
+    transform: translateY(-2px) scale(1.03) !important;
+    box-shadow: 0 6px 25px rgba(0, 240, 255, 0.6) !important;
+    background: linear-gradient(135deg, #a8ff78 0%, var(--neon-cyan) 100%) !important;
+}
+
+.btn-wa-stock {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 48px !important;
+    padding: 12px 18px !important;
+    border-radius: 50px !important;
+    font-weight: 800 !important;
+    font-size: 0.9rem !important;
+    text-decoration: none !important;
+    background: rgba(37, 211, 102, 0.15) !important;
+    border: 1.5px solid #25D366 !important;
+    color: #25D366 !important;
+    margin-top: 10px !important;
+    transition: 0.2s !important;
+}
+
+.btn-wa-stock:hover {
+    background: #25D366 !important;
+    color: #000 !important;
+}
+
+/* ==========================================================================
+   OPTIMIZACIONES MÓVILES TIPO APP NATIVA (PANTALLAS CELULARES)
+   ========================================================================== */
+@media (max-width: 650px) {
+    /* En celulares: 2 columnas cómodas con proporciones ideales tipo tienda */
+    .dyn-product-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 14px !important;
+        padding: 5px !important;
+    }
+
+    .catalog-layout {
+        padding: 5px 12px 60px 12px !important;
+        gap: 20px !important;
+    }
+
+    .dyn-card {
+        border-radius: 16px !important;
+    }
+
+    .dyn-card-body {
+        padding: 12px !important;
+        gap: 6px !important;
+    }
+
+    .dyn-card-title {
+        font-size: 0.95rem !important;
+        min-height: 2.6em !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+    }
+
+    .dyn-card-meta {
+        font-size: 0.75rem !important;
+        line-height: 1.4 !important;
+    }
+
+    .dyn-card-price {
+        font-size: 1.25rem !important;
+    }
+
+    .btn-dyn-add {
+        min-height: 44px !important;
+        padding: 10px 14px !important;
+        font-size: 0.88rem !important;
+        border-radius: 30px !important;
+    }
+
+    /* Barra de navegación de atajos en celular */
+    .catalog-quick-nav {
+        gap: 8px !important;
+        padding: 10px !important;
+        margin: 10px auto 20px !important;
+    }
+
+    .catalog-quick-btn {
+        padding: 7px 13px !important;
+        font-size: 0.82rem !important;
+        border-radius: 20px !important;
+    }
+
+    /* Tarjetas de plataformas de streaming en celular */
+    .platform-grid {
+        grid-template-columns: 1fr !important;
+        gap: 18px !important;
+        padding: 10px 15px !important;
+    }
+
+    .platform-card {
+        padding: 24px 18px !important;
+        border-radius: 20px !important;
+    }
+
+    /* Servicios en Home */
+    .grid {
+        grid-template-columns: 1fr !important;
+        gap: 18px !important;
+        padding: 30px 16px !important;
+    }
+
+    .item {
+        padding: 35px 20px !important;
+        border-radius: 20px !important;
+    }
+}

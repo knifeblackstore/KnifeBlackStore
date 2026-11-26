@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>Plataformas Streaming - knifeblackstore</title>
     <link rel="stylesheet" href="main.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
@@ -273,8 +273,13 @@
     <header class="platforms-hero">
         <h1>Plataformas Streaming</h1>
         <p>Las mejores plataformas del mercado, ahora a tu alcance. Compra por pantallas y ahorra más.</p>
-        <div class="btns" style="margin-top: 30px;">
-            <a href="index.html" class="b1">Volver al Inicio</a>
+        <div class="catalog-quick-nav">
+            <a href="index.html" class="catalog-quick-btn">🏠 Volver al Inicio</a>
+            <a href="productos.html" class="catalog-quick-btn">📌 Pines Metálicos y Accesorios</a>
+            <a href="figuras.html" class="catalog-quick-btn">🦸 Figuras de Acción</a>
+            <a href="plataformas.html" class="catalog-quick-btn active">📺 Plataformas Streaming</a>
+            <a href="contacto.html" class="catalog-quick-btn">💬 Contáctanos</a>
+            <a href="https://github.com/knifeblackstore/KnifeBlackStore/raw/main/knifeblackstore.apk" download="knifeblackstore.apk" class="btn-apk-download" style="font-size:0.85rem; padding:6px 14px;">📱 App APK</a>
         </div>
     </header>
 
@@ -435,7 +440,7 @@
     </div>
     <!-- BOOTLOADER SEGURO Y RESILIENTE (CLOUDFLARE + FIREBASE) -->
     <script>
-        window.appScripts = ['script.js?v=44'];
+        window.appScripts = ['script.js?v=46'];
         const FALLBACK_CONFIG = {
             active: "firebase",
             firebase: {
