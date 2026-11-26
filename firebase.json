@@ -6,7 +6,9 @@
       "**/.*",
       "**/node_modules/**",
       "estilos.css",
-      "update_firebase.py"
+      "update_firebase.py",
+      "**/*.apk",
+      "**/*.idsig"
     ],
     "rewrites": [
       {
