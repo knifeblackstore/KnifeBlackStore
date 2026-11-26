@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Cargar desde Firebase
-db.ref('products').once('value').then(snap => {
+db.ref('products').on('value', snap => {
     const data = snap.val();
     if (data) {
         allProducts = Object.keys(data).map(key => ({

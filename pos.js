@@ -94,17 +94,25 @@ const renderProducts = (products) => {
     
     products.forEach((p) => {
         const card = document.createElement('div');
-        card.className = 'pos-product-card';
+        card.className = 'pos-product-card bubble-card';
         card.onclick = () => addToCart(p);
         
-        let stockClass = p.stock <= 5 ? 'stock low' : 'stock';
-        let stockText = p.stock > 0 ? `Stock: ${p.stock}` : 'AGOTADO';
+        const isOne = p.stock === 1;
+        const isOut = p.stock <= 0;
+        let stockClass = isOut ? 'stock out' : (isOne ? 'stock low' : 'stock');
+        let stockText = isOut ? '🚫 AGOTADO' : (isOne ? '⚠️ ¡Última unidad!' : `Stock: ${p.stock}`);
         
         card.innerHTML = `
             <h3>${p.name}</h3>
             <div>
                 <div class="price">${p.priceRaw}</div>
-                <div class="${stockClass}">${stockText}</div>
+                <div class="${stockClass}" style="margin-bottom:8px;">${stockText}</div>
+                <div style="display:flex; gap:6px; align-items:center;" onclick="event.stopPropagation()">
+                    <button type="button" onclick="window.adjustPOSStock('${p.gridKey}', ${p.itemIdx}, -1, event)" style="background:#444; color:#fff; border:none; width:26px; height:26px; border-radius:4px; cursor:pointer; font-weight:bold;">-</button>
+                    <span style="font-size:0.85rem; color:var(--neon-cyan); font-weight:bold; min-width:30px; text-align:center;">${p.stock}</span>
+                    <button type="button" onclick="window.adjustPOSStock('${p.gridKey}', ${p.itemIdx}, 1, event)" style="background:#444; color:#fff; border:none; width:26px; height:26px; border-radius:4px; cursor:pointer; font-weight:bold;">+</button>
+                    <button type="button" onclick="window.promptEditPOSStock('${p.gridKey}', ${p.itemIdx}, ${p.stock}, event)" style="background:transparent; color:#aaa; border:none; cursor:pointer;" title="Editar número exacto">✏️</button>
+                </div>
             </div>
         `;
         gridEl.appendChild(card);
@@ -420,7 +428,10 @@ db.ref('sales').on('value', snap => {
     let salesTotal = 0;
     snap.forEach(child => {
         const sale = child.val();
-        if (sale.status !== 'Cancelada') {
+        const isAdminPurchase = (sale.email === 'knifeblackstore@gmail.com') ||
+                                (sale.customer && sale.customer.toLowerCase().includes('admin')) ||
+                                (sale.isAdminPurchase === true);
+        if (sale.status !== 'Cancelada' && !isAdminPurchase) {
             salesTotal += (sale.total || 0);
         }
     });
@@ -462,7 +473,10 @@ db.ref('finances').on('value', snap => {
                 <td data-label="Fecha">${dateStr}</td>
                 <td data-label="Descripción">${rec.desc}</td>
                 <td data-label="Tipo" class="${typeClass}">${typeLabel}</td>
-                <td data-label="Monto" class="${typeClass}">${sign}$${rec.amount.toLocaleString()}</td>
+                <td data-label="Monto" class="${typeClass}">${sign}${rec.amount.toLocaleString()}</td>
+                <td data-label="Acción">
+                    <button onclick="window.deleteFinancialRecord('${rec.key}')" style="background:#e74c3c; color:#fff; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Eliminar registro">🗑️</button>
+                </td>
             </tr>
         `;
     });
@@ -1538,7 +1552,11 @@ db.ref('partner_stores').on('value', snap => {
             const store = data[key];
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td data-label="Logo"><img src="${store.image}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;"></td>
+                <td data-label="Logo">
+        <div class="partner-logo-box" style="width:55px; height:55px;">
+            <img src="${store.image}">
+        </div>
+    </td>
                 <td data-label="Nombre">${store.name}</td>
                 <td data-label="Enlace"><a href="${store.url}" target="_blank" style="color:var(--neon-cyan);">Visitar</a></td>
                 <td data-label="Acción">
@@ -1598,6 +1616,9 @@ const initUsersPanel = () => {
                 </td>
                 <td style="text-align:center;">
                     <input type="checkbox" class="perm-chk" data-uid="${uid}" data-perm="finances" ${perms.finances ? 'checked' : ''} style="transform: scale(1.5);">
+                </td>
+                <td style="text-align:center;">
+                    <button class="btn-del" onclick="window.deleteUser('${uid}', '${u.email}')" title="Eliminar usuario y borrar todo rastro" style="background:#e74c3c; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">🗑️ Eliminar</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -1660,3 +1681,362 @@ window.updateUnavailableStylesUI = () => {
 if (typeof window.populateClientHistory === 'function') {
     window.populateClientHistory(); // Initial run
 }
+
+
+window.deleteUser = async (uid, email) => {
+    if (!confirm(`¿Estás seguro de eliminar permanentemente al usuario "${email || uid}"?\n\nEsta acción eliminará TODO rastro de este usuario en la base de datos.`)) {
+        return;
+    }
+    try {
+        await db.ref('usersDB/' + uid).remove();
+        alert('Usuario eliminado correctamente sin dejar rastro.');
+    } catch (err) {
+        alert('Error al eliminar usuario: ' + err.message);
+    }
+};
+
+
+window.deleteFinancialRecord = async (key) => {
+    if (!confirm('¿Estás seguro de eliminar este registro financiero registrado por error?')) {
+        return;
+    }
+    try {
+        await db.ref('finances/' + key).remove();
+        alert('Registro financiero eliminado correctamente.');
+    } catch (err) {
+        alert('Error al eliminar registro: ' + err.message);
+    }
+};
+
+
+// ============================================================================
+// FUNCIONES DE CÁMARA WEB EN VIVO (CAPTURA DIRECTA EN POS)
+// ============================================================================
+let activeWebcamStream = null;
+
+window.openWebcamModal = async () => {
+    const modal = document.getElementById('webcam-modal');
+    const video = document.getElementById('webcam-video');
+    if (!modal || !video) return;
+
+    modal.style.display = 'flex';
+    try {
+        activeWebcamStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false
+        });
+        video.srcObject = activeWebcamStream;
+    } catch (err) {
+        console.warn('Cámara trasera no disponible, probando cámara frontal:', err);
+        try {
+            activeWebcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            video.srcObject = activeWebcamStream;
+        } catch (e2) {
+            alert('No se pudo acceder a la cámara: ' + e2.message);
+            window.closeWebcamModal();
+        }
+    }
+};
+
+window.closeWebcamModal = () => {
+    const modal = document.getElementById('webcam-modal');
+    if (modal) modal.style.display = 'none';
+    if (activeWebcamStream) {
+        activeWebcamStream.getTracks().forEach(track => track.stop());
+        activeWebcamStream = null;
+    }
+};
+
+window.captureWebcamSnapshot = () => {
+    const video = document.getElementById('webcam-video');
+    const canvas = document.getElementById('webcam-canvas');
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const b64 = canvas.toDataURL('image/webp', 0.85);
+
+    if (!currentProductImageBase64) {
+        currentProductImageBase64 = b64;
+    }
+    if (!currentProductImages.includes(b64)) {
+        currentProductImages.push(b64);
+    }
+
+    const previewContainer = document.getElementById('inv-preview-container');
+    if (previewContainer) {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative; display:inline-block; margin:4px;';
+        const t = document.createElement('img');
+        t.src = b64;
+        t.style.cssText = 'width:60px; height:60px; object-fit:cover; border-radius:6px; border:2px solid var(--neon-cyan);';
+        const delBtn = document.createElement('button');
+        delBtn.innerHTML = '✕';
+        delBtn.style.cssText = 'position:absolute; top:-6px; right:-6px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;';
+        delBtn.onclick = () => {
+            currentProductImages = currentProductImages.filter(img => img !== b64);
+            if (currentProductImageBase64 === b64) {
+                currentProductImageBase64 = currentProductImages[0] || '';
+            }
+            wrap.remove();
+        };
+        wrap.appendChild(t);
+        wrap.appendChild(delBtn);
+        previewContainer.appendChild(wrap);
+    }
+
+    window.closeWebcamModal();
+    alert('¡Foto capturada y guardada en el producto exitosamente!');
+};
+
+
+// ============================================================================
+// MODAL DE NOTIFICACIONES MULTI-OPCIÓN DE SUSCRIPCIONES
+// ============================================================================
+let currentNotifySub = null;
+
+window.openSubNotifyModal = (key) => {
+    const sub = allSubRecords.find(s => s.key === key);
+    if (!sub) return;
+    currentNotifySub = sub;
+
+    const modal = document.getElementById('sub-notify-modal');
+    const info = document.getElementById('notify-modal-client-info');
+    if (!modal || !info) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(sub.end);
+    const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+    info.innerHTML = `Cliente: <strong style="color:#fff;">${sub.client}</strong> | WhatsApp: <strong style="color:var(--neon-cyan);">${sub.phone}</strong> | Plataforma: <strong style="color:#ff007f;">${sub.platform}</strong> | Vence: ${sub.end} (${diffDays} días)`;
+
+    // Template inicial sugerido
+    if (sub.status === 'no_renovado') {
+        window.selectNotifyTemplate('promocional');
+    } else if (diffDays < 0) {
+        window.selectNotifyTemplate('vencida');
+    } else if (diffDays <= 3) {
+        window.selectNotifyTemplate('por_vencer');
+    } else {
+        window.selectNotifyTemplate('preventiva');
+    }
+
+    modal.style.display = 'flex';
+};
+
+window.closeSubNotifyModal = () => {
+    const modal = document.getElementById('sub-notify-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.selectNotifyTemplate = (type) => {
+    if (!currentNotifySub) return;
+    const sub = currentNotifySub;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(sub.end);
+    const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+    const textarea = document.getElementById('sub-notify-custom-msg');
+    if (!textarea) return;
+
+    let msg = '';
+    if (type === 'preventiva') {
+        msg = `Hola ${sub.client} 👋 Te saludamos con gusto desde Knifeblack Store. Te recordamos cordialmente que a tu suscripción de ${sub.platform} le quedan ${diffDays} días de servicio (vence el ${sub.end}). ¡Si deseas asegurar tu cupo para el próximo periodo avísanos con gusto para renovártela! 🍿✨`;
+    } else if (type === 'por_vencer') {
+        msg = `¡Hola ${sub.client}! ⚠️ Te informamos que tu suscripción de ${sub.platform} vence en ${diffDays <= 0 ? 'pocas horas' : diffDays + ' día(s)'} (fecha: ${sub.end}). Para evitar la interrupción de tus perfiles, puedes renovar fácilmente por Nequi/Wompi aquí: https://checkout.nequi.wompi.co/l/VPOS_mXUiKY o escribirnos directamente. ¡Gracias por confiar en nosotros!`;
+    } else if (type === 'vencida') {
+        msg = `Hola ${sub.client}. ❌ Te notificamos que tu suscripción de ${sub.platform} se encuentra VENCIDA desde el ${sub.end}. Si deseas reactivarla de inmediato y seguir disfrutando sin perder tus perfiles, puedes pagar aquí: https://checkout.nequi.wompi.co/l/VPOS_mXUiKY o responder a este mensaje. ¡Quedamos a tu orden! 🚀`;
+    } else if (type === 'promocional') {
+        msg = `Hola ${sub.client} 👋 ¿Cómo has estado? Vimos que tu pantalla de ${sub.platform} no se renovó. Queríamos contarte que tenemos nuevas promociones en streaming, figuras y pines anime. ¿Te gustaría reactivar tu cuenta hoy con precio especial? ¡Avísanos y te ayudamos al instante! 🎉`;
+    }
+
+    textarea.value = msg;
+};
+
+window.sendSelectedWhatsAppNotification = () => {
+    if (!currentNotifySub) return;
+    const phone = (currentNotifySub.phone || '').replace(/\D/g, '');
+    const textarea = document.getElementById('sub-notify-custom-msg');
+    const msg = textarea ? textarea.value.trim() : '';
+    if (!phone) {
+        alert('Este cliente no tiene un número de teléfono válido.');
+        return;
+    }
+    const link = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(link, '_blank');
+    window.closeSubNotifyModal();
+};
+
+
+// ============================================================================
+// GESTIÓN DEL DIRECTORIO DE CLIENTES EN FINANZAS / POS
+// ============================================================================
+window.renderClientDirectory = () => {
+    const tbody = document.getElementById('client-dir-tbody');
+    if (!tbody) return;
+
+    const query = (document.getElementById('client-dir-search')?.value || '').toLowerCase().trim();
+    let clients = [];
+    try {
+        clients = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+    } catch (e) {}
+
+    // Completar con allSubRecords
+    if (Array.isArray(allSubRecords)) {
+        allSubRecords.forEach(s => {
+            const name = (s.client || '').trim();
+            if (name && !clients.some(c => (c.client || '').toLowerCase() === name.toLowerCase())) {
+                clients.push({
+                    client: name,
+                    phone: s.phone || '',
+                    platform: s.platform || '',
+                    duration: s.duration || '1m'
+                });
+            }
+        });
+    }
+
+    tbody.innerHTML = '';
+    const filtered = clients.filter(c => 
+        (c.client || '').toLowerCase().includes(query) ||
+        (c.phone || '').includes(query)
+    );
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888; padding:20px;">No hay clientes que coincidan.</td></tr>';
+        return;
+    }
+
+    filtered.forEach(c => {
+        const nameLower = (c.client || '').toLowerCase();
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${c.client}</strong></td>
+                <td>${c.phone || 'Sin número'}</td>
+                <td>${c.platform || 'Streaming'}</td>
+                <td>${c.duration === '1y' ? '🌟 1 Año' : '1 Mes'}</td>
+                <td style="display:flex; gap:8px;">
+                    <button onclick="window.editClientModal('${nameLower}')" style="background:#f39c12; color:#fff; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Editar">✏️</button>
+                    <button onclick="window.deleteClientRecord('${nameLower}')" style="background:#e74c3c; color:#fff; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Eliminar del historial">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+};
+
+window.editClientModal = (nameLower) => {
+    let clients = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+    const client = clients.find(c => (c.client || '').toLowerCase() === nameLower);
+    if (!client) return;
+
+    const newName = prompt('Nombre del cliente:', client.client);
+    if (newName === null) return;
+    const newPhone = prompt('WhatsApp del cliente:', client.phone || '');
+    if (newPhone === null) return;
+
+    client.client = newName.trim();
+    client.phone = newPhone.trim();
+
+    localStorage.setItem('knifeblack_client_history', JSON.stringify(clients));
+    window.renderClientDirectory();
+    if (typeof window.populateClientHistory === 'function') window.populateClientHistory();
+    alert('Datos de cliente actualizados correctamente.');
+};
+
+window.deleteClientRecord = (nameLower) => {
+    if (!confirm('¿Eliminar a este cliente del historial de clientes frecuentes?')) return;
+    let clients = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+    clients = clients.filter(c => (c.client || '').toLowerCase() !== nameLower);
+    localStorage.setItem('knifeblack_client_history', JSON.stringify(clients));
+    window.renderClientDirectory();
+    if (typeof window.populateClientHistory === 'function') window.populateClientHistory();
+    alert('Cliente eliminado del historial.');
+};
+
+
+// ============================================================================
+// EDICIÓN DE STOCK EN EL PUNTO DE VENTA (IN-SITU)
+// ============================================================================
+window.adjustPOSStock = async (gridKey, itemIdx, delta, event) => {
+    if (event) event.stopPropagation();
+    try {
+        const snap = await db.ref('grids/' + gridKey).once('value');
+        const html = snap.val();
+        if (!html) return;
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const items = tempDiv.querySelectorAll('.item, .product-card, .platform-card');
+        const item = items[itemIdx];
+        if (!item) return;
+
+        let cur = parseInt(item.getAttribute('data-stock')) || 0;
+        let nextStock = Math.max(0, cur + delta);
+        item.setAttribute('data-stock', nextStock);
+
+        const stockBadge = item.querySelector('.stock-badge');
+        if (stockBadge) {
+            stockBadge.innerText = nextStock > 0 ? `Stock: ${nextStock}` : 'AGOTADO';
+            if (nextStock <= 0) stockBadge.classList.add('out-of-stock');
+            else stockBadge.classList.remove('out-of-stock');
+        }
+
+        await db.ref('grids/' + gridKey).set(tempDiv.innerHTML);
+        loadInventory();
+    } catch (err) {
+        alert('Error al ajustar stock: ' + err.message);
+    }
+};
+
+window.promptEditPOSStock = async (gridKey, itemIdx, currentStock, event) => {
+    if (event) event.stopPropagation();
+    const input = prompt('Ingresa el nuevo stock para este producto:', currentStock);
+    if (input === null) return;
+    const val = parseInt(input);
+    if (isNaN(val) || val < 0) {
+        alert('Por favor ingresa un número válido.');
+        return;
+    }
+    const delta = val - currentStock;
+    await window.adjustPOSStock(gridKey, itemIdx, delta, event);
+};
+
+
+// Interactive Bubble Particle Effect on Hover (POS)
+window.initBubbleHoverEffect = () => {
+    let lastBubbleTime = 0;
+    document.addEventListener('mousemove', (e) => {
+        const now = Date.now();
+        if (now - lastBubbleTime < 50) return;
+        
+        const target = e.target.closest('.bubble-card, .pos-product-card, .sub-dashboard, .fin-dashboard, .nav-btn, .fin-btn');
+        if (!target) return;
+
+        lastBubbleTime = now;
+        const rect = target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const bubble = document.createElement('span');
+        bubble.className = 'bubble-particle';
+        const size = Math.floor(Math.random() * 14) + 8;
+        bubble.style.width = size + 'px';
+        bubble.style.height = size + 'px';
+        bubble.style.left = x + 'px';
+        bubble.style.top = y + 'px';
+        bubble.style.setProperty('--dx', (Math.random() * 30 - 15) + 'px');
+
+        target.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 900);
+    });
+};
+document.addEventListener('DOMContentLoaded', () => {
+    window.initBubbleHoverEffect();
+    if (typeof window.renderClientDirectory === 'function') {
+        window.renderClientDirectory();
+    }
+});

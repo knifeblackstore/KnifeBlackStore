@@ -2175,3 +2175,34 @@ window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     console.log('PWA was installed');
 });
+
+
+// Interactive Bubble Particle Effect on Hover
+window.initBubbleHoverEffect = () => {
+    let lastBubbleTime = 0;
+    document.addEventListener('mousemove', (e) => {
+        const now = Date.now();
+        if (now - lastBubbleTime < 50) return;
+        
+        const target = e.target.closest('.bubble-card, .item, .dyn-card, .pos-product-card, .sub-dashboard, .fin-dashboard, .bubble-pill, .nav-btn, .catalog-quick-btn, .partner-pill-card');
+        if (!target) return;
+
+        lastBubbleTime = now;
+        const rect = target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const bubble = document.createElement('span');
+        bubble.className = 'bubble-particle';
+        const size = Math.floor(Math.random() * 14) + 8;
+        bubble.style.width = size + 'px';
+        bubble.style.height = size + 'px';
+        bubble.style.left = x + 'px';
+        bubble.style.top = y + 'px';
+        bubble.style.setProperty('--dx', (Math.random() * 30 - 15) + 'px');
+
+        target.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 900);
+    });
+};
+document.addEventListener('DOMContentLoaded', window.initBubbleHoverEffect);

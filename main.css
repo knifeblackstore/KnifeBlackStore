@@ -2255,3 +2255,232 @@ button.pag-btn:disabled, .pag-btn:disabled {
 }
 
 
+
+
+/* ==========================================================================
+   ESTILOS DE BURBUJAS (PESTAÑAS, TARJETAS Y EFECTO INTERACTIVO CON EL MOUSE)
+   ========================================================================== */
+
+/* Pestañas y enlaces en formato de burbujas ovaladas / circulares */
+.bubble-pill,
+.links.menu > a,
+.links.menu .dropdown > a,
+.nav-btn {
+    border-radius: 999px !important;
+    padding: 8px 18px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1.5px solid rgba(0, 240, 255, 0.25) !important;
+    color: #fff !important;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    margin: 4px 6px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(0, 240, 255, 0.1) !important;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.bubble-pill:hover,
+.links.menu > a:hover,
+.links.menu .dropdown:hover > a,
+.nav-btn:hover,
+.nav-btn.active {
+    transform: translateY(-3px) scale(1.05) !important;
+    border-color: var(--neon-cyan) !important;
+    background: rgba(0, 240, 255, 0.15) !important;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.5), inset 0 0 15px rgba(0, 240, 255, 0.3) !important;
+    color: #00f0ff !important;
+    text-shadow: 0 0 12px #00f0ff !important;
+}
+
+/* Efecto de destello interior en burbujas */
+.bubble-pill::before,
+.links.menu > a::before,
+.nav-btn::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 15%;
+    width: 70%;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 100%);
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+/* Cuadros con efecto de burbujas interactivas al pasar el mouse */
+.bubble-card,
+.item,
+.dyn-card,
+.pos-product-card {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.bubble-card:hover,
+.pos-product-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 240, 255, 0.35);
+    border-color: rgba(0, 240, 255, 0.8) !important;
+}
+
+/* Partícula de burbuja interactiva que sube y se desvanece */
+.bubble-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(0, 240, 255, 0.5) 50%, rgba(255, 0, 127, 0.2) 100%);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.8), inset 0 0 6px rgba(255, 255, 255, 0.6);
+    animation: bubbleRise 0.9s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    z-index: 10;
+}
+
+@keyframes bubbleRise {
+    0% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% - 60px)) scale(1.4);
+    }
+}
+
+/* ==========================================================================
+   BARRA DE ATAJOS RÁPIDOS EN CATÁLOGOS (PINES, FIGURAS, CONTACTO)
+   ========================================================================== */
+.catalog-quick-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px auto 30px;
+    padding: 12px 20px;
+    background: rgba(15, 15, 25, 0.7);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    border-radius: 50px;
+    max-width: 950px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.catalog-quick-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.2s ease;
+}
+
+.catalog-quick-btn:hover {
+    background: rgba(0, 240, 255, 0.2);
+    border-color: var(--neon-cyan);
+    color: #00f0ff;
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+.catalog-quick-btn.active {
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.3), rgba(255, 0, 127, 0.3));
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+/* ==========================================================================
+   MEJORA DE VISUALIZACIÓN DE LOGOS DE TIENDAS ALIADAS
+   ========================================================================== */
+.partner-logo-box {
+    width: 65px;
+    height: 65px;
+    background: #ffffff;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    border: 2px solid var(--neon-cyan);
+    flex-shrink: 0;
+}
+
+.partner-logo-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.partner-pill-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(10, 15, 25, 0.85);
+    border: 1.5px solid rgba(0, 240, 255, 0.3);
+    padding: 10px 24px;
+    border-radius: 60px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(0, 240, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.partner-pill-card:hover {
+    transform: translateY(-4px) scale(1.04);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.2);
+    color: var(--neon-cyan);
+}
+
+/* ==========================================================================
+   INSIGNIAS DE STOCK CLARAS (ÚLTIMA UNIDAD / AGOTADO)
+   ========================================================================== */
+.badge-last-one {
+    background: linear-gradient(135deg, #e67e22, #d35400) !important;
+    color: #fff !important;
+    font-weight: 900 !important;
+    box-shadow: 0 0 12px rgba(230, 126, 34, 0.6) !important;
+    animation: pulseWarning 1.5s infinite;
+}
+
+@keyframes pulseWarning {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+/* Botón de Descarga APK */
+.btn-apk-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 22px;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: #000 !important;
+    font-weight: 900;
+    border-radius: 50px;
+    text-decoration: none;
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.5);
+    transition: 0.3s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-apk-download:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 0 30px rgba(46, 204, 113, 0.8);
+    background: linear-gradient(135deg, #2ecc71, #a8ff78);
+}
