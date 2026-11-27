@@ -324,7 +324,7 @@ document.getElementById('btn-confirm-sale').onclick = async () => {
         ownerNit: '1088288308-0',
         ownerPhone: '3108014660',
         ownerEmail: 'knifeblackstore@gmail.com',
-        ownerCity: 'Pereira / Bogotá D.C. - Colombia'
+        ownerCity: 'Pereira - Risaralda, Colombia'
     };
 
     // 4. Limpiar POS
@@ -2186,7 +2186,7 @@ window.generateInvoicePDF = function(data) {
     doc.text('NIT: ' + (data.ownerNit || '1088288308-0'), margin, 29);
     doc.text('Teléfono / WhatsApp: ' + (data.ownerPhone || '3108014660'), margin, 34);
     doc.text('Email: ' + (data.ownerEmail || 'knifeblackstore@gmail.com'), margin, 39);
-    doc.text('Ciudad: ' + (data.ownerCity || 'Pereira / Bogotá D.C. - Colombia'), margin, 44);
+    doc.text('Ciudad: ' + (data.ownerCity || 'Pereira - Risaralda, Colombia'), margin, 44);
     doc.text('Régimen: No Responsable de IVA (Art. 499 E.T.)', margin, 49);
 
     // 3. Invoice Metadata Box (Right)
