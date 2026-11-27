@@ -228,29 +228,55 @@ document.getElementById('btn-cancel-sale').onclick = () => {
 };
 
 document.getElementById('btn-confirm-sale').onclick = async () => {
-    document.getElementById('btn-confirm-sale').innerText = 'Procesando...';
+    document.getElementById('btn-confirm-sale').innerText = 'Facturando...';
     document.getElementById('btn-confirm-sale').disabled = true;
     
     const paymentMethod = document.getElementById('payment-method').value;
+    const custName = (document.getElementById('pos-cust-name') ? document.getElementById('pos-cust-name').value.trim() : '') || 'Consumidor Final';
+    const custDoc = (document.getElementById('pos-cust-doc') ? document.getElementById('pos-cust-doc').value.trim() : '') || 'Consumidor Final';
+    const custPhone = (document.getElementById('pos-cust-phone') ? document.getElementById('pos-cust-phone').value.trim() : '') || '';
+    const custAddress = (document.getElementById('pos-cust-address') ? document.getElementById('pos-cust-address').value.trim() : '') || 'Mostrador / Local';
+
     let sub = posCart.reduce((sum, it) => sum + (it.price * it.qty), 0);
     let tot = sub - posDiscount;
+
+    const orderSeq = (allSalesData ? allSalesData.length : 0) + 1;
+    const invoiceNumber = 'KBS-' + String(orderSeq).padStart(4, '0');
+    const now = new Date();
     
     // 1. Guardar Venta en Firebase
     const saleData = {
-        customer: 'Venta POS (' + paymentMethod + ')',
+        invoiceNumber: invoiceNumber,
+        customer: custName,
+        customerDoc: custDoc,
+        customerPhone: custPhone,
+        customerAddress: custAddress,
+        paymentMethod: paymentMethod,
         email: user.email,
         items: posCart.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
         total: tot,
         subtotal: sub,
         discountApplied: posDiscount > 0 ? 'Descuento Manual POS' : null,
         discountAmount: posDiscount,
-        date: new Date().toISOString(),
+        date: now.toISOString(),
         status: 'Completada (POS)'
     };
     await db.ref('sales').push(saleData);
     
+    // Actualizar historial local de clientes
+    try {
+        if (custName && custName !== 'Consumidor Final') {
+            const cached = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+            const idx = cached.findIndex(c => (c.client || '').toLowerCase() === custName.toLowerCase());
+            const clientObj = { client: custName, doc: custDoc, phone: custPhone, address: custAddress };
+            if (idx >= 0) cached[idx] = { ...cached[idx], ...clientObj };
+            else cached.push(clientObj);
+            localStorage.setItem('knifeblack_client_history', JSON.stringify(cached));
+            if (typeof window.updatePOSClientsDatalist === 'function') window.updatePOSClientsDatalist();
+        }
+    } catch (e) { console.warn('Error guardando cliente historial:', e); }
+
     // 2. Descontar Stock modificando el HTML de los grids
-    // Agrupar por gridKey para minimizar lecturas/escrituras
     const gridUpdates = {};
     posCart.forEach(item => {
         if (!gridUpdates[item.gridKey]) {
@@ -277,25 +303,50 @@ document.getElementById('btn-confirm-sale').onclick = async () => {
                 }
             });
             
-            // Guardar HTML actualizado
             await db.ref('grids/' + gridKey).set(tempDiv.innerHTML);
         }
     }
     
-    // 3. Imprimir
-    window.print();
-    
+    // 3. Preparar estado de factura generada
+    currentGeneratedInvoice = {
+        invoiceNumber: invoiceNumber,
+        date: now.toLocaleDateString('es-CO'),
+        time: now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+        paymentMethod: paymentMethod,
+        customerName: custName,
+        customerDoc: custDoc,
+        customerPhone: custPhone,
+        customerAddress: custAddress,
+        items: posCart.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
+        subtotal: sub,
+        discount: posDiscount,
+        total: tot,
+        ownerNit: '1088288308-0',
+        ownerPhone: '3108014660',
+        ownerEmail: 'knifeblackstore@gmail.com',
+        ownerCity: 'Pereira / Bogotá D.C. - Colombia'
+    };
+
     // 4. Limpiar POS
     posCart = [];
     posDiscount = 0;
     inputManualDiscount.value = '';
     updateCartUI();
     document.getElementById('checkout-modal').style.display = 'none';
-    document.getElementById('btn-confirm-sale').innerText = 'Procesar e Imprimir';
+    document.getElementById('btn-confirm-sale').innerText = '📄 Facturar y Generar PDF';
     document.getElementById('btn-confirm-sale').disabled = false;
     
-    // Recargar inventario para reflejar nuevos stocks
     loadInventory();
+
+    // 5. Mostrar Modal de Factura Generada y descargar automáticamente
+    if (document.getElementById('inv-modal-number')) document.getElementById('inv-modal-number').innerText = invoiceNumber;
+    if (document.getElementById('inv-modal-client')) document.getElementById('inv-modal-client').innerText = custName + (custDoc !== 'Consumidor Final' ? ' (CC: ' + custDoc + ')' : '');
+    if (document.getElementById('inv-modal-total')) document.getElementById('inv-modal-total').innerText = '$' + tot.toLocaleString('es-CO') + ' COP';
+    
+    const successModal = document.getElementById('invoice-success-modal');
+    if (successModal) successModal.style.display = 'flex';
+
+    window.downloadCurrentInvoicePDF();
 };
 
 // --- LOGICA DEL DASHBOARD ---
@@ -420,14 +471,19 @@ loadInventory();
 // ============================================================================
 
 let totalSalesRevenue = 0;
+let allFinRecords = [];
+let currentGeneratedInvoice = null;
+let currentDianClientsList = [];
 let additionalIncome = 0;
 let totalExpenses = 0;
 
 // Escuchar cambios en Ventas (POS y Web)
 db.ref('sales').on('value', snap => {
     let salesTotal = 0;
+    allSalesData = [];
     snap.forEach(child => {
-        const sale = child.val();
+        const sale = { id: child.key, ...child.val() };
+        allSalesData.push(sale);
         const isAdminPurchase = (sale.email === 'knifeblackstore@gmail.com') ||
                                 (sale.customer && sale.customer.toLowerCase().includes('admin')) ||
                                 (sale.isAdminPurchase === true);
@@ -437,6 +493,12 @@ db.ref('sales').on('value', snap => {
     });
     totalSalesRevenue = salesTotal;
     updateFinanceKPIs();
+    if (typeof window.updatePOSClientsDatalist === 'function') {
+        window.updatePOSClientsDatalist();
+    }
+    if (typeof window.renderDianReport === 'function') {
+        window.renderDianReport();
+    }
 });
 
 // Escuchar cambios en Finanzas (Ingresos Manuales y Egresos)
@@ -455,6 +517,7 @@ db.ref('finances').on('value', snap => {
     
     // Ordenar descendente por fecha
     records.sort((a,b) => new Date(b.date) - new Date(a.date));
+    allFinRecords = records;
     
     records.forEach(rec => {
         if (rec.type === 'income') {
@@ -481,7 +544,11 @@ db.ref('finances').on('value', snap => {
         `;
     });
     
+    allFinRecords = records;
     updateFinanceKPIs();
+    if (typeof window.renderDianReport === 'function') {
+        window.renderDianReport();
+    }
 });
 
 function updateFinanceKPIs() {
@@ -2040,3 +2107,707 @@ document.addEventListener('DOMContentLoaded', () => {
         window.renderClientDirectory();
     }
 });
+
+
+// ============================================================================
+// MÓDULO DE FACTURACIÓN EN PDF (KNIFEBLACK STORE - NIT 1088288308-0)
+// ============================================================================
+
+window.onPOSClientInput = function(val) {
+    if (!val) return;
+    var valLower = val.trim().toLowerCase();
+    var cached = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+    var found = cached.find(function(c) { return (c.client || '').toLowerCase() === valLower; });
+    if (!found && allSalesData) {
+        found = allSalesData.find(function(s) { return (s.customer || '').toLowerCase() === valLower && s.customerDoc; });
+        if (found) {
+            found = { client: found.customer, doc: found.customerDoc, phone: found.customerPhone, address: found.customerAddress };
+        }
+    }
+    if (found) {
+        if (document.getElementById('pos-cust-doc') && found.doc) document.getElementById('pos-cust-doc').value = found.doc;
+        if (document.getElementById('pos-cust-phone') && found.phone) document.getElementById('pos-cust-phone').value = found.phone;
+        if (document.getElementById('pos-cust-address') && found.address) document.getElementById('pos-cust-address').value = found.address;
+    }
+};
+
+window.updatePOSClientsDatalist = function() {
+    var datalist = document.getElementById('pos-clients-datalist');
+    if (!datalist) return;
+    var clientMap = new Map();
+    var cached = JSON.parse(localStorage.getItem('knifeblack_client_history') || '[]');
+    cached.forEach(function(c) {
+        if (c.client) clientMap.set(c.client.toLowerCase(), c.client);
+    });
+    if (allSalesData) {
+        allSalesData.forEach(function(s) {
+            if (s.customer && s.customer !== 'Consumidor Final' && !s.customer.includes('POS')) {
+                clientMap.set(s.customer.toLowerCase(), s.customer);
+            }
+        });
+    }
+    datalist.innerHTML = Array.from(clientMap.values())
+        .sort(function(a, b) { return a.localeCompare(b); })
+        .map(function(c) { return '<option value="' + c + '">'; })
+        .join('');
+};
+
+window.generateInvoicePDF = function(data) {
+    if (!window.jspdf) {
+        alert("La librería de generación PDF está cargando. Por favor presiona de nuevo en 2 segundos.");
+        return null;
+    }
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    var pageWidth = 210;
+    var pageHeight = 297;
+    var margin = 14;
+
+    // 1. Top Decorative Bar
+    doc.setFillColor(15, 15, 22);
+    doc.rect(0, 0, pageWidth, 5, 'F');
+    doc.setFillColor(0, 240, 255);
+    doc.rect(0, 5, pageWidth, 1.5, 'F');
+
+    // 2. Company Brand & Info (Left)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(15, 15, 22);
+    doc.text('KNIFEBLACK STORE', margin, 18);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100, 100, 110);
+    doc.text('Pines Metálicos, Figuras de Acción, Accesorios y Streaming', margin, 23);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(50, 50, 60);
+    doc.text('NIT: ' + (data.ownerNit || '1088288308-0'), margin, 29);
+    doc.text('Teléfono / WhatsApp: ' + (data.ownerPhone || '3108014660'), margin, 34);
+    doc.text('Email: ' + (data.ownerEmail || 'knifeblackstore@gmail.com'), margin, 39);
+    doc.text('Ciudad: ' + (data.ownerCity || 'Pereira / Bogotá D.C. - Colombia'), margin, 44);
+    doc.text('Régimen: No Responsable de IVA (Art. 499 E.T.)', margin, 49);
+
+    // 3. Invoice Metadata Box (Right)
+    var boxX = 130;
+    var boxY = 12;
+    var boxW = 66;
+    var boxH = 39;
+    
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(0, 240, 255);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(boxX, boxY, boxW, boxH, 3, 3, 'FD');
+
+    doc.setFillColor(15, 15, 22);
+    doc.roundedRect(boxX, boxY, boxW, 10, 3, 3, 'F');
+    doc.rect(boxX, boxY + 7, boxW, 3, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.text('FACTURA DE VENTA', boxX + boxW / 2, boxY + 7, { align: 'center' });
+
+    doc.setFontSize(12);
+    doc.setTextColor(255, 0, 127);
+    doc.text(data.invoiceNumber || 'Nº KBS-0001', boxX + boxW / 2, boxY + 17, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 70);
+    doc.text('Fecha: ' + (data.date || new Date().toLocaleDateString('es-CO')), boxX + 4, boxY + 24);
+    doc.text('Hora: ' + (data.time || new Date().toLocaleTimeString('es-CO')), boxX + 4, boxY + 29);
+    doc.text('Pago: ' + (data.paymentMethod || 'Efectivo'), boxX + 4, boxY + 34);
+
+    // 4. Client Info Box
+    var clientY = 56;
+    doc.setFillColor(250, 250, 252);
+    doc.setDrawColor(220, 225, 230);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, clientY, pageWidth - (margin * 2), 26, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 15, 22);
+    doc.text('DATOS DEL CLIENTE / ADQUIRENTE', margin + 4, clientY + 6);
+
+    doc.setDrawColor(0, 240, 255);
+    doc.setLineWidth(0.5);
+    doc.line(margin + 4, clientY + 8, margin + 65, clientY + 8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(50, 50, 60);
+
+    var col1X = margin + 4;
+    var col2X = margin + 100;
+
+    doc.text('Cliente: ' + (data.customerName || 'Consumidor Final'), col1X, clientY + 14);
+    doc.text('Cédula / NIT: ' + (data.customerDoc || 'Consumidor Final'), col1X, clientY + 20);
+
+    doc.text('Teléfono / Cel: ' + (data.customerPhone || 'N/A'), col2X, clientY + 14);
+    doc.text('Dirección: ' + (data.customerAddress || 'Mostrador / Local'), col2X, clientY + 20);
+
+    // 5. Items Table
+    var tableY = 88;
+    var colW = { num: 12, desc: 95, qty: 18, unit: 28, total: 29 };
+
+    doc.setFillColor(20, 20, 30);
+    doc.rect(margin, tableY, pageWidth - (margin * 2), 8, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+
+    var curX = margin;
+    doc.text('#', curX + 3, tableY + 5.5);
+    curX += colW.num;
+    doc.text('DESCRIPCIÓN DEL ARTÍCULO', curX + 2, tableY + 5.5);
+    curX += colW.desc;
+    doc.text('CANT.', curX + colW.qty / 2, tableY + 5.5, { align: 'center' });
+    curX += colW.qty;
+    doc.text('PRECIO UNIT.', curX + colW.unit - 2, tableY + 5.5, { align: 'right' });
+    curX += colW.unit;
+    doc.text('SUBTOTAL', curX + colW.total - 2, tableY + 5.5, { align: 'right' });
+
+    tableY += 8;
+
+    var items = data.items || [];
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+
+    items.forEach(function(it, idx) {
+        var isEven = idx % 2 === 0;
+        doc.setFillColor(isEven ? 255 : 248, isEven ? 255 : 249, isEven ? 255 : 252);
+        doc.rect(margin, tableY, pageWidth - (margin * 2), 7.5, 'F');
+        
+        doc.setDrawColor(235, 238, 242);
+        doc.setLineWidth(0.2);
+        doc.line(margin, tableY + 7.5, pageWidth - margin, tableY + 7.5);
+
+        doc.setTextColor(60, 60, 70);
+        curX = margin;
+        doc.text(String(idx + 1), curX + 3, tableY + 5);
+        curX += colW.num;
+
+        var itemName = it.name ? (it.name.length > 55 ? it.name.substring(0, 52) + '...' : it.name) : 'Producto';
+        doc.text(itemName, curX + 2, tableY + 5);
+        curX += colW.desc;
+
+        doc.text(String(it.qty || 1), curX + colW.qty / 2, tableY + 5, { align: 'center' });
+        curX += colW.qty;
+
+        var unitPrice = '$' + (it.price || 0).toLocaleString('es-CO');
+        doc.text(unitPrice, curX + colW.unit - 2, tableY + 5, { align: 'right' });
+        curX += colW.unit;
+
+        var lineTotal = '$' + ((it.price || 0) * (it.qty || 1)).toLocaleString('es-CO');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(20, 20, 25);
+        doc.text(lineTotal, curX + colW.total - 2, tableY + 5, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+
+        tableY += 7.5;
+    });
+
+    // 6. Totals Box
+    tableY += 4;
+    var totW = 85;
+    var totX = pageWidth - margin - totW;
+    var totY = tableY;
+
+    doc.setFillColor(250, 250, 252);
+    doc.setDrawColor(220, 225, 230);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(totX, totY, totW, 35, 2, 2, 'FD');
+
+    var subtotal = data.subtotal || 0;
+    var discount = data.discount || 0;
+    var total = data.total || (subtotal - discount);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(70, 70, 80);
+    doc.text('Subtotal:', totX + 6, totY + 7);
+    doc.text('$' + subtotal.toLocaleString('es-CO'), totX + totW - 6, totY + 7, { align: 'right' });
+
+    doc.text('Descuento:', totX + 6, totY + 13);
+    doc.setTextColor(231, 76, 60);
+    doc.text('-$' + discount.toLocaleString('es-CO'), totX + totW - 6, totY + 13, { align: 'right' });
+
+    doc.setTextColor(70, 70, 80);
+    doc.text('IVA (0% - Régimen Simplificado):', totX + 6, totY + 19);
+    doc.text('$0', totX + totW - 6, totY + 19, { align: 'right' });
+
+    doc.setFillColor(15, 15, 22);
+    doc.roundedRect(totX + 2, totY + 23, totW - 4, 10, 1.5, 1.5, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(0, 240, 255);
+    doc.text('TOTAL A PAGAR:', totX + 6, totY + 29.5);
+    doc.text('$' + total.toLocaleString('es-CO') + ' COP', totX + totW - 6, totY + 29.5, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(20, 20, 30);
+    doc.text('CONDICIONES & GARANTÍA:', margin + 2, totY + 7);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(90, 90, 100);
+    doc.text('• Cambios de mercancía dentro de los 5 días posteriores a la compra.', margin + 2, totY + 12);
+    doc.text('• Conservar esta factura para hacer efectiva cualquier garantía.', margin + 2, totY + 16);
+    doc.text('• Soporte y atención posventa inmediata vía WhatsApp: 3108014660', margin + 2, totY + 20);
+
+    // 7. Footer
+    var footerY = pageHeight - 18;
+    doc.setDrawColor(0, 240, 255);
+    doc.setLineWidth(0.6);
+    doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(7.5);
+    doc.setTextColor(110, 110, 120);
+    doc.text('Documento equivalente de venta expedido conforme a las normas del Estatuto Tributario para personas naturales', pageWidth / 2, footerY, { align: 'center' });
+    doc.text('no obligadas a expedir factura electrónica. KnifeBlackStore • NIT: 1088288308-0 • Tel: 3108014660', pageWidth / 2, footerY + 4, { align: 'center' });
+
+    doc.setFillColor(0, 240, 255);
+    doc.rect(0, pageHeight - 2, pageWidth, 2, 'F');
+
+    return doc;
+};
+
+window.downloadCurrentInvoicePDF = function() {
+    if (!currentGeneratedInvoice) return;
+    try {
+        var doc = window.generateInvoicePDF(currentGeneratedInvoice);
+        if (doc) doc.save('Factura_' + (currentGeneratedInvoice.invoiceNumber || 'Venta') + '.pdf');
+    } catch (e) {
+        console.error('Error generando PDF de factura:', e);
+        alert('Ocurrió un detalle generando el PDF: ' + e.message);
+    }
+};
+
+window.shareCurrentInvoiceWA = function() {
+    if (!currentGeneratedInvoice) return;
+    var phone = (currentGeneratedInvoice.customerPhone || '').replace(/\D/g, '');
+    var msg = '*KNIFEBLACK STORE - FACTURA DE VENTA*\n';
+    msg += '📄 *Factura Nº:* ' + currentGeneratedInvoice.invoiceNumber + '\n';
+    msg += '📅 *Fecha:* ' + currentGeneratedInvoice.date + ' ' + currentGeneratedInvoice.time + '\n';
+    msg += '👤 *Cliente:* ' + currentGeneratedInvoice.customerName + '\n';
+    if (currentGeneratedInvoice.customerDoc && currentGeneratedInvoice.customerDoc !== 'Consumidor Final') {
+        msg += '🪪 *Cédula/NIT:* ' + currentGeneratedInvoice.customerDoc + '\n';
+    }
+    msg += '\n*DETALLE DE PRODUCTOS:*\n';
+    (currentGeneratedInvoice.items || []).forEach(function(it) {
+        msg += '• ' + it.name + ' (x' + (it.qty || 1) + ') - $' + ((it.price || 0) * (it.qty || 1)).toLocaleString('es-CO') + '\n';
+    });
+    msg += '\n*TOTAL FACTURADO:* $' + (currentGeneratedInvoice.total || 0).toLocaleString('es-CO') + ' COP\n';
+    msg += '💳 *Método de Pago:* ' + (currentGeneratedInvoice.paymentMethod || 'Efectivo') + '\n\n';
+    msg += 'NIT Emisor: 1088288308-0 • Tel: 3108014660\n';
+    msg += '¡Gracias por tu compra en KnifeBlackStore!';
+
+    var encoded = encodeURIComponent(msg);
+    var targetPhone = phone.length >= 10 ? (phone.startsWith('57') ? phone : '57' + phone) : '';
+    var url = targetPhone ? ('https://wa.me/' + targetPhone + '?text=' + encoded) : ('https://wa.me/?text=' + encoded);
+    window.open(url, '_blank');
+};
+
+window.closeInvoiceSuccessModal = function() {
+    var m = document.getElementById('invoice-success-modal');
+    if (m) m.style.display = 'none';
+};
+
+
+// ============================================================================
+// MÓDULO CONTABLE & FISCAL DIAN (DECLARACIÓN DE RENTA & EXÓGENA)
+// ============================================================================
+
+window.renderDianReport = function() {
+    var yearSelect = document.getElementById('dian-year-select');
+    var selectedYear = yearSelect ? yearSelect.value : '2026';
+
+    var tbody = document.getElementById('dian-exogena-tbody');
+    if (!tbody) return;
+
+    var grossRev = 0;
+    var electronicRev = 0;
+    var cashRev = 0;
+    var totalOrders = 0;
+    var totalDiscounts = 0;
+
+    var electronicMethods = ['nequi', 'daviplata', 'transferencia', 'bancolombia', 'tarjeta', 'wompi', 'epayco', 'pse', 'datafono'];
+
+    var clientMap = new Map();
+
+    (allSalesData || []).forEach(function(sale) {
+        var isAdminPurchase = (sale.email === 'knifeblackstore@gmail.com') ||
+                                (sale.customer && sale.customer.toLowerCase().includes('admin')) ||
+                                (sale.isAdminPurchase === true);
+        if (sale.status === 'Cancelada' || isAdminPurchase) return;
+
+        var saleDate = sale.date ? new Date(sale.date) : new Date();
+        var saleYear = String(saleDate.getFullYear());
+
+        if (selectedYear !== 'all' && saleYear !== selectedYear) return;
+
+        var saleTot = Number(sale.total) || 0;
+        grossRev += saleTot;
+        totalOrders += 1;
+        totalDiscounts += Number(sale.discountAmount) || 0;
+
+        var methodLower = (sale.paymentMethod || sale.payment_method || 'efectivo').toLowerCase();
+        var isElectronic = electronicMethods.some(function(m) { return methodLower.includes(m); });
+        if (isElectronic) {
+            electronicRev += saleTot;
+        } else {
+            cashRev += saleTot;
+        }
+
+        var cDoc = (sale.customerDoc || sale.doc || '').trim();
+        var cName = (sale.customer || sale.customerName || 'Consumidor Final').trim();
+        if (!cDoc && (cName.toLowerCase().includes('pos') || cName.toLowerCase() === 'consumidor final')) {
+            cDoc = '222222222222';
+            cName = 'Consumidor Final (Cuantías Menores)';
+        } else if (!cDoc) {
+            cDoc = 'No registrado';
+        }
+
+        var mapKey = cDoc !== '222222222222' && cDoc !== 'No registrado' ? cDoc : cName.toLowerCase();
+        if (!clientMap.has(mapKey)) {
+            clientMap.set(mapKey, {
+                doc: cDoc,
+                name: cName,
+                phone: sale.customerPhone || sale.phone || 'N/A',
+                count: 0,
+                total: 0
+            });
+        }
+        var record = clientMap.get(mapKey);
+        record.count += 1;
+        record.total += saleTot;
+        if (sale.customerPhone && record.phone === 'N/A') record.phone = sale.customerPhone;
+    });
+
+    var totalExpenses = 0;
+    var inventoryCosts = 0;
+    var operationalCosts = 0;
+
+    (allFinRecords || []).forEach(function(rec) {
+        if (rec.type === 'expense' || !rec.type) {
+            var recDate = rec.date ? new Date(rec.date) : new Date();
+            var recYear = String(recDate.getFullYear());
+            if (selectedYear !== 'all' && recYear !== selectedYear) return;
+
+            var amt = Number(rec.amount) || 0;
+            totalExpenses += amt;
+            var descLower = (rec.desc || rec.category || '').toLowerCase();
+            if (descLower.includes('mercanc') || descLower.includes('inventario') || descLower.includes('producto') || descLower.includes('compra')) {
+                inventoryCosts += amt;
+            } else {
+                operationalCosts += amt;
+            }
+        }
+    });
+
+    var netIncome = grossRev - totalExpenses;
+
+    var elGross = document.getElementById('dian-kpi-gross');
+    var elElec = document.getElementById('dian-kpi-electronic');
+    var elCash = document.getElementById('dian-kpi-cash');
+    var elExp = document.getElementById('dian-kpi-expenses');
+    var elNet = document.getElementById('dian-kpi-net');
+
+    if (elGross) elGross.innerText = '$' + grossRev.toLocaleString('es-CO');
+    if (elElec) elElec.innerText = '$' + electronicRev.toLocaleString('es-CO');
+    if (elCash) elCash.innerText = '$' + cashRev.toLocaleString('es-CO');
+    if (elExp) elExp.innerText = '$' + totalExpenses.toLocaleString('es-CO');
+    if (elNet) elNet.innerText = '$' + netIncome.toLocaleString('es-CO');
+
+    currentDianClientsList = Array.from(clientMap.values()).map(function(c) {
+        var pct = grossRev > 0 ? ((c.total / grossRev) * 100).toFixed(1) : 0;
+        return { doc: c.doc, name: c.name, phone: c.phone, count: c.count, total: c.total, pct: pct };
+    }).sort(function(a, b) { return b.total - a.total; });
+
+    window.currentFiscalMetrics = {
+        year: selectedYear,
+        grossRevenue: grossRev,
+        electronicRevenue: electronicRev,
+        cashRevenue: cashRev,
+        totalExpenses: totalExpenses,
+        inventoryCosts: inventoryCosts,
+        operationalCosts: operationalCosts,
+        netIncome: netIncome,
+        totalOrders: totalOrders,
+        totalDiscounts: totalDiscounts,
+        topClients: currentDianClientsList
+    };
+
+    window.filterDianClients('');
+};
+
+window.filterDianClients = function(query) {
+    var tbody = document.getElementById('dian-exogena-tbody');
+    if (!tbody) return;
+
+    var list = window.currentDianClientsList || [];
+    var qLower = (query || '').toLowerCase().trim();
+
+    var filtered = qLower ? list.filter(function(c) {
+        return (c.name && c.name.toLowerCase().includes(qLower)) ||
+               (c.doc && c.doc.toLowerCase().includes(qLower)) ||
+               (c.phone && c.phone.includes(qLower));
+    }) : list;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#888; padding:25px;">No hay registros fiscales para los criterios seleccionados.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(function(c) {
+        return '<tr>' +
+            '<td data-label="Cédula/NIT" style="font-family:monospace; font-weight:bold; color:var(--neon-cyan);">' + c.doc + '</td>' +
+            '<td data-label="Nombre">' + c.name + '</td>' +
+            '<td data-label="Teléfono">' + c.phone + '</td>' +
+            '<td data-label="Nro. Facturas" style="text-align:center;">' + c.count + '</td>' +
+            '<td data-label="Total ($)" style="font-weight:bold; color:#2ecc71;">$' + c.total.toLocaleString('es-CO') + ' COP</td>' +
+            '<td data-label="% Ventas" style="font-weight:bold; color:#f39c12;">' + c.pct + '%</td>' +
+        '</tr>';
+    }).join('');
+};
+
+window.exportDianCSV = function() {
+    var metrics = window.currentFiscalMetrics;
+    if (!metrics || !metrics.topClients || metrics.topClients.length === 0) {
+        alert("No hay registros fiscales disponibles para exportar.");
+        return;
+    }
+
+    var csv = "Concepto;Tipo Documento;Numero Identificacion;Nombre o Razon Social;Telefono;Nro Operaciones;Valor Total Facturado ($);Porcentaje Ventas (%)\r\n";
+
+    metrics.topClients.forEach(function(c) {
+        var row = [
+            '4001 - Ingresos Brutos Comerciales',
+            c.doc && c.doc.length >= 9 && !c.doc.includes('22222') ? 'NIT / CC' : 'Cuantias Menores',
+            '"' + c.doc + '"',
+            '"' + (c.name || '').replace(/"/g, '""') + '"',
+            '"' + (c.phone || '') + '"',
+            c.count,
+            c.total,
+            c.pct + '%'
+        ];
+        csv += row.join(';') + '\r\n';
+    });
+
+    var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", 'Reporte_Exogena_DIAN_' + metrics.year + '_KnifeBlackStore.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+window.exportDianPDF = function() {
+    var metrics = window.currentFiscalMetrics;
+    if (!metrics) {
+        alert("Cargando métricas fiscales...");
+        return;
+    }
+    if (!window.jspdf) {
+        alert("Librería PDF no disponible. Por favor refresca la página.");
+        return;
+    }
+
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    var pageWidth = 210;
+    var pageHeight = 297;
+    var margin = 14;
+
+    doc.setFillColor(15, 15, 22);
+    doc.rect(0, 0, pageWidth, 5, 'F');
+    doc.setFillColor(0, 240, 255);
+    doc.rect(0, 5, pageWidth, 1.5, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(15, 15, 22);
+    doc.text('KNIFEBLACK STORE', margin, 18);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(70, 70, 80);
+    doc.text('NIT: 1088288308-0 • Tel: 3108014660 • Email: knifeblackstore@gmail.com', margin, 23);
+    doc.text('Régimen: No Responsable de IVA (Régimen Simplificado - Art. 499 E.T.)', margin, 27);
+
+    var boxY = 32;
+    doc.setFillColor(245, 247, 250);
+    doc.setDrawColor(0, 240, 255);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(margin, boxY, pageWidth - (margin * 2), 20, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(15, 15, 22);
+    doc.text('CERTIFICADO CONTABLE Y BALANCE FISCAL - DIAN', margin + 6, boxY + 8);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(255, 0, 127);
+    doc.text('AÑO GRAVABLE FISCAL: ' + (metrics.year === 'all' ? 'Histórico Consolidado' : metrics.year), margin + 6, boxY + 14);
+    doc.setTextColor(80, 80, 90);
+    doc.text('Fecha de Emisión: ' + new Date().toLocaleDateString('es-CO') + ' ' + new Date().toLocaleTimeString('es-CO'), pageWidth - margin - 65, boxY + 14);
+
+    var kpiY = 57;
+    var kpiW = (pageWidth - (margin * 2) - 9) / 4;
+    var kpiH = 22;
+
+    var kpis = [
+        { label: 'INGRESOS BRUTOS', val: '$' + (metrics.grossRevenue || 0).toLocaleString('es-CO'), color: [46, 204, 113] },
+        { label: 'MEDIOS ELECTRÓNICOS', val: '$' + (metrics.electronicRevenue || 0).toLocaleString('es-CO'), color: [0, 240, 255] },
+        { label: 'COSTOS / GASTOS', val: '$' + (metrics.totalExpenses || 0).toLocaleString('es-CO'), color: [231, 76, 60] },
+        { label: 'RENTA LÍQUIDA EST.', val: '$' + (metrics.netIncome || 0).toLocaleString('es-CO'), color: [155, 89, 182] }
+    ];
+
+    kpis.forEach(function(k, idx) {
+        var kX = margin + idx * (kpiW + 3);
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(220, 225, 230);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(kX, kpiY, kpiW, kpiH, 2, 2, 'FD');
+
+        doc.setFillColor(k.color[0], k.color[1], k.color[2]);
+        doc.roundedRect(kX, kpiY, kpiW, 2, 1, 1, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        doc.setTextColor(100, 100, 110);
+        doc.text(k.label, kX + 3, kpiY + 7);
+
+        doc.setFontSize(9.5);
+        doc.setTextColor(20, 20, 30);
+        doc.text(k.val, kX + 3, kpiY + 16);
+    });
+
+    var curY = 84;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 15, 22);
+    doc.text('1. CONSOLIDADO DE INGRESOS Y OPERACIONES DECLARABLES', margin, curY);
+
+    curY += 4;
+    doc.setDrawColor(0, 240, 255);
+    doc.setLineWidth(0.5);
+    doc.line(margin, curY, margin + 70, curY);
+
+    curY += 6;
+    var summaryRows = [
+        ['Total Facturas / Ventas Emitidas en el Periodo', (metrics.totalOrders || 0) + ' operaciones'],
+        ['Ingresos Brutos por Canales Electrónicos / Bancarios (Nequi, Daviplata, Wompi, ePayco)', '$' + (metrics.electronicRevenue || 0).toLocaleString('es-CO') + ' COP'],
+        ['Ingresos Brutos en Efectivo (Caja Física)', '$' + (metrics.cashRevenue || 0).toLocaleString('es-CO') + ' COP'],
+        ['Total Descuentos Comerciales Otorgados', '$' + (metrics.totalDiscounts || 0).toLocaleString('es-CO') + ' COP'],
+        ['Costos de Mercancía e Inventario Deducibles (Finanzas)', '$' + (metrics.inventoryCosts || 0).toLocaleString('es-CO') + ' COP'],
+        ['Gastos Operativos, Logística y Servicios (Finanzas)', '$' + (metrics.operationalCosts || 0).toLocaleString('es-CO') + ' COP'],
+        ['Renta Líquida Ordinaria Estimada (Base Gravable Aproximada)', '$' + (metrics.netIncome || 0).toLocaleString('es-CO') + ' COP']
+    ];
+
+    doc.setFontSize(8.5);
+    summaryRows.forEach(function(r, idx) {
+        var isEven = idx % 2 === 0;
+        doc.setFillColor(isEven ? 255 : 248, isEven ? 255 : 249, isEven ? 255 : 252);
+        doc.rect(margin, curY, pageWidth - (margin * 2), 6.5, 'F');
+
+        doc.setFont('helvetica', idx === summaryRows.length - 1 ? 'bold' : 'normal');
+        doc.setTextColor(idx === summaryRows.length - 1 ? 0 : 50, idx === summaryRows.length - 1 ? 100 : 50, idx === summaryRows.length - 1 ? 200 : 60);
+
+        doc.text(r[0], margin + 4, curY + 4.5);
+        doc.text(r[1], pageWidth - margin - 4, curY + 4.5, { align: 'right' });
+        curY += 6.5;
+    });
+
+    curY += 8;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 15, 22);
+    doc.text('2. REPORTE DE TERCEROS / MEDIOS MAGNÉTICOS (INFORMACIÓN EXÓGENA DIAN)', margin, curY);
+
+    curY += 4;
+    doc.setDrawColor(0, 240, 255);
+    doc.setLineWidth(0.5);
+    doc.line(margin, curY, margin + 90, curY);
+
+    curY += 5;
+    doc.setFillColor(20, 20, 30);
+    doc.rect(margin, curY, pageWidth - (margin * 2), 7, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(255, 255, 255);
+
+    doc.text('NIT / CÉDULA', margin + 3, curY + 4.8);
+    doc.text('NOMBRE O RAZÓN SOCIAL DEL TERCERO', margin + 35, curY + 4.8);
+    doc.text('CONTACTO', margin + 110, curY + 4.8);
+    doc.text('OPERACIONES', margin + 140, curY + 4.8);
+    doc.text('TOTAL FACTURADO ($)', pageWidth - margin - 4, curY + 4.8, { align: 'right' });
+
+    curY += 7;
+
+    var clients = metrics.topClients || [];
+    doc.setFontSize(7.5);
+
+    clients.slice(0, 15).forEach(function(c, idx) {
+        var isEven = idx % 2 === 0;
+        doc.setFillColor(isEven ? 255 : 248, isEven ? 255 : 249, isEven ? 255 : 252);
+        doc.rect(margin, curY, pageWidth - (margin * 2), 6, 'F');
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 60, 70);
+
+        doc.text(c.doc || 'Consumidor Final', margin + 3, curY + 4.2);
+        var cName = c.name ? (c.name.length > 40 ? c.name.substring(0, 38) + '...' : c.name) : 'Cliente Mostrador';
+        doc.text(cName, margin + 35, curY + 4.2);
+        doc.text(c.phone || 'N/A', margin + 110, curY + 4.2);
+        doc.text(c.count + ' compras', margin + 140, curY + 4.2);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(20, 20, 30);
+        doc.text('$' + (c.total || 0).toLocaleString('es-CO'), pageWidth - margin - 4, curY + 4.2, { align: 'right' });
+
+        curY += 6;
+    });
+
+    curY = Math.max(curY + 12, pageHeight - 45);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(90, 90, 100);
+    doc.text('Certifico que la información aquí contenida ha sido tomada fielmente de los registros contables y base de datos digital de KnifeBlackStore.', margin, curY);
+
+    curY += 15;
+    doc.setDrawColor(150, 150, 160);
+    doc.setLineWidth(0.4);
+    doc.line(margin + 10, curY, margin + 75, curY);
+    doc.line(pageWidth - margin - 75, curY, pageWidth - margin - 10, curY);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(20, 20, 30);
+    doc.text('KNIFEBLACK STORE', margin + 42.5, curY + 4, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.text('NIT: 1088288308-0 • Representante', margin + 42.5, curY + 8, { align: 'center' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text('CONTADOR PÚBLICO / REVISOR', pageWidth - margin - 42.5, curY + 4, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.text('T.P. Nº ____________________', pageWidth - margin - 42.5, curY + 8, { align: 'center' });
+
+    doc.setFillColor(0, 240, 255);
+    doc.rect(0, pageHeight - 2, pageWidth, 2, 'F');
+
+    doc.save('Balance_Fiscal_DIAN_' + metrics.year + '_KnifeBlackStore.pdf');
+};

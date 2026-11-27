@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>POS - Knifeblackstore</title>
     <link rel="stylesheet" href="main.css">
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
@@ -438,6 +438,8 @@
             });
         }
     </script>
+    <script src="scripts/jspdf.umd.min.js"></script>
+    <script src="scripts/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="erp-layout">
@@ -449,6 +451,7 @@
             <a href="#" class="nav-btn" onclick="switchTab('inventario')"><span class="nav-icon">📦</span><span>Inventario</span></a>
             <a href="#" class="nav-btn" onclick="switchTab('tiendas')"><span class="nav-icon">🤝</span><span>Tiendas</span></a>
             <a href="#" class="nav-btn" onclick="switchTab('usuarios')"><span class="nav-icon">👥</span><span>Usuarios</span></a>
+            <a href="#" class="nav-btn" onclick="switchTab('dian')"><span class="nav-icon">🏛️</span><span>DIAN / Renta</span></a>
             <div style="flex:1;"></div>
             <a href="index.html" class="nav-btn logout"><span class="nav-icon">⬅</span><span>Tienda</span></a>
         </aside>
@@ -533,6 +536,38 @@
             
             <button class="btn-print" id="btn-confirm-sale">Procesar e Imprimir</button>
             <button class="btn-close-ticket" id="btn-cancel-sale">Cancelar</button>
+        </div>
+    </div>
+
+    
+    <!-- Modal de Factura Generada con Éxito -->
+    <div class="modal-overlay" id="invoice-success-modal" style="display:none; align-items:center; justify-content:center; z-index:9999;">
+        <div style="background:#0f0f18; border:2px solid var(--neon-cyan); border-radius:16px; padding:25px; max-width:440px; width:92%; text-align:center; box-shadow:0 10px 40px rgba(0,240,255,0.3); color:#fff;">
+            <div style="font-size:3rem; margin-bottom:10px;">✅</div>
+            <h2 style="color:var(--neon-cyan); margin:0 0 8px 0; text-transform:uppercase; letter-spacing:1px; font-size:1.4rem;">¡Factura Generada!</h2>
+            <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;" id="inv-modal-subtitle">Venta procesada y registrada en el sistema.</p>
+            
+            <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:12px; margin-bottom:20px; text-align:left; font-size:0.88rem; line-height:1.6;">
+                <div><strong>Factura Nº:</strong> <span id="inv-modal-number" style="color:var(--neon-pink); font-weight:bold;">KBS-0001</span></div>
+                <div><strong>Cliente:</strong> <span id="inv-modal-client">Consumidor Final</span></div>
+                <div><strong>Total Facturado:</strong> <span id="inv-modal-total" style="color:var(--neon-cyan); font-weight:bold;">$0 COP</span></div>
+                <div><strong>NIT Emisor:</strong> <span>1088288308-0</span></div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button type="button" onclick="window.downloadCurrentInvoicePDF()" style="background:linear-gradient(135deg, #00f0ff, #0088ff); color:#000; font-weight:900; border:none; padding:14px; border-radius:8px; cursor:pointer; font-size:0.95rem; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <span>📥</span><span>Descargar Factura en PDF</span>
+                </button>
+                <button type="button" onclick="window.shareCurrentInvoiceWA()" style="background:#25D366; color:#000; font-weight:900; border:none; padding:12px; border-radius:8px; cursor:pointer; font-size:0.95rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <span>📲</span><span>Enviar Resumen por WhatsApp</span>
+                </button>
+                <button type="button" onclick="window.print()" style="background:rgba(255,255,255,0.1); color:#fff; font-weight:bold; border:1px solid #444; padding:10px; border-radius:8px; cursor:pointer; font-size:0.9rem;">
+                    <span>🖨️</span><span>Imprimir Ticket Físico</span>
+                </button>
+                <button type="button" onclick="window.closeInvoiceSuccessModal()" style="background:transparent; color:#888; border:none; padding:8px; cursor:pointer; font-size:0.85rem; text-decoration:underline;">
+                    Cerrar y Nueva Venta
+                </button>
+            </div>
         </div>
     </div>
 
@@ -916,15 +951,126 @@
                     </div>
                 </div>
             </div>
-\n        </main>
+\n        
+            <!-- TAB DIAN Y REPORTE FISCAL / DECLARACIÓN DE RENTA -->
+            <div id="tab-dian" class="tab-pane">
+                <div class="fin-dashboard">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:15px;">
+                        <div>
+                            <h1 style="color:white; margin:0 0 5px 0; font-size:1.8rem; display:flex; align-items:center; gap:10px;">
+                                <span>🏛️</span><span>Reporte Contable & DIAN</span>
+                            </h1>
+                            <p style="color:#888; margin:0; font-size:0.9rem;">
+                                Consolidado de ventas brutas, deducciones y medios magnéticos (Exógena) para Declaración de Renta.
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button type="button" onclick="window.exportDianCSV()" class="fin-btn" style="background:#27ae60; color:#fff; display:flex; align-items:center; gap:8px; padding:10px 18px; font-weight:bold;">
+                                <span>📊</span><span>Exportar Exógena (Excel/CSV)</span>
+                            </button>
+                            <button type="button" onclick="window.exportDianPDF()" class="fin-btn" style="background:linear-gradient(135deg, #00f0ff, #0088ff); color:#000; display:flex; align-items:center; gap:8px; padding:10px 18px; font-weight:900;">
+                                <span>📄</span><span>Descargar Balance Fiscal (PDF)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Controles y Filtros de Año Fiscal -->
+                    <div class="fin-controls" style="display:flex; gap:15px; align-items:center; flex-wrap:wrap; background:#111; padding:15px; border-radius:12px; border:1px solid #333; margin-bottom:20px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <label style="color:#aaa; font-weight:bold; font-size:0.9rem;">Año Gravable:</label>
+                            <select id="dian-year-select" class="fin-input" onchange="window.renderDianReport()" style="width:auto; min-width:130px; padding:10px 15px; font-weight:bold; font-size:1rem; background:#1a1a24; color:var(--neon-cyan); border-color:var(--neon-cyan);">
+                                <option value="2026" selected>2026 (Actual)</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="all">Histórico Total</option>
+                            </select>
+                        </div>
+                        <div style="color:#666;">|</div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <span style="color:#aaa; font-size:0.88rem;">NIT Emisor: <strong>1088288308-0</strong></span>
+                            <span style="color:#666;">•</span>
+                            <span style="color:#aaa; font-size:0.88rem;">Tel: <strong>3108014660</strong></span>
+                            <span style="color:#666;">•</span>
+                            <span style="color:#aaa; font-size:0.88rem;">Régimen: <strong>No Responsable IVA (Art. 499 E.T.)</strong></span>
+                        </div>
+                        <button type="button" onclick="window.renderDianReport()" class="fin-btn" style="margin-left:auto; background:rgba(255,255,255,0.08); color:#fff; border:1px solid #555; padding:8px 16px; width:auto;">🔄 Refrescar</button>
+                    </div>
+
+                    <!-- KPIs Fiscales DIAN -->
+                    <div class="fin-kpis" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:25px;">
+                        <div class="fin-card" style="border-left:4px solid #2ecc71;">
+                            <h3>Ingresos Brutos Fiscales</h3>
+                            <div class="val" id="dian-kpi-gross" style="color:#2ecc71;">$0</div>
+                            <small style="color:#888;">Total ventas facturadas en el año</small>
+                        </div>
+                        <div class="fin-card" style="border-left:4px solid var(--neon-cyan);">
+                            <h3>Medios Electrónicos / Bancos</h3>
+                            <div class="val" id="dian-kpi-electronic" style="color:var(--neon-cyan);">$0</div>
+                            <small style="color:#888;">Nequi, Daviplata, Bancos y Pasarelas</small>
+                        </div>
+                        <div class="fin-card" style="border-left:4px solid #f39c12;">
+                            <h3>Ingresos en Efectivo</h3>
+                            <div class="val" id="dian-kpi-cash" style="color:#f39c12;">$0</div>
+                            <small style="color:#888;">Caja física y mostrador</small>
+                        </div>
+                        <div class="fin-card" style="border-left:4px solid #e74c3c;">
+                            <h3>Costos y Gastos Deducibles</h3>
+                            <div class="val" id="dian-kpi-expenses" style="color:#e74c3c;">$0</div>
+                            <small style="color:#888;">Egresos registrados en Finanzas</small>
+                        </div>
+                        <div class="fin-card" style="border-left:4px solid #9b59b6;">
+                            <h3>Renta Líquida Estimada</h3>
+                            <div class="val" id="dian-kpi-net" style="color:#9b59b6;">$0</div>
+                            <small style="color:#888;">Ingresos - Costos deducibles</small>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Información Exógena (Reporte de Terceros) -->
+                    <div style="background:#111; border-radius:12px; border:1px solid #333; padding:20px; margin-bottom:25px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                            <div>
+                                <h3 style="color:var(--neon-cyan); margin:0 0 5px 0; font-size:1.2rem;">📋 Información Exógena - Reporte por Terceros / Clientes</h3>
+                                <p style="color:#888; font-size:0.85rem; margin:0;">Acumulado de compras por cada documento/cédula en el año fiscal seleccionado.</p>
+                            </div>
+                            <input type="text" id="dian-search-client" placeholder="Buscar por cliente o cédula..." oninput="window.filterDianClients(this.value)" class="fin-input" style="max-width:280px; padding:10px; font-size:0.9rem;">
+                        </div>
+
+                        <div class="sub-table-container">
+                            <table class="sub-table" id="dian-exogena-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cédula / NIT</th>
+                                        <th>Nombre del Tercero</th>
+                                        <th>Teléfono</th>
+                                        <th>Nro. Facturas</th>
+                                        <th>Total Facturado ($)</th>
+                                        <th>% de Ventas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dian-exogena-tbody">
+                                    <tr><td colspan="6" style="text-align:center; color:#888; padding:25px;">Cargando datos fiscales...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
     </div>
     
     <script>
         function switchTab(tabId) {
             document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
+            const targetPane = document.getElementById('tab-' + tabId);
+            if (targetPane) targetPane.classList.add('active');
+            const targetBtns = document.querySelectorAll('.nav-btn[onclick*="' + tabId + '"]');
+            targetBtns.forEach(b => b.classList.add('active'));
+            if (tabId === 'dian' && typeof window.renderDianReport === 'function') {
+                window.renderDianReport();
+            }
         }
     </script>
 

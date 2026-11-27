@@ -860,7 +860,10 @@ window.checkoutCart = () => {
 
     // REGISTRAR VENTA EN FIREBASE ANTES DE REDIRIGIR
     const saleData = {
-        customer: user ? user.name : 'Cliente Invitado',
+        customer: user ? (user.name || user.email) : 'Cliente Invitado',
+        customerDoc: user ? (user.doc || user.cedula || 'Consumidor Final') : 'Consumidor Final',
+        customerPhone: user ? (user.phone || '') : '',
+        paymentMethod: 'WhatsApp / Transferencia',
         email: user ? user.email : 'invitado@tienda',
         items: cart,
         total: total,

@@ -2727,3 +2727,69 @@ button.pag-btn:disabled, .pag-btn:disabled {
         border-radius: 20px !important;
     }
 }
+
+
+/* ==========================================================================
+   OPTIMIZACIONES GLOBALES RESPONSIVAS MULTI-DISPOSITIVO (APK & WEB)
+   ========================================================================== */
+html, body {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box !important;
+}
+
+/* Evitar desbordes de cuadrículas o textos en cualquier ancho de celular */
+.dyn-product-grid {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 650px) {
+    .dyn-product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        padding: 4px !important;
+    }
+    .catalog-layout {
+        padding: 5px 8px 60px 8px !important;
+        gap: 15px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+    .dyn-card {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .dyn-card-title {
+        word-break: break-word !important;
+    }
+    .container, .catalog-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+}
+
+/* Pantallas muy compactas (320px - 360px como Galaxy Fold / teléfonos pequeños) */
+@media (max-width: 360px) {
+    .dyn-product-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+        padding: 2px !important;
+    }
+    .dyn-card-body {
+        padding: 10px !important;
+    }
+    .btn-dyn-add {
+        min-height: 42px !important;
+        font-size: 0.82rem !important;
+    }
+}
