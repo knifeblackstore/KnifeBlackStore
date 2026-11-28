@@ -3048,3 +3048,69 @@ body {
         font-size: 0.76rem !important;
     }
 }
+
+
+
+/* ==========================================================================
+   OPTIMIZACIÓN HEADER / NAVBAR MÓVIL (S25 ULTRA, ANDROID & IOS)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .nav {
+        padding-top: max(8px, env(safe-area-inset-top, 8px)) !important;
+        padding-bottom: 8px !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        gap: 6px !important;
+        flex-wrap: nowrap !important;
+        min-height: 48px !important;
+    }
+    .nav a.logo {
+        font-size: 0.95rem !important;
+        gap: 6px !important;
+        margin: 0 !important;
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+        white-space: nowrap !important;
+    }
+    .nav a.logo img {
+        height: 28px !important;
+        width: 28px !important;
+    }
+    .nav > div:nth-child(2) {
+        gap: 6px !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .nav > div:nth-child(2) button,
+    .nav > div:nth-child(2) a {
+        padding: 5px 9px !important;
+        font-size: 0.78rem !important;
+        white-space: nowrap !important;
+    }
+    .nav .menu-toggle {
+        width: 28px !important;
+        height: 28px !important;
+        padding: 2px !important;
+        flex-shrink: 0 !important;
+        margin-left: 2px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav a.logo {
+        max-width: 125px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 0.85rem !important;
+    }
+    .nav > div:nth-child(2) button[onclick="window.openDrawerCart()"] {
+        padding: 5px 7px !important;
+        font-size: 0.74rem !important;
+    }
+    .nav > div:nth-child(2) a[href="login.html"] {
+        padding: 5px 8px !important;
+        font-size: 0.74rem !important;
+    }
+}

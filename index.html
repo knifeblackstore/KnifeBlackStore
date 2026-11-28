@@ -162,17 +162,24 @@
         .hero .b2:hover { background: rgba(57,255,20,0.12); box-shadow: 0 0 20px rgba(57,255,20,0.4); transform: translateY(-3px); }
         #servicios { scroll-margin-top: 80px; }
         @media (max-width: 850px) {
-            .hero { padding: 100px 5% 50px; min-height: auto; }
-            .hero-inner { flex-direction: column; text-align: center; gap: 30px; }
-            .logo-glow-ring { width: 220px; height: 220px; }
-            .hero-logo { width: 200px; height: 200px; }
+            .hero { padding: 45px 5% 35px !important; min-height: auto !important; }
+            .hero-inner { flex-direction: column; text-align: center; gap: 20px !important; }
+            .logo-glow-ring { width: 160px !important; height: 160px !important; margin: 0 auto !important; }
+            .hero-logo { width: 140px !important; height: 140px !important; }
             .hero .btns { justify-content: center; }
         }
-        @media (max-width: 480px) {
-            .logo-glow-ring { width: 180px; height: 180px; }
-            .hero-logo { width: 160px; height: 160px; }
-            .hero .btns { flex-direction: column; align-items: center; }
-            .hero .b1, .hero .b2 { width: 100%; text-align: center; box-sizing: border-box; }
+        @media (max-width: 520px) {
+            .hero { padding: 25px 4% 20px !important; min-height: auto !important; }
+            .hero-inner { gap: 14px !important; }
+            .logo-glow-ring { width: 125px !important; height: 125px !important; margin: 0 auto !important; }
+            .hero-logo { width: 110px !important; height: 110px !important; }
+            .hero-title { font-size: 1.65rem !important; margin: 0 0 4px !important; letter-spacing: 1px !important; }
+            .hero-title-accent { display: inline !important; font-size: 1em !important; letter-spacing: 1px !important; }
+            .hero-sub { font-size: 0.82rem !important; margin: 0 0 12px !important; line-height: 1.35 !important; }
+            .hero-apk-container { margin-top: 8px !important; }
+            .btn-apk-download { padding: 8px 16px !important; font-size: 0.78rem !important; border-radius: 20px !important; }
+            .hero .btns { display: flex !important; flex-direction: row !important; gap: 10px !important; width: 100% !important; justify-content: center !important; margin-top: 10px !important; }
+            .hero .b1, .hero .b2 { flex: 1 1 0 !important; max-width: 170px !important; width: auto !important; padding: 11px 12px !important; font-size: 0.82rem !important; text-align: center !important; box-sizing: border-box !important; border-radius: 25px !important; }
         }
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -220,7 +227,7 @@
             <div class="hero-text">
                 <h1 class="hero-title">KNIFEBLACK<span class="hero-title-accent">STORE</span></h1>
                 <p class="hero-sub">Tu tienda de coleccionables, pines y plataformas streaming</p>
-                <div style="margin-top:25px; display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
+                <div class="hero-apk-container" style="margin-top:20px; display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
                 <a href="https://github.com/knifeblackstore/KnifeBlackStore/raw/main/knifeblackstore.apk" download="knifeblackstore.apk" class="btn-apk-download">
                     <span>📱</span>
                     <span>Descargar App Oficial (APK Android)</span>
