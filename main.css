@@ -2793,3 +2793,236 @@ html, body {
         font-size: 0.82rem !important;
     }
 }
+
+
+/* ==========================================================================
+   OPTIMIZACIÓN UNIVERSAL MULTI-DISPOSITIVO (ANDROID, iOS & DESKTOP)
+   ========================================================================== */
+
+/* Escala base fluida proporcional */
+html {
+    font-size: 15px;
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    scroll-behavior: smooth;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+}
+
+body {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Soporte para iPhone / iPad PWA (Safe Areas: Notch y barra inferior) */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .nav {
+        padding-top: calc(10px + env(safe-area-inset-top)) !important;
+    }
+    .bottom-nav {
+        padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    }
+}
+
+/* ==========================================================================
+   DISEÑO VISUAL ESTILO BURBUJAS (GLASSMORPHISM & ORGANIC FLOATING)
+   ========================================================================== */
+
+@keyframes bubbleFloat {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-4px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes bubbleGlow {
+    0% { box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2), 0 0 12px rgba(0, 240, 255, 0.12); }
+    50% { box-shadow: 0 14px 30px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.3), 0 0 22px rgba(0, 240, 255, 0.25); }
+    100% { box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2), 0 0 12px rgba(0, 240, 255, 0.12); }
+}
+
+/* Tarjetas de Productos (Pines y Figuras) - Estilo Burbuja */
+.dyn-card {
+    background: radial-gradient(130% 130% at 20% 10%, rgba(255, 255, 255, 0.08) 0%, rgba(18, 18, 28, 0.8) 65%, rgba(8, 8, 14, 0.95) 100%) !important;
+    backdrop-filter: blur(14px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+    border: 1.5px solid rgba(0, 240, 255, 0.28) !important;
+    border-radius: 22px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2), 0 0 15px rgba(0, 240, 255, 0.12) !important;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.3s ease !important;
+    position: relative !important;
+    content-visibility: auto; /* Máxima performance de renderizado 60FPS */
+    contain-intrinsic-size: 280px;
+    transform: translateZ(0); /* Aceleración por GPU */
+    will-change: transform;
+}
+
+.dyn-card:hover {
+    transform: translateY(-5px) scale(1.02) !important;
+    border-color: var(--neon-cyan) !important;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.35), 0 0 25px rgba(0, 240, 255, 0.35) !important;
+}
+
+/* Badge de Urgencia / Stock en Píldora de Burbuja */
+.dyn-card .urgency-badge, .dyn-card .stock-badge {
+    border-radius: 50px !important;
+    backdrop-filter: blur(8px) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+
+/* Tarjetas de Plataformas Streaming - Estilo Burbuja */
+.platform-card {
+    background: radial-gradient(130% 130% at 20% 10%, rgba(255, 255, 255, 0.08) 0%, rgba(18, 18, 28, 0.8) 65%, rgba(8, 8, 14, 0.95) 100%) !important;
+    backdrop-filter: blur(14px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+    border: 1.5px solid rgba(0, 240, 255, 0.28) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2), 0 0 15px rgba(0, 240, 255, 0.12) !important;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.3s ease !important;
+}
+
+.platform-card:hover {
+    transform: translateY(-5px) scale(1.02) !important;
+    border-color: var(--neon-cyan) !important;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.35), 0 0 25px rgba(0, 240, 255, 0.35) !important;
+}
+
+/* Chips de franquicias estilo burbuja de cristal */
+.franchise-chip {
+    border-radius: 50px !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(0, 240, 255, 0.3) !important;
+    background: rgba(15, 15, 25, 0.6) !important;
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s !important;
+}
+
+.franchise-chip:active {
+    transform: scale(0.94) !important;
+}
+
+.franchise-chip.active {
+    background: linear-gradient(135deg, var(--neon-cyan), #0077ff) !important;
+    color: #000 !important;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4) !important;
+}
+
+/* ==========================================================================
+   OPTIMIZACIÓN PROPORCIONAL DE TAMAÑOS EN CELULARES (NO SE VEA GIGANTE)
+   ========================================================================== */
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+    .products-hero {
+        padding: 24px 12px 14px 12px !important;
+    }
+    .products-hero h1 {
+        font-size: 1.7rem !important;
+        margin-bottom: 6px !important;
+    }
+    .products-hero p {
+        font-size: 0.85rem !important;
+    }
+    .nav {
+        padding: 8px 14px !important;
+    }
+    .logo {
+        font-size: 1.4rem !important;
+    }
+}
+
+@media (max-width: 520px) {
+    html {
+        font-size: 13.5px;
+    }
+    
+    /* Plataformas Streaming en Móvil: Cuadrícula de 2 columnas en lugar de tarjetas gigantes */
+    .platform-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        padding: 10px 8px 60px 8px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+    }
+
+    .platform-card {
+        padding: 18px 12px !important;
+        border-radius: 18px !important;
+    }
+
+    .platform-icon {
+        font-size: 2.5rem !important;
+        margin-bottom: 10px !important;
+    }
+
+    .platform-name {
+        font-size: 1.15rem !important;
+        margin-bottom: 6px !important;
+    }
+
+    .platform-desc {
+        font-size: 0.78rem !important;
+        line-height: 1.35 !important;
+        margin-bottom: 12px !important;
+    }
+
+    .platform-price {
+        font-size: 1.1rem !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Catálogo de Pines y Figuras: 2 columnas proporcionales */
+    .dyn-product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        padding: 4px !important;
+        width: 100% !important;
+    }
+
+    .dyn-card {
+        border-radius: 18px !important;
+    }
+
+    .dyn-card-body {
+        padding: 10px 8px !important;
+        gap: 5px !important;
+    }
+
+    .dyn-card-title {
+        font-size: 0.88rem !important;
+        line-height: 1.3 !important;
+        min-height: 2.6em !important;
+    }
+
+    .dyn-card-meta {
+        font-size: 0.72rem !important;
+        line-height: 1.35 !important;
+    }
+
+    .dyn-card-price {
+        font-size: 1.15rem !important;
+    }
+
+    .btn-dyn-add {
+        min-height: 40px !important;
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+        border-radius: 25px !important;
+    }
+
+    .catalog-quick-nav {
+        gap: 6px !important;
+        padding: 8px 4px !important;
+        margin: 8px auto 14px auto !important;
+    }
+
+    .catalog-quick-btn {
+        padding: 6px 10px !important;
+        font-size: 0.76rem !important;
+    }
+}

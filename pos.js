@@ -399,8 +399,13 @@ const loadDashboardData = () => {
                     <td>${dateStr}</td>
                     <td>${sale.customer}</td>
                     <td title="${sale.items ? sale.items.map(i => i.name).join(', ') : ''}">${itemsText}</td>
-                    <td style="color:var(--neon-cyan); font-weight:bold;">$${(sale.total||0).toLocaleString()}</td>
-                    <td>${sale.status || 'N/A'}</td>
+                    <td style="color:var(--neon-cyan); font-weight:bold;">$${(sale.total||0).toLocaleString('es-CO')}</td>
+                    <td><span style="font-size:0.75rem; background:rgba(0,240,255,0.1); color:#00f0ff; padding:2px 8px; border-radius:10px;">${sale.status || 'N/A'}</span></td>
+                    <td style="white-space:nowrap;">
+                        <button onclick="window.downloadSaleInvoicePDF('${sale.id}')" title="Descargar Factura PDF" style="background:#00f0ff; color:#000; border:none; padding:4px 7px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-right:4px;">📄 PDF</button>
+                        <button onclick="window.sendSaleWA('${sale.id}')" title="Reenviar por WhatsApp" style="background:#25D366; color:#fff; border:none; padding:4px 7px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem; margin-right:4px;">💬 WA</button>
+                        <button onclick="window.sendSaleEmail('${sale.id}')" title="Reenviar Factura por Correo (EmailJS)" style="background:#ff007f; color:#fff; border:none; padding:4px 7px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">✉️ Correo</button>
+                    </td>
                 </tr>
             `;
         });
@@ -2810,4 +2815,138 @@ window.exportDianPDF = function() {
     doc.rect(0, pageHeight - 2, pageWidth, 2, 'F');
 
     doc.save('Balance_Fiscal_DIAN_' + metrics.year + '_KnifeBlackStore.pdf');
+};
+
+
+// ============================================================================
+// FUNCIONES DE FACTURACIÓN & REENVÍO PARA EL ADMINISTRADOR (POS)
+// ============================================================================
+window.getSaleById = function(saleId) {
+    if (!allSalesData) return null;
+    return allSalesData.find(function(s) { return s.id === saleId; });
+};
+
+window.buildSaleInvoiceObj = function(sale) {
+    var saleDate = sale.date ? new Date(sale.date) : new Date();
+    return {
+        invoiceNumber: sale.invoiceNumber || ('KBS-' + (sale.id ? sale.id.substring(sale.id.length - 4) : '0001')),
+        date: saleDate.toLocaleDateString('es-CO'),
+        time: saleDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+        paymentMethod: sale.paymentMethod || sale.payment_method || 'Efectivo',
+        customerName: sale.customer || 'Consumidor Final',
+        customerDoc: sale.customerDoc || sale.cedula || 'Consumidor Final',
+        customerPhone: sale.customerPhone || sale.phone || 'N/A',
+        customerAddress: sale.customerAddress || sale.address || 'Pereira - Risaralda',
+        customerEmail: sale.email || '',
+        items: (sale.items || []).map(function(i) { return { name: i.name || 'Producto', price: i.price || 0, qty: i.qty || 1 }; }),
+        subtotal: sale.subtotal || sale.total || 0,
+        discount: sale.discountAmount || 0,
+        total: sale.total || 0,
+        ownerNit: '1088288308-0',
+        ownerPhone: '3108014660',
+        ownerEmail: 'knifeblackstore@gmail.com',
+        ownerCity: 'Pereira - Risaralda, Colombia'
+    };
+};
+
+window.downloadSaleInvoicePDF = function(saleId) {
+    var sale = window.getSaleById(saleId);
+    if (!sale) {
+        alert("No se encontró la venta.");
+        return;
+    }
+    var invObj = window.buildSaleInvoiceObj(sale);
+    try {
+        var doc = window.generateInvoicePDF(invObj);
+        if (doc) doc.save('Factura_' + invObj.invoiceNumber + '.pdf');
+    } catch (e) {
+        console.error('Error generando PDF:', e);
+        alert('Error generando PDF: ' + e.message);
+    }
+};
+
+window.sendSaleWA = function(saleId) {
+    var sale = window.getSaleById(saleId);
+    if (!sale) return;
+    var inv = window.buildSaleInvoiceObj(sale);
+    var phone = (inv.customerPhone || '').replace(/\D/g, '');
+    if (!phone) {
+        phone = prompt("Ingresa el número celular / WhatsApp del cliente:", "");
+        if (!phone) return;
+        phone = phone.replace(/\D/g, '');
+    }
+
+    var msg = "*KNIFEBLACK STORE - FACTURA DE VENTA*\n";
+    msg += "📄 *Factura N°:* " + inv.invoiceNumber + "\n";
+    msg += "📅 *Fecha:* " + inv.date + " " + inv.time + "\n";
+    msg += "👤 *Cliente:* " + inv.customerName + "\n";
+    if (inv.customerDoc && inv.customerDoc !== 'Consumidor Final') {
+        msg += "🪪 *Cédula/NIT:* " + inv.customerDoc + "\n";
+    }
+    msg += "\n*DETALLE DE PRODUCTOS:*\n";
+    (inv.items || []).forEach(function(it) {
+        msg += "• " + it.name + " (x" + (it.qty || 1) + ") - $" + ((it.price || 0) * (it.qty || 1)).toLocaleString('es-CO') + "\n";
+    });
+    msg += "\n*TOTAL FACTURADO:* $" + (inv.total || 0).toLocaleString('es-CO') + " COP\n";
+    msg += "💳 *Método de Pago:* " + inv.paymentMethod + "\n\n";
+    msg += "NIT Emisor: 1088288308-0 • Tel: 3108014660\n";
+    msg += "¡Gracias por tu compra en KnifeBlackStore!";
+
+    var encoded = encodeURIComponent(msg);
+    var targetPhone = phone.length >= 10 ? (phone.startsWith('57') ? phone : '57' + phone) : '';
+    var url = targetPhone ? ('https://wa.me/' + targetPhone + '?text=' + encoded) : ('https://wa.me/?text=' + encoded);
+    window.open(url, '_blank');
+};
+
+window.sendSaleEmail = async function(saleId) {
+    var sale = window.getSaleById(saleId);
+    if (!sale) return;
+    var inv = window.buildSaleInvoiceObj(sale);
+    var email = inv.customerEmail;
+    if (!email || !email.includes('@')) {
+        email = prompt("Ingresa el correo del cliente para enviar la factura:", "");
+        if (!email || !email.includes('@')) {
+            alert("Correo no válido.");
+            return;
+        }
+    }
+
+    if (typeof emailjs === 'undefined') {
+        alert("El servicio de correo (EmailJS) no está disponible en este momento.");
+        return;
+    }
+
+    var itemsList = (inv.items || []).map(function(it, idx) {
+        return (idx + 1) + '. ' + it.name + ' (x' + (it.qty || 1) + ') - $' + ((it.price || 0) * (it.qty || 1)).toLocaleString('es-CO') + ' COP';
+    }).join('\n');
+
+    var emailBody = '¡Hola ' + inv.customerName + '! Te adjuntamos el detalle de tu factura oficial de KnifeBlackStore.\n\n'
+        + '==========================================\n'
+        + 'FACTURA DE VENTA: ' + inv.invoiceNumber + '\n'
+        + 'Fecha: ' + inv.date + ' ' + inv.time + '\n'
+        + 'Cliente: ' + inv.customerName + ' (C.C./NIT: ' + inv.customerDoc + ')\n'
+        + 'Dirección: ' + inv.customerAddress + '\n'
+        + 'Teléfono: ' + inv.customerPhone + '\n'
+        + '==========================================\n\n'
+        + 'PRODUCTOS:\n' + itemsList + '\n\n'
+        + 'Subtotal: $' + (inv.subtotal || 0).toLocaleString('es-CO') + ' COP\n'
+        + (inv.discount > 0 ? ('Descuento: -$' + (inv.discount || 0).toLocaleString('es-CO') + ' COP\n') : '')
+        + 'TOTAL FACTURADO: $' + (inv.total || 0).toLocaleString('es-CO') + ' COP\n'
+        + 'Forma de Pago: ' + inv.paymentMethod + '\n\n'
+        + 'Emisor: KnifeBlackStore • NIT: 1088288308-0\n'
+        + 'Tel/WhatsApp: 3108014660 • Pereira - Risaralda, Colombia\n'
+        + '¡Gracias por confiar en KnifeBlackStore!';
+
+    try {
+        await emailjs.send("service_5hy8csv", "template_lirlr2z", {
+            to_name: inv.customerName,
+            to_email: email,
+            message: emailBody,
+            from_name: "KnifeBlackStore"
+        });
+        alert("✅ Factura " + inv.invoiceNumber + " enviada exitosamente al correo " + email);
+    } catch (err) {
+        console.error("Error enviando factura por email:", err);
+        alert("Ocurrió un error al enviar el correo: " + err.message);
+    }
 };

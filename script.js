@@ -838,85 +838,374 @@ window.clearCart = () => {
     }
 };
 
-window.checkoutCart = () => {
-    if (cart.length === 0) return;
-    
-    // VERIFICACIÓN DE SESIÓN
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    
-    let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
-    let total = subtotal;
-    let descAmount = 0;
-    
-    if (window.currentDiscount) {
-        descAmount = window.currentDiscount.type === 'percentage' 
-            ? total * (window.currentDiscount.amount / 100) 
-            : window.currentDiscount.amount;
-        if (descAmount > total) descAmount = total;
-        total -= descAmount;
+// ============================================================================
+// GENERADOR OFICIAL DE FACTURA PDF (KNIFEBLACK STORE - NIT: 1088288308-0)
+// ============================================================================
+window.generateInvoicePDF = function(data) {
+    if (!window.jspdf) {
+        alert("La librería de generación PDF está cargando. Por favor presiona de nuevo en 2 segundos.");
+        return null;
     }
-    
-    let description = cart.map(it => it.name).join(', ');
+    const jsPDF = window.jspdf.jsPDF;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const margin = 14;
 
-    // REGISTRAR VENTA EN FIREBASE ANTES DE REDIRIGIR
-    const saleData = {
-        customer: user ? (user.name || user.email) : 'Cliente Invitado',
-        customerDoc: user ? (user.doc || user.cedula || 'Consumidor Final') : 'Consumidor Final',
-        customerPhone: user ? (user.phone || '') : '',
-        paymentMethod: 'WhatsApp / Transferencia',
-        email: user ? user.email : 'invitado@tienda',
-        items: cart,
-        total: total,
-        subtotal: subtotal,
-        discountApplied: window.currentDiscount ? window.currentDiscount.code : null,
-        discountAmount: descAmount,
-        date: new Date().toISOString(),
-        status: 'Pendiente (WhatsApp)'
-    };
-    db.ref('sales').push(saleData);
+    // 1. Top Decorative Bar
+    doc.setFillColor(15, 15, 22);
+    doc.rect(0, 0, pageWidth, 5, 'F');
+    doc.setFillColor(0, 240, 255);
+    doc.rect(0, 5, pageWidth, 1.5, 'F');
 
-    let message = "🚀 *NUEVO PEDIDO - KNIFEBLACKSTORE*\n\n";
-    if (user) {
-        message += `👤 *Cliente:* ${user.name} (${user.email})\n`;
-        message += "------------------------------------------\n";
-    }
-    message += "Hola, estoy interesado en los siguientes productos:\n\n";
-    
-    cart.forEach((it, idx) => {
-        message += `${idx + 1}. *${it.name}* - $${it.price.toLocaleString()}\n`;
+    // 2. Company Brand & Info (Left)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(15, 15, 22);
+    doc.text('KNIFEBLACK STORE', margin, 18);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100, 100, 110);
+    doc.text('Pines Metálicos, Figuras de Acción, Accesorios y Streaming', margin, 23);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(50, 50, 60);
+    doc.text('NIT: ' + (data.ownerNit || '1088288308-0'), margin, 29);
+    doc.text('Teléfono / WhatsApp: ' + (data.ownerPhone || '3108014660'), margin, 34);
+    doc.text('Email: ' + (data.ownerEmail || 'knifeblackstore@gmail.com'), margin, 39);
+    doc.text('Ciudad: ' + (data.ownerCity || 'Pereira - Risaralda, Colombia'), margin, 44);
+    doc.text('Régimen: No Responsable de IVA (Art. 499 E.T.)', margin, 49);
+
+    // 3. Invoice Metadata Box (Right)
+    const boxX = 130;
+    const boxY = 12;
+    const boxW = 66;
+    const boxH = 39;
+
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(0, 240, 255);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(boxX, boxY, boxW, boxH, 3, 3, 'FD');
+
+    doc.setFillColor(15, 15, 22);
+    doc.roundedRect(boxX, boxY, boxW, 10, 3, 3, 'F');
+    doc.rect(boxX, boxY + 7, boxW, 3, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.text('FACTURA DE VENTA', boxX + boxW / 2, boxY + 7, { align: 'center' });
+
+    doc.setFontSize(12);
+    doc.setTextColor(255, 0, 127);
+    doc.text(data.invoiceNumber || 'N° KBS-0001', boxX + boxW / 2, boxY + 17, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 70);
+    doc.text('Fecha: ' + (data.date || new Date().toLocaleDateString('es-CO')), boxX + 4, boxY + 24);
+    doc.text('Hora: ' + (data.time || new Date().toLocaleTimeString('es-CO')), boxX + 4, boxY + 29);
+    doc.text('Pago: ' + (data.paymentMethod || 'Efectivo / Transferencia'), boxX + 4, boxY + 34);
+
+    // 4. Client Info Box
+    const clientY = 56;
+    doc.setFillColor(250, 250, 252);
+    doc.setDrawColor(220, 225, 230);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, clientY, pageWidth - (margin * 2), 26, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 15, 22);
+    doc.text('DATOS DEL CLIENTE / ADQUIRENTE', margin + 4, clientY + 6);
+
+    doc.setDrawColor(0, 240, 255);
+    doc.setLineWidth(0.5);
+    doc.line(margin + 4, clientY + 8, margin + 65, clientY + 8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(50, 50, 60);
+
+    const col1X = margin + 4;
+    const col2X = margin + 100;
+
+    doc.text('Cliente: ' + (data.customerName || 'Consumidor Final'), col1X, clientY + 14);
+    doc.text('Cédula / NIT: ' + (data.customerDoc || 'Consumidor Final'), col1X, clientY + 20);
+
+    doc.text('Teléfono / Cel: ' + (data.customerPhone || 'N/A'), col2X, clientY + 14);
+    doc.text('Dirección: ' + (data.customerAddress || 'Pereira / Envío Nacional'), col2X, clientY + 20);
+
+    // 5. Items Table
+    let tableY = 88;
+    const colW = { num: 12, desc: 95, qty: 18, unit: 28, total: 29 };
+
+    doc.setFillColor(20, 20, 30);
+    doc.rect(margin, tableY, pageWidth - (margin * 2), 8, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+
+    let curX = margin;
+    doc.text('#', curX + 3, tableY + 5.5);
+    curX += colW.num;
+    doc.text('DESCRIPCIÓN DEL ARTÍCULO', curX + 2, tableY + 5.5);
+    curX += colW.desc;
+    doc.text('CANT.', curX + colW.qty / 2, tableY + 5.5, { align: 'center' });
+    curX += colW.qty;
+    doc.text('PRECIO UNIT.', curX + colW.unit - 2, tableY + 5.5, { align: 'right' });
+    curX += colW.unit;
+    doc.text('SUBTOTAL', curX + colW.total - 2, tableY + 5.5, { align: 'right' });
+
+    tableY += 8;
+
+    const items = data.items || [];
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+
+    items.forEach((it, idx) => {
+        const isEven = idx % 2 === 0;
+        doc.setFillColor(isEven ? 255 : 248, isEven ? 255 : 249, isEven ? 255 : 252);
+        doc.rect(margin, tableY, pageWidth - (margin * 2), 7.5, 'F');
+
+        doc.setDrawColor(235, 238, 242);
+        doc.setLineWidth(0.2);
+        doc.line(margin, tableY + 7.5, pageWidth - margin, tableY + 7.5);
+
+        doc.setTextColor(60, 60, 70);
+        curX = margin;
+        doc.text(String(idx + 1), curX + 3, tableY + 5);
+        curX += colW.num;
+
+        const itemName = it.name ? (it.name.length > 55 ? it.name.substring(0, 52) + '...' : it.name) : 'Producto';
+        doc.text(itemName, curX + 2, tableY + 5);
+        curX += colW.desc;
+
+        doc.text(String(it.qty || 1), curX + colW.qty / 2, tableY + 5, { align: 'center' });
+        curX += colW.qty;
+
+        const unitPrice = '$' + (it.price || 0).toLocaleString('es-CO');
+        doc.text(unitPrice, curX + colW.unit - 2, tableY + 5, { align: 'right' });
+        curX += colW.unit;
+
+        const lineTotal = '$' + ((it.price || 0) * (it.qty || 1)).toLocaleString('es-CO');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(20, 20, 25);
+        doc.text(lineTotal, curX + colW.total - 2, tableY + 5, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+
+        tableY += 7.5;
     });
-    
-    if (window.currentDiscount) {
-        // Eliminar el cupón para que sea de un solo uso
-        db.ref('discountCodes/' + window.currentDiscount.code).remove();
-        message += `\n🎟️ *Cupón aplicado (${window.currentDiscount.code}):* -$${descAmount.toLocaleString()}\n`;
-    }
-    
-    message += `\n💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n\n`;
-    message += "Quedo atento para coordinar el pago. ¡Gracias!";
-    
-    const encoded = encodeURIComponent(message);
-    
-    // Limpiar carrito
-    localStorage.removeItem('shoppingCart');
-    cart = [];
-    window.currentDiscount = null;
-    updateCartUI();
-    
-    window.open(`https://wa.me/573108014660?text=${encoded}`, '_blank');
+
+    // 6. Totals Box
+    tableY += 4;
+    const totW = 85;
+    const totX = pageWidth - margin - totW;
+    const totY = tableY;
+
+    doc.setFillColor(250, 250, 252);
+    doc.setDrawColor(220, 225, 230);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(totX, totY, totW, 35, 2, 2, 'FD');
+
+    const subtotal = data.subtotal || 0;
+    const discount = data.discount || 0;
+    const total = data.total || (subtotal - discount);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(70, 70, 80);
+    doc.text('Subtotal:', totX + 6, totY + 7);
+    doc.text('$' + subtotal.toLocaleString('es-CO'), totX + totW - 6, totY + 7, { align: 'right' });
+
+    doc.text('Descuento:', totX + 6, totY + 13);
+    doc.setTextColor(231, 76, 60);
+    doc.text('-$' + discount.toLocaleString('es-CO'), totX + totW - 6, totY + 13, { align: 'right' });
+
+    doc.setTextColor(70, 70, 80);
+    doc.text('IVA (0% - Régimen Simplificado):', totX + 6, totY + 19);
+    doc.text('$0', totX + totW - 6, totY + 19, { align: 'right' });
+
+    doc.setFillColor(15, 15, 22);
+    doc.roundedRect(totX + 2, totY + 23, totW - 4, 10, 1.5, 1.5, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(0, 240, 255);
+    doc.text('TOTAL A PAGAR:', totX + 6, totY + 29.5);
+    doc.text('$' + total.toLocaleString('es-CO') + ' COP', totX + totW - 6, totY + 29.5, { align: 'right' });
+
+    // Warranty & Conditions
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(20, 20, 30);
+    doc.text('CONDICIONES & GARANTÍA:', margin + 2, totY + 7);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(90, 90, 100);
+    doc.text('• Cambios de mercancía dentro de los 5 días posteriores a la compra.', margin + 2, totY + 12);
+    doc.text('• Conservar esta factura para hacer efectiva cualquier garantía.', margin + 2, totY + 16);
+    doc.text('• Servicio al cliente y soporte: 3108014660', margin + 2, totY + 20);
+
+    // 7. Footer
+    const footerY = pageHeight - 12;
+    doc.setFontSize(7);
+    doc.setTextColor(110, 110, 120);
+    doc.text('Documento equivalente de venta expedido conforme a las normas del Estatuto Tributario para personas naturales', pageWidth / 2, footerY, { align: 'center' });
+    doc.text('no obligadas a expedir factura electrónica. KnifeBlackStore • NIT: 1088288308-0 • Tel: 3108014660', pageWidth / 2, footerY + 4, { align: 'center' });
+
+    doc.setFillColor(0, 240, 255);
+    doc.rect(0, pageHeight - 2, pageWidth, 2, 'F');
+
+    return doc;
 };
 
-window.checkoutWompi = () => {
-    if (cart.length === 0) return;
-    
-    // VERIFICACIÓN DE SESIÓN
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    
-    
-    let subtotal = cart.reduce((sum, it) => sum + it.price, 0);
+// ============================================================================
+// MODAL DE CHECKOUT DEL CLIENTE CON VALIDACIÓN OBLIGATORIA
+// ============================================================================
+window.openCustomerCheckoutModal = function(preferredPaymentMethod) {
+    if (!cart || cart.length === 0) {
+        alert("Tu carrito está vacío. Agrega tus figuras, pines o pantallas de streaming antes de comprar.");
+        return;
+    }
+
+    if (typeof window.closeDrawerCart === 'function') window.closeDrawerCart();
+
+    let modal = document.getElementById('kbs-customer-checkout-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'kbs-customer-checkout-modal';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:99999; padding:15px; box-sizing:border-box;';
+        modal.innerHTML = `
+            <div style="background:radial-gradient(130% 130% at 20% 10%, rgba(255,255,255,0.06) 0%, rgba(18,18,28,0.98) 70%, rgba(10,10,18,1) 100%); border:1px solid rgba(0,240,255,0.4); border-radius:24px; max-width:520px; width:100%; max-height:92vh; overflow-y:auto; padding:22px; box-shadow:0 20px 50px rgba(0,0,0,0.8), 0 0 25px rgba(0,240,255,0.25); color:#fff; font-family:'Inter', sans-serif;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,240,255,0.25); padding-bottom:12px; margin-bottom:16px;">
+                    <div>
+                        <h2 style="margin:0; font-size:1.25rem; font-weight:900; color:#fff; display:flex; align-items:center; gap:8px;">
+                            🧾 Datos para tu Factura de Venta
+                        </h2>
+                        <p style="margin:4px 0 0; font-size:0.75rem; color:#888;">Emisión oficial KnifeBlackStore • NIT: 1088288308-0</p>
+                    </div>
+                    <button onclick="window.closeCustomerCheckoutModal()" style="background:transparent; border:none; color:#aaa; font-size:1.4rem; cursor:pointer; padding:4px 8px; border-radius:8px;" title="Cerrar">✕</button>
+                </div>
+
+                <div id="kbs-checkout-alert" style="display:none; background:rgba(255,0,127,0.15); border:1px solid #ff007f; color:#ff80bf; padding:10px 14px; border-radius:12px; font-size:0.8rem; margin-bottom:14px; font-weight:600;">
+                    ⚠️ Por favor completa todos los campos obligatorios para emitir tu factura y procesar tu pedido.
+                </div>
+
+                <!-- Resumen Compacto -->
+                <div style="background:rgba(255,255,255,0.04); border-radius:14px; padding:12px; margin-bottom:16px; border:1px solid rgba(255,255,255,0.08);">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#aaa; margin-bottom:6px;">
+                        <span>Productos seleccionados:</span>
+                        <span id="kbs-modal-items-count" style="color:#00f0ff; font-weight:700;">0</span>
+                    </div>
+                    <div id="kbs-modal-items-preview" style="max-height:80px; overflow-y:auto; font-size:0.78rem; color:#ddd; margin-bottom:8px; line-height:1.4;"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">
+                        <span style="font-weight:700; font-size:0.9rem;">TOTAL A PAGAR:</span>
+                        <span id="kbs-modal-total-display" style="color:#00f0ff; font-weight:900; font-size:1.15rem;">$0 COP</span>
+                    </div>
+                </div>
+
+                <!-- Formulario Obligatorio -->
+                <form id="kbs-customer-form" onsubmit="window.submitCustomerOrder(event)" style="display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:0.78rem; font-weight:700; color:#00f0ff; margin-bottom:4px;">
+                            👤 Nombre Completo *
+                        </label>
+                        <input type="text" id="kbs-cust-name" required placeholder="Ej: Santiago Morales" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.5); border:1px solid #333; color:#fff; padding:10px 12px; border-radius:10px; font-size:0.85rem; outline:none; transition:border 0.2s;" onfocus="this.style.borderColor='#00f0ff'" onblur="this.style.borderColor='#333'">
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div>
+                            <label style="display:block; font-size:0.78rem; font-weight:700; color:#00f0ff; margin-bottom:4px;">
+                                📧 Correo Electrónico *
+                            </label>
+                            <input type="email" id="kbs-cust-email" required placeholder="tu@correo.com" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.5); border:1px solid #333; color:#fff; padding:10px 12px; border-radius:10px; font-size:0.85rem; outline:none; transition:border 0.2s;" onfocus="this.style.borderColor='#00f0ff'" onblur="this.style.borderColor='#333'">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:0.78rem; font-weight:700; color:#00f0ff; margin-bottom:4px;">
+                                📱 WhatsApp / Celular *
+                            </label>
+                            <input type="tel" id="kbs-cust-phone" required placeholder="Ej: 3108014660" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.5); border:1px solid #333; color:#fff; padding:10px 12px; border-radius:10px; font-size:0.85rem; outline:none; transition:border 0.2s;" onfocus="this.style.borderColor='#00f0ff'" onblur="this.style.borderColor='#333'">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div>
+                            <label style="display:block; font-size:0.78rem; font-weight:700; color:#00f0ff; margin-bottom:4px;">
+                                🪪 Cédula o NIT *
+                            </label>
+                            <input type="text" id="kbs-cust-doc" required placeholder="Ej: 1088288308" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.5); border:1px solid #333; color:#fff; padding:10px 12px; border-radius:10px; font-size:0.85rem; outline:none; transition:border 0.2s;" onfocus="this.style.borderColor='#00f0ff'" onblur="this.style.borderColor='#333'">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:0.78rem; font-weight:700; color:#00f0ff; margin-bottom:4px;">
+                                💳 Forma de Pago *
+                            </label>
+                            <select id="kbs-cust-payment" style="width:100%; box-sizing:border-box; background:rgba(20,20,30,0.95); border:1px solid #333; color:#fff; padding:10px 12px; border-radius:10px; font-size:0.82rem; outline:none;">
+                                <option value="WhatsApp / Transferencia (Nequi / Daviplata)">WhatsApp / Transferencia (Nequi / Daviplata)</option>
+                                <option value="Wompi (Nequi, Bancolombia, Tarjeta)">Wompi (Nequi, Bancolombia, Tarjeta)</option>
+                                <option value="ePayco (PSE, Tarjetas)">ePayco (PSE, Tarjetas)</option>
+                                <option value="Efectivo Contra Entrega (Pereira)">Efectivo Contra Entrega (Pereira)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.78rem; font-weight:700; color:#00f0ff; margin-bottom:4px;">
+                            📍 Dirección de Entrega y Ciudad *
+                        </label>
+                        <input type="text" id="kbs-cust-address" required placeholder="Ej: Cra 7 # 20-30, Pereira - Risaralda" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.5); border:1px solid #333; color:#fff; padding:10px 12px; border-radius:10px; font-size:0.85rem; outline:none; transition:border 0.2s;" onfocus="this.style.borderColor='#00f0ff'" onblur="this.style.borderColor='#333'">
+                    </div>
+
+                    <div style="font-size:0.72rem; color:#888; margin-top:2px; line-height:1.4;">
+                        🔒 Tus datos están protegidos. Al confirmar se generará y descargará tu factura oficial en PDF, se enviará copia a tu correo y se abrirá WhatsApp para coordinar tu entrega.
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:6px;">
+                        <button type="button" onclick="window.closeCustomerCheckoutModal()" style="flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#fff; padding:12px; border-radius:12px; font-weight:700; cursor:pointer; font-size:0.85rem;">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="kbs-btn-submit-order" style="flex:2; background:linear-gradient(135deg, #00f0ff 0%, #ff007f 100%); color:#000; border:none; padding:12px; border-radius:12px; font-weight:900; cursor:pointer; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.5px; box-shadow:0 0 20px rgba(0,240,255,0.4);">
+                            🚀 Confirmar y Facturar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    // Prefill data
+    const user = JSON.parse(localStorage.getItem('currentUser')) || {};
+    const lastCust = JSON.parse(localStorage.getItem('knifeblack_last_cust')) || {};
+
+    const nameInput = document.getElementById('kbs-cust-name');
+    const emailInput = document.getElementById('kbs-cust-email');
+    const phoneInput = document.getElementById('kbs-cust-phone');
+    const docInput = document.getElementById('kbs-cust-doc');
+    const addressInput = document.getElementById('kbs-cust-address');
+    const paymentSelect = document.getElementById('kbs-cust-payment');
+
+    if (nameInput) nameInput.value = user.name || lastCust.name || '';
+    if (emailInput) emailInput.value = user.email || lastCust.email || '';
+    if (phoneInput) phoneInput.value = user.phone || lastCust.phone || '';
+    if (docInput) docInput.value = user.doc || user.cedula || lastCust.doc || '';
+    if (addressInput) addressInput.value = user.address || lastCust.address || '';
+    if (paymentSelect && preferredPaymentMethod) {
+        for (let i = 0; i < paymentSelect.options.length; i++) {
+            if (paymentSelect.options[i].value.toLowerCase().includes(preferredPaymentMethod.toLowerCase())) {
+                paymentSelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+
+    // Calcular montos y resumen
+    let subtotal = cart.reduce((sum, it) => sum + (it.price || 0), 0);
     let total = subtotal;
     let descAmount = 0;
-    
     if (window.currentDiscount) {
         descAmount = window.currentDiscount.type === 'percentage' 
             ? total * (window.currentDiscount.amount / 100) 
@@ -925,32 +1214,312 @@ window.checkoutWompi = () => {
         total -= descAmount;
     }
 
-    // REGISTRAR VENTA EN FIREBASE ANTES DE REDIRIGIR A WOMPI
-    const saleData = {
-        customer: user ? user.name : 'Cliente Invitado',
-        email: user ? user.email : 'invitado@tienda',
-        items: cart,
-        total: total,
-        subtotal: subtotal,
-        discountApplied: window.currentDiscount ? window.currentDiscount.code : null,
-        discountAmount: descAmount,
-        date: new Date().toISOString(),
-        status: 'Pendiente (Wompi)'
-    };
-    db.ref('sales').push(saleData);
+    const itemsCountEl = document.getElementById('kbs-modal-items-count');
+    const itemsPreviewEl = document.getElementById('kbs-modal-items-preview');
+    const totalDisplayEl = document.getElementById('kbs-modal-total-display');
 
-    if (window.currentDiscount) {
-        db.ref('discountCodes/' + window.currentDiscount.code).remove();
+    if (itemsCountEl) itemsCountEl.innerText = cart.length + ' producto(s)';
+    if (itemsPreviewEl) {
+        itemsPreviewEl.innerHTML = cart.map((it, idx) => `<div>• <b>${it.name}</b> - $${(it.price || 0).toLocaleString('es-CO')}</div>`).join('');
     }
-    
-    // Limpiar carrito
-    localStorage.removeItem('shoppingCart');
-    cart = [];
-    window.currentDiscount = null;
-    updateCartUI();
-    
-    window.open('https://checkout.nequi.wompi.co/l/VPOS_mXUiKY', '_blank');
+    if (totalDisplayEl) totalDisplayEl.innerText = '$' + total.toLocaleString('es-CO') + ' COP';
+
+    const alertEl = document.getElementById('kbs-checkout-alert');
+    if (alertEl) alertEl.style.display = 'none';
+
+    modal.style.display = 'flex';
 };
+
+window.closeCustomerCheckoutModal = function() {
+    const modal = document.getElementById('kbs-customer-checkout-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+// ============================================================================
+// ENVÍO DE PEDIDO Y GENERACIÓN MULTICANAL (PDF + EMAIL + WHATSAPP)
+// ============================================================================
+window.lastGeneratedInvoice = null;
+
+window.submitCustomerOrder = async function(event) {
+    if (event && event.preventDefault) event.preventDefault();
+
+    const nameInput = document.getElementById('kbs-cust-name');
+    const emailInput = document.getElementById('kbs-cust-email');
+    const phoneInput = document.getElementById('kbs-cust-phone');
+    const docInput = document.getElementById('kbs-cust-doc');
+    const addressInput = document.getElementById('kbs-cust-address');
+    const paymentSelect = document.getElementById('kbs-cust-payment');
+    const alertEl = document.getElementById('kbs-checkout-alert');
+    const submitBtn = document.getElementById('kbs-btn-submit-order');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const doc = docInput ? docInput.value.trim() : '';
+    const address = addressInput ? addressInput.value.trim() : '';
+    const paymentMethod = paymentSelect ? paymentSelect.value : 'WhatsApp / Transferencia';
+
+    // Validación estricta
+    let missing = [];
+    if (!name) missing.push(nameInput);
+    if (!email || !email.includes('@')) missing.push(emailInput);
+    if (!phone) missing.push(phoneInput);
+    if (!doc) missing.push(docInput);
+    if (!address) missing.push(addressInput);
+
+    if (missing.length > 0) {
+        if (alertEl) {
+            alertEl.style.display = 'block';
+            alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        missing.forEach(input => {
+            if (input) {
+                input.style.borderColor = '#ff007f';
+                input.style.boxShadow = '0 0 10px rgba(255,0,127,0.4)';
+            }
+        });
+        if (missing[0]) missing[0].focus();
+        return false;
+    }
+
+    localStorage.setItem('knifeblack_last_cust', JSON.stringify({ name, email, phone, doc, address }));
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = '⏳ Emitiendo Factura y Pedido...';
+        submitBtn.style.opacity = '0.7';
+    }
+
+    try {
+        let subtotal = cart.reduce((sum, it) => sum + (it.price || 0), 0);
+        let total = subtotal;
+        let descAmount = 0;
+        if (window.currentDiscount) {
+            descAmount = window.currentDiscount.type === 'percentage' 
+                ? total * (window.currentDiscount.amount / 100) 
+                : window.currentDiscount.amount;
+            if (descAmount > total) descAmount = total;
+            total -= descAmount;
+        }
+
+        // Obtener consecutivo
+        let nextSeq = 1001;
+        try {
+            const snap = await db.ref('sales').limitToLast(1).once('value');
+            const lastVal = snap.val();
+            if (lastVal) {
+                const lastKey = Object.keys(lastVal)[0];
+                const lastSale = lastVal[lastKey];
+                if (lastSale && lastSale.invoiceNumber && lastSale.invoiceNumber.startsWith('KBS-')) {
+                    const parsed = parseInt(lastSale.invoiceNumber.replace('KBS-', ''), 10);
+                    if (!isNaN(parsed)) nextSeq = parsed + 1;
+                }
+            }
+        } catch (e) {
+            console.warn('Consecutivo secuencial fallback:', e);
+            nextSeq = Math.floor(1000 + (Date.now() % 9000));
+        }
+
+        const invoiceNumber = 'KBS-' + String(nextSeq).padStart(4, '0');
+        const now = new Date();
+
+        const saleData = {
+            invoiceNumber: invoiceNumber,
+            customer: name,
+            customerDoc: doc,
+            customerPhone: phone,
+            customerAddress: address,
+            email: email,
+            paymentMethod: paymentMethod,
+            items: cart.map(i => ({ name: i.name, price: i.price, qty: 1 })),
+            subtotal: subtotal,
+            discountApplied: window.currentDiscount ? window.currentDiscount.code : null,
+            discountAmount: descAmount,
+            total: total,
+            date: now.toISOString(),
+            status: 'Pendiente (Online)',
+            source: 'Web Store'
+        };
+
+        // 1. Guardar en Firebase
+        await db.ref('sales').push(saleData);
+
+        if (window.currentDiscount) {
+            try { db.ref('discountCodes/' + window.currentDiscount.code).remove(); } catch(e){}
+        }
+
+        // 2. Preparar Factura Oficial
+        const invoiceObj = {
+            invoiceNumber: invoiceNumber,
+            date: now.toLocaleDateString('es-CO'),
+            time: now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+            paymentMethod: paymentMethod,
+            customerName: name,
+            customerDoc: doc,
+            customerPhone: phone,
+            customerAddress: address,
+            customerEmail: email,
+            items: cart.map(i => ({ name: i.name, price: i.price, qty: 1 })),
+            subtotal: subtotal,
+            discount: descAmount,
+            total: total,
+            ownerNit: '1088288308-0',
+            ownerPhone: '3108014660',
+            ownerEmail: 'knifeblackstore@gmail.com',
+            ownerCity: 'Pereira - Risaralda, Colombia'
+        };
+        window.lastGeneratedInvoice = invoiceObj;
+
+        // 3. Descarga Automática de Factura en PDF
+        try {
+            const pdfDoc = window.generateInvoicePDF(invoiceObj);
+            if (pdfDoc) {
+                pdfDoc.save('Factura_' + invoiceNumber + '.pdf');
+            }
+        } catch (pdfErr) {
+            console.warn('Error descargando PDF automático:', pdfErr);
+        }
+
+        // 4. Envío por Correo Electrónico (EmailJS)
+        if (typeof emailjs !== 'undefined' && email) {
+            try {
+                let itemsList = cart.map((it, idx) => (idx + 1) + '. ' + it.name + ' - $' + (it.price || 0).toLocaleString('es-CO') + ' COP').join('\n');
+                let emailBody = '¡Hola ' + name + '! Muchas gracias por tu compra en KnifeBlackStore.\n\n'
+                    + '==========================================\n'
+                    + 'FACTURA DE VENTA: ' + invoiceNumber + '\n'
+                    + 'Fecha: ' + invoiceObj.date + ' ' + invoiceObj.time + '\n'
+                    + 'Cliente: ' + name + ' (C.C./NIT: ' + doc + ')\n'
+                    + 'Dirección: ' + address + '\n'
+                    + 'Teléfono: ' + phone + '\n'
+                    + '==========================================\n\n'
+                    + 'PRODUCTOS:\n' + itemsList + '\n\n'
+                    + 'Subtotal: $' + subtotal.toLocaleString('es-CO') + ' COP\n'
+                    + (descAmount > 0 ? ('Descuento: -$' + descAmount.toLocaleString('es-CO') + ' COP\n') : '')
+                    + 'TOTAL A PAGAR: $' + total.toLocaleString('es-CO') + ' COP\n'
+                    + 'Forma de Pago: ' + paymentMethod + '\n\n'
+                    + 'Emisor: KnifeBlackStore • NIT: 1088288308-0\n'
+                    + 'Tel/WhatsApp: 3108014660 • Pereira - Risaralda\n'
+                    + 'Tu factura oficial en PDF se ha generado y descargado en tu dispositivo.';
+
+                emailjs.send("service_5hy8csv", "template_lirlr2z", {
+                    to_name: name,
+                    to_email: email,
+                    message: emailBody,
+                    from_name: "KnifeBlackStore"
+                }).then(() => console.log('Factura enviada por email')).catch(e => console.warn('EmailJS aviso:', e));
+            } catch (emailErr) {
+                console.warn('EmailJS error:', emailErr);
+            }
+        }
+
+        // 5. Preparar Mensaje Estructurado de WhatsApp
+        let waMsg = "🚀 *NUEVO PEDIDO & FACTURA - KNIFEBLACKSTORE*\n\n";
+        waMsg += "📄 *Factura N°:* " + invoiceNumber + "\n";
+        waMsg += "👤 *Cliente:* " + name + "\n";
+        waMsg += "🪪 *Cédula/NIT:* " + doc + "\n";
+        waMsg += "📱 *WhatsApp:* " + phone + "\n";
+        waMsg += "📍 *Dirección:* " + address + "\n";
+        waMsg += "💳 *Método de Pago:* " + paymentMethod + "\n";
+        waMsg += "------------------------------------------\n";
+        waMsg += "*PRODUCTOS FACTURADOS:*\n";
+        cart.forEach((it, idx) => {
+            waMsg += (idx + 1) + ". *" + it.name + "* - $" + (it.price || 0).toLocaleString('es-CO') + "\n";
+        });
+        if (descAmount > 0) {
+            waMsg += "\n🎟️ *Descuento:* -$" + descAmount.toLocaleString('es-CO') + "\n";
+        }
+        waMsg += "\n💰 *TOTAL FACTURADO: $" + total.toLocaleString('es-CO') + " COP*\n\n";
+        waMsg += "NIT Emisor: 1088288308-0 | Tel: 3108014660 | Pereira - Risaralda\n";
+        waMsg += "¡Hola! Acabo de realizar el pedido en la tienda virtual y tengo la factura generada. Quedo atento a la coordinación. ¡Gracias!";
+
+        const encodedWA = encodeURIComponent(waMsg);
+
+        // 6. Limpiar Carrito
+        localStorage.removeItem('shoppingCart');
+        cart = [];
+        window.currentDiscount = null;
+        updateCartUI();
+
+        // Cerrar modal de checkout
+        window.closeCustomerCheckoutModal();
+
+        // 7. Mostrar Modal de Éxito
+        window.showCustomerOrderSuccessModal(invoiceObj, encodedWA);
+
+        // Abrir WhatsApp en pestaña nueva
+        setTimeout(() => {
+            window.open('https://wa.me/573108014660?text=' + encodedWA, '_blank');
+        }, 600);
+
+    } catch (err) {
+        console.error('Error procesando pedido:', err);
+        alert('Ocurrió un inconveniente al procesar: ' + err.message);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = '🚀 Confirmar y Facturar';
+            submitBtn.style.opacity = '1';
+        }
+    }
+};
+
+// Modal de éxito al cliente
+window.showCustomerOrderSuccessModal = function(invoiceObj, encodedWA) {
+    let successModal = document.getElementById('kbs-order-success-modal');
+    if (!successModal) {
+        successModal = document.createElement('div');
+        successModal.id = 'kbs-order-success-modal';
+        successModal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:99999; padding:15px; box-sizing:border-box;';
+        document.body.appendChild(successModal);
+    }
+
+    successModal.innerHTML = `
+        <div style="background:radial-gradient(130% 130% at 20% 10%, rgba(255,255,255,0.08) 0%, rgba(18,18,28,0.98) 70%, rgba(8,8,14,1) 100%); border:1px solid #39ff14; border-radius:24px; max-width:480px; width:100%; padding:26px; box-shadow:0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(57,255,20,0.25); color:#fff; text-align:center; font-family:'Inter', sans-serif;">
+            <div style="font-size:3rem; margin-bottom:10px;">🎉</div>
+            <h2 style="margin:0 0 6px; color:#39ff14; font-size:1.4rem; font-weight:900;">¡Pedido y Factura Generados!</h2>
+            <div style="display:inline-block; background:rgba(0,240,255,0.15); border:1px solid #00f0ff; color:#00f0ff; padding:4px 14px; border-radius:20px; font-weight:800; font-size:0.9rem; margin-bottom:14px;">
+                Factura N° ${invoiceObj.invoiceNumber}
+            </div>
+
+            <p style="font-size:0.85rem; color:#bbb; line-height:1.5; margin:0 0 16px;">
+                Muchas gracias, <b>${invoiceObj.customerName}</b>. Tu factura oficial ha sido descargada automáticamente en PDF y enviada a tu correo <b>${invoiceObj.customerEmail}</b>.
+            </p>
+
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+                <button onclick="window.downloadLastInvoicePDF()" style="background:#00f0ff; color:#000; border:none; padding:12px; border-radius:12px; font-weight:900; cursor:pointer; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    📄 Volver a Descargar Factura PDF
+                </button>
+                <a href="https://wa.me/573108014660?text=${encodedWA}" target="_blank" style="background:#25D366; color:#fff; text-decoration:none; padding:12px; border-radius:12px; font-weight:900; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    💬 Abrir Chat de WhatsApp de la Tienda
+                </a>
+            </div>
+
+            <button onclick="document.getElementById('kbs-order-success-modal').style.display='none'" style="background:transparent; border:1px solid #444; color:#888; padding:8px 16px; border-radius:10px; cursor:pointer; font-size:0.8rem;">
+                Cerrar y Seguir Navegando
+            </button>
+        </div>
+    `;
+    successModal.style.display = 'flex';
+};
+
+window.downloadLastInvoicePDF = function() {
+    if (window.lastGeneratedInvoice) {
+        const doc = window.generateInvoicePDF(window.lastGeneratedInvoice);
+        if (doc) doc.save('Factura_' + (window.lastGeneratedInvoice.invoiceNumber || 'Venta') + '.pdf');
+    } else {
+        alert("No se encontró factura reciente.");
+    }
+};
+
+// Reemplazar llamados antiguos de checkout por el nuevo modal
+window.checkoutCart = function() {
+    window.openCustomerCheckoutModal('WhatsApp / Transferencia');
+};
+
+window.checkoutWompi = function() {
+    window.openCustomerCheckoutModal('Wompi (Nequi, Bancolombia, Tarjeta)');
+};
+
 
 window.payWithEpayco = () => {
     if (cart.length === 0) return;
