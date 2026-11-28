@@ -108,9 +108,9 @@ const renderProducts = (products) => {
                 <div class="price">${p.priceRaw}</div>
                 <div class="${stockClass}" style="margin-bottom:8px;">${stockText}</div>
                 <div style="display:flex; gap:6px; align-items:center;" onclick="event.stopPropagation()">
-                    <button type="button" onclick="window.adjustPOSStock('${p.gridKey}', ${p.itemIdx}, -1, event)" style="background:#444; color:#fff; border:none; width:26px; height:26px; border-radius:4px; cursor:pointer; font-weight:bold;">-</button>
-                    <span style="font-size:0.85rem; color:var(--neon-cyan); font-weight:bold; min-width:30px; text-align:center;">${p.stock}</span>
-                    <button type="button" onclick="window.adjustPOSStock('${p.gridKey}', ${p.itemIdx}, 1, event)" style="background:#444; color:#fff; border:none; width:26px; height:26px; border-radius:4px; cursor:pointer; font-weight:bold;">+</button>
+                    <button type="button" onclick="window.adjustPOSStock('${p.gridKey}', ${p.itemIdx}, -1, event)" style="background:#2a2a38; color:#fff; border:1px solid #444; padding:0 !important; width:28px !important; height:28px !important; min-width:28px !important; min-height:28px !important; border-radius:6px; cursor:pointer; font-weight:900; display:inline-flex; align-items:center; justify-content:center; font-size:1rem;">-</button>
+                    <span style="font-size:0.88rem; color:var(--neon-cyan); font-weight:bold; min-width:26px; text-align:center;">${p.stock}</span>
+                    <button type="button" onclick="window.adjustPOSStock('${p.gridKey}', ${p.itemIdx}, 1, event)" style="background:#2a2a38; color:#fff; border:1px solid #444; padding:0 !important; width:28px !important; height:28px !important; min-width:28px !important; min-height:28px !important; border-radius:6px; cursor:pointer; font-weight:900; display:inline-flex; align-items:center; justify-content:center; font-size:1rem;">+</button>
                     <button type="button" onclick="window.promptEditPOSStock('${p.gridKey}', ${p.itemIdx}, ${p.stock}, event)" style="background:transparent; color:#aaa; border:none; cursor:pointer;" title="Editar número exacto">✏️</button>
                 </div>
             </div>

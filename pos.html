@@ -273,17 +273,36 @@
 
     
         /* Mobile Responsive — Tablet & Phone Overhaul */
+        /* Botones de ajuste de stock limpios y compactos */
+        .pos-product-card button {
+            padding: 0 !important;
+            width: 28px !important;
+            height: 28px !important;
+            min-width: 28px !important;
+            min-height: 28px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.95rem !important;
+            flex-shrink: 0 !important;
+        }
+
         @media (max-width: 900px) {
-            /* === LAYOUT BASE === */
-            body { overflow-y: auto; height: auto; }
+            /* === LAYOUT BASE CON SAFE-AREA S25 ULTRA === */
+            body { 
+                overflow-y: auto; 
+                height: auto; 
+                padding-top: max(16px, env(safe-area-inset-top, 16px));
+            }
             .erp-layout { flex-direction: column; height: auto; display: flex; }
 
-            /* === SIDEBAR → BOTTOM NAV BAR === */
+            /* === SIDEBAR → BOTTOM NAV BAR RESPETANDO BOTONES ANDROID ||| O < === */
             .erp-sidebar {
                 width: 100%;
                 flex-direction: row;
                 flex-wrap: nowrap;
-                padding: 0;
+                padding: 0 4px;
+                padding-bottom: max(18px, env(safe-area-inset-bottom, 18px)) !important;
                 border-right: none;
                 border-top: 1px solid #222;
                 position: fixed;
@@ -292,7 +311,8 @@
                 z-index: 999;
                 background: #08080c;
                 box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
-                height: 65px;
+                height: calc(65px + max(18px, env(safe-area-inset-bottom, 18px))) !important;
+                box-sizing: border-box !important;
             }
             .erp-sidebar h2 { display: none; }
             .nav-btn {
@@ -300,35 +320,60 @@
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                padding: 8px 4px 4px;
+                padding: 6px 3px 2px;
                 font-size: 0.6rem;
-                gap: 3px;
+                gap: 2px;
                 border-left: none;
                 border-top: 3px solid transparent;
                 min-width: 0;
                 text-align: center;
                 line-height: 1.1;
             }
-            .nav-btn span.nav-icon { font-size: 1.5rem; display: block; }
+            .nav-btn span.nav-icon { font-size: 1.4rem; display: block; }
             .nav-btn.active { border-top-color: var(--neon-cyan); background: rgba(0,240,255,0.08); color: var(--neon-cyan); }
             .nav-btn.logout { margin-top: 0; border-top-color: transparent; }
             .nav-btn.logout:hover { border-top-color: var(--neon-pink); border-left-color: transparent; }
 
-            /* === MAIN CONTENT — account for bottom bar === */
-            .erp-main { padding-bottom: 70px; overflow: auto; }
+            /* === MAIN CONTENT — espacio suficiente para barra inferior === */
+            .erp-main { 
+                padding-bottom: calc(85px + max(18px, env(safe-area-inset-bottom, 18px))) !important; 
+                overflow: auto; 
+            }
             .tab-pane.active { display: block; }
 
             /* === POS VENTAS === */
             #tab-pos { flex-direction: column !important; height: auto; display: block; }
             .pos-container { flex-direction: column; height: auto; }
-            .catalog-section { width: 100%; border-right: none; height: auto; padding: 12px; }
+            .catalog-section { 
+                width: 100%; 
+                border-right: none; 
+                height: auto; 
+                padding: 10px 12px;
+                padding-top: max(22px, env(safe-area-inset-top, 22px)) !important;
+            }
+            .header {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                margin-bottom: 12px !important;
+                gap: 8px !important;
+            }
+            .header h1 {
+                font-size: 1.25rem !important;
+                letter-spacing: 1.5px !important;
+                margin: 0 !important;
+            }
+            #btn-open-dash {
+                padding: 8px 14px !important;
+                font-size: 0.8rem !important;
+            }
             .cart-section { width: 100%; border-top: 2px solid var(--neon-cyan); height: auto; padding: 12px; }
-            .products-grid { grid-template-columns: repeat(2, 1fr); max-height: none; overflow: visible; }
+            .products-grid { grid-template-columns: repeat(2, 1fr); max-height: none; overflow: visible; gap: 10px !important; }
             .pos-product-card { padding: 12px 8px; min-height: 100px; }
-            .pos-product-card h3 { font-size: 0.82rem; }
+            .pos-product-card h3 { font-size: 0.82rem; margin-bottom: 6px; }
             .cart-items { max-height: 280px; overflow-y: auto; }
             .btn-checkout { padding: 18px; font-size: 1.1rem; }
-            .search-bar { padding: 14px; font-size: 1rem; }
+            .search-bar { padding: 12px; font-size: 0.95rem; margin-bottom: 14px; }
 
             /* === FORMULARIOS (inputs grandes para dedos) === */
             .fin-input, .sub-form input, .sub-form select {
