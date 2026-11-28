@@ -101,7 +101,7 @@ function renderSpecialSelection() {
         
         container.innerHTML += `
             <div class="special-card">
-                <img src="${p.image || 'https://via.placeholder.com/300?text=Sin+Foto'}" onclick="window.handleImageClick(this.src, event)">
+                <img src="${p.image || (Array.isArray(p.images) && p.images[0]) || 'https://via.placeholder.com/300?text=Sin+Foto'}" onclick="window.handleImageClick(this.src, event)">
                 <div class="special-card-info">
                     <span class="badge" style="background:${badgeColor}; color:${badgeText};">${p.condition.toUpperCase()}</span>
                     <h4>${p.name}</h4>
