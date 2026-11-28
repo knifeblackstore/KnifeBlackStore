@@ -2496,6 +2496,14 @@ window.removeDiscountCode = () => {
     updateCartUI();
 };
 
+// Soporte para aplicar cupón con tecla Enter
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target && e.target.id === 'cart-discount-code') {
+        e.preventDefault();
+        window.applyDiscountCode();
+    }
+});
+
 const initDiscountPanel = () => {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     if (!user || user.role !== 'admin') return;
